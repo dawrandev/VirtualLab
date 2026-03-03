@@ -266,7 +266,7 @@
 
                     {{-- Fixed Sample Tube --}}
                     <div class="sample-tube"
-                         style="left: 450px; top: 130px;"
+                         style="left: 520px; top: 120px;"
                          :class="{'tube-waiting': state.isSterilized && !state.hasSample}">
                         <div class="tube-cap"></div>
                         <div class="tube-body">
@@ -278,16 +278,16 @@
                     {{-- Drop Zone Highlights --}}
                     <div class="drop-zone-highlight"
                          :class="{'active': hoveredZone === 'sterilize'}"
-                         style="left: 250px; top: 180px; width: 100px; height: 200px;"></div>
+                         style="left: 332px; top: 188px; width: 36px; height: 76px;"></div>
                     <div class="drop-zone-highlight"
                          :class="{'active': hoveredZone === 'sampleTube'}"
-                         style="left: 430px; top: 130px; width: 60px; height: 120px;"></div>
+                         style="left: 520px; top: 120px; width: 60px; height: 120px;"></div>
                     <div class="drop-zone-highlight"
                          :class="{'active': hoveredZone === 'slideArea'}"
                          :style="`left: ${itemPositions.slide.x}px; top: ${itemPositions.slide.y}px; width: 120px; height: 40px;`"></div>
                     <div class="drop-zone-highlight"
                          :class="{'active': hoveredZone === 'fixation'}"
-                         style="left: 250px; top: 100px; width: 100px; height: 100px;"></div>
+                         style="left: 320px; top: 178px; width: 60px; height: 96px;"></div>
 
                     {{-- Completion Message --}}
                     <div x-show="allStepsCompleted"

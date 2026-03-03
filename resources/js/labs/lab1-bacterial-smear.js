@@ -16,7 +16,7 @@ Alpine.data('bacterialSmearLab', () => ({
     // Item positions (absolute positioning within workbench)
     itemPositions: {
         loop: { x: 50, y: 100 },
-        slide: { x: 200, y: 100 }
+        slide: { x: 25, y: 395 }
     },
 
     // Experiment state
@@ -147,9 +147,9 @@ Alpine.data('bacterialSmearLab', () => ({
         const itemWidth = this.draggedItem === 'loop' ? 80 : 120;
         const itemHeight = this.draggedItem === 'loop' ? 120 : 40;
 
-        // Bunsen burner zone
-        const bunsenZone = { x: 250, y: 180, width: 100, height: 200 };
-        if (this.isColliding(item, itemWidth, itemHeight, bunsenZone)) {
+        // Bunsen burner flame zone (strict center hit for heating)
+        const flameZone = { x: 332, y: 188, width: 36, height: 76 };
+        if (this.isColliding(item, itemWidth, itemHeight, flameZone, 0)) {
             this.hoveredZone = 'sterilize';
             // Heating effect while dragging over flame
             if (this.draggedItem === 'loop' && !this.state.isSterilized) {
@@ -161,7 +161,7 @@ Alpine.data('bacterialSmearLab', () => ({
         }
 
         // Sample tube zone
-        const sampleZone = { x: 430, y: 130, width: 60, height: 120 };
+        const sampleZone = { x: 520, y: 120, width: 60, height: 120 };
         if (this.isColliding(item, itemWidth, itemHeight, sampleZone)) {
             this.hoveredZone = 'sampleTube';
             return;
@@ -185,8 +185,8 @@ Alpine.data('bacterialSmearLab', () => ({
         }
 
         // Fixation zone
-        const fixationZone = { x: 250, y: 100, width: 100, height: 100 };
-        if (this.draggedItem === 'slide' && this.isColliding(item, itemWidth, itemHeight, fixationZone)) {
+        const fixationZone = { x: 320, y: 178, width: 60, height: 96 };
+        if (this.draggedItem === 'slide' && this.isColliding(item, itemWidth, itemHeight, fixationZone, 4)) {
             this.hoveredZone = 'fixation';
             return;
         }
@@ -206,15 +206,15 @@ Alpine.data('bacterialSmearLab', () => ({
         }
     },
 
-    isColliding(item, itemWidth, itemHeight, zone) {
+    isColliding(item, itemWidth, itemHeight, zone, padding = 20) {
         const itemCenterX = item.x + itemWidth / 2;
         const itemCenterY = item.y + itemHeight / 2;
 
         const expandedZone = {
-            x: zone.x - 20,
-            y: zone.y - 20,
-            width: zone.width + 40,
-            height: zone.height + 40
+            x: zone.x - padding,
+            y: zone.y - padding,
+            width: zone.width + (padding * 2),
+            height: zone.height + (padding * 2)
         };
 
         return itemCenterX >= expandedZone.x &&
@@ -285,7 +285,7 @@ Alpine.data('bacterialSmearLab', () => ({
         this.liquidLevel = 60;
         this.itemPositions = {
             loop: { x: 50, y: 100 },
-            slide: { x: 200, y: 100 }
+            slide: { x: 25, y: 395 }
         };
         this.isDragging = false;
         this.draggedItem = null;
