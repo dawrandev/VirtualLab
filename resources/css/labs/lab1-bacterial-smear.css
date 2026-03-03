@@ -145,10 +145,63 @@ body.lab-page {
     font-weight: 600;
     white-space: nowrap;
     pointer-events: none;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 2px 8px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* ==================== LOOP DYNAMIC BENDING ==================== */
+.inoculating-loop.dragging .loop-circle {
+    transition: transform 0.1s ease-out;
+}
+
+.inoculating-loop.dragging.drag-left .loop-circle {
+    transform: translateX(-50%) rotate(-8deg) skewX(-3deg);
+}
+
+.inoculating-loop.dragging.drag-right .loop-circle {
+    transform: translateX(-50%) rotate(8deg) skewX(3deg);
+}
+
+.inoculating-loop.dragging.drag-up .loop-circle {
+    transform: translateX(-50%) rotate(0deg) skewY(-4deg) scaleY(0.95);
+}
+
+.inoculating-loop.dragging.drag-down .loop-circle {
+    transform: translateX(-50%) rotate(0deg) skewY(4deg) scaleY(1.05);
+}
+
+.inoculating-loop.dragging .loop-handle {
+    transition: transform 0.15s ease-out;
+}
+
+.inoculating-loop.dragging.drag-left .loop-handle {
+    transform: translateX(-50%) rotate(-3deg);
+}
+
+.inoculating-loop.dragging.drag-right .loop-handle {
+    transform: translateX(-50%) rotate(3deg);
+}
+
+/* Subtle swing animation when moving */
+.inoculating-loop.dragging {
+    animation: loop-swing 0.3s ease-in-out;
+}
+
+@keyframes loop-swing {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-1deg);
+    }
+    75% {
+        transform: rotate(1deg);
+    }
 }
 
 /* ==================== BUNSEN BURNER ==================== */
@@ -314,6 +367,76 @@ body.lab-page {
     font-weight: 500;
     white-space: nowrap;
     pointer-events: none;
+}
+
+/* ==================== BURNER GLOW EFFECT ==================== */
+.bunsen-burner::before {
+    content: '';
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(251, 191, 36, 0.35) 0%,
+        rgba(249, 115, 22, 0.25) 25%,
+        rgba(234, 88, 12, 0.15) 45%,
+        rgba(220, 38, 38, 0.08) 65%,
+        transparent 85%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 19;
+    animation: flame-glow-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.bunsen-burner::after {
+    content: '';
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 100px;
+    background: radial-gradient(
+        ellipse at center bottom,
+        rgba(254, 243, 199, 0.2) 0%,
+        rgba(251, 191, 36, 0.12) 30%,
+        transparent 70%
+    );
+    border-radius: 50% 50% 30% 30%;
+    pointer-events: none;
+    z-index: 18;
+    animation: flame-glow-flicker 0.4s ease-in-out infinite alternate;
+    filter: blur(8px);
+}
+
+@keyframes flame-glow-pulse {
+    0% {
+        opacity: 0.7;
+        transform: translateX(-50%) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+@keyframes flame-glow-flicker {
+    0% {
+        opacity: 0.6;
+        transform: translateX(-50%) scaleY(0.92) scaleX(1.05);
+    }
+    50% {
+        opacity: 0.9;
+        transform: translateX(-48%) scaleY(1.08) scaleX(0.95);
+    }
+    100% {
+        opacity: 0.75;
+        transform: translateX(-52%) scaleY(0.98) scaleX(1.02);
+    }
 }
 
 /* ==================== GLASS SLIDE ==================== */
@@ -688,13 +811,42 @@ body.lab-page {
 /* ==================== WORKBENCH ==================== */
 .workbench-surface {
     position: relative;
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    border-radius: 12px;
+    background:
+        /* Laboratoriya stoli teksturasi */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 40px,
+            rgba(148, 163, 184, 0.08) 40px,
+            rgba(148, 163, 184, 0.08) 41px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 40px,
+            rgba(148, 163, 184, 0.06) 40px,
+            rgba(148, 163, 184, 0.06) 41px
+        ),
+        /* Professional kulrang-ko'k gradient */
+        linear-gradient(145deg,
+            #f8fafc 0%,
+            #e2e8f0 25%,
+            #cbd5e1 50%,
+            #e2e8f0 75%,
+            #f1f5f9 100%);
+    border-radius: 16px;
     box-shadow:
-        inset 0 2px 8px rgba(0, 0, 0, 0.1),
-        0 4px 20px rgba(0, 0, 0, 0.05);
+        /* Ichki soya - chuqurlik effekti */
+        inset 0 2px 12px rgba(0, 0, 0, 0.12),
+        inset 0 -2px 8px rgba(255, 255, 255, 0.8),
+        /* Tashqi soya */
+        0 8px 32px rgba(15, 23, 42, 0.12),
+        0 2px 8px rgba(15, 23, 42, 0.08);
     min-height: 500px;
     z-index: 10;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    /* Yuzani yaltiroq qilish */
+    background-size: 100% 100%, 100% 100%, 100% 100%;
 }
 
 /* ==================== DROP ZONES ==================== */
@@ -745,20 +897,49 @@ body.lab-page {
     transition: width 0.3s ease;
 }
 
+/* ==================== GLASSMORPHISM PANELS ==================== */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow:
+        0 8px 32px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.glass-panel-dark {
+    background: rgba(30, 41, 59, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 /* ==================== INVENTORY ITEMS ==================== */
 .inventory-item {
-    background: linear-gradient(to bottom, #ffffff, #f9fafb);
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 14px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .inventory-item:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow:
+        0 8px 24px rgba(99, 102, 241, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-3px);
 }
 
 .inventory-status {
@@ -768,28 +949,43 @@ body.lab-page {
 
 /* ==================== STEP CARDS ==================== */
 .step-card {
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
     padding: 16px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .step-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    transform: translateX(4px);
 }
 
 .step-card.completed {
-    background: #f0fdf4;
-    border: 2px solid #22c55e;
+    background: rgba(220, 252, 231, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    box-shadow:
+        0 4px 16px rgba(34, 197, 94, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .step-card.pending {
-    background: #f9fafb;
-    border: 2px solid #d1d5db;
+    background: rgba(249, 250, 251, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(209, 213, 219, 0.5);
 }
 
 .step-card.disabled {
     opacity: 0.5;
+    filter: grayscale(0.3);
 }
 
 /* ==================== INSTRUCTION MODAL ==================== */
@@ -811,15 +1007,19 @@ body.lab-page {
 }
 
 .modal-content {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     max-width: 600px;
     width: 90%;
     overflow: hidden;
-    animation: slideUp 0.4s ease-out;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
@@ -834,10 +1034,40 @@ body.lab-page {
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    padding: 24px;
+    background:
+        radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #8b5cf6 100%);
+    padding: 28px 24px;
     color: white;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 50%
+    );
+    animation: modal-header-shine 3s ease-in-out infinite;
+}
+
+@keyframes modal-header-shine {
+    0%, 100% {
+        transform: translateX(-30%) translateY(-30%) rotate(0deg);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translateX(30%) translateY(30%) rotate(180deg);
+        opacity: 0.5;
+    }
 }
 
 .modal-header h2 {
@@ -865,11 +1095,29 @@ body.lab-page {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
-    border-radius: 12px;
+    background:
+        radial-gradient(circle at 50% 100%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+        linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%);
+    border-radius: 16px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(147, 197, 253, 0.3);
+    box-shadow:
+        inset 0 2px 8px rgba(59, 130, 246, 0.05),
+        0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+/* Subtle grid pattern */
+.animation-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(147, 197, 253, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(147, 197, 253, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
 }
 
 .modal-description {
@@ -1099,12 +1347,24 @@ body.lab-page {
     left: 18px;
     top: 58px;
     width: 248px;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(148, 163, 184, 0.45);
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.15);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow:
+        0 8px 32px rgba(15, 23, 42, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
     z-index: 50;
+}
+
+.stage-progress-panel.stage-progress-sidebar {
+    position: static;
+    left: auto;
+    top: auto;
+    width: 100%;
+    z-index: auto;
 }
 
 .stage-progress-title {
@@ -1203,6 +1463,48 @@ body.lab-page {
     filter: drop-shadow(0 3px 8px rgba(14, 165, 233, 0.38));
 }
 
+/* Drip indicator animation for reagent tools */
+.reagent-tool:not(.locked):not(.used)::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    top: 28px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0;
+    animation: drip-indicator 2s ease-in-out infinite;
+}
+
+.reagent-dye:not(.locked):not(.used)::after {
+    background: radial-gradient(circle, #8b5cf6 0%, #7c3aed 100%);
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+}
+
+.reagent-water:not(.locked):not(.used)::after {
+    background: radial-gradient(circle, #67e8f9 0%, #0ea5e9 100%);
+    box-shadow: 0 0 8px rgba(14, 165, 233, 0.6);
+}
+
+@keyframes drip-indicator {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(0) scale(0.5);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(8px) scale(0.8);
+    }
+    70% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.3);
+    }
+}
+
 .stain-overlay {
     position: absolute;
     inset: 8px 20px;
@@ -1280,34 +1582,350 @@ body.lab-page {
     }
 }
 
+/* ==================== STEAM/SMOKE PARTICLES ==================== */
+.steam-container {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 60px;
+    pointer-events: none;
+    z-index: 35;
+    overflow: visible;
+}
+
+.steam-particle {
+    position: absolute;
+    bottom: 0;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(226, 232, 240, 0.4) 40%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    opacity: 0;
+    filter: blur(3px);
+}
+
+.steam-particle:nth-child(1) {
+    left: 20%;
+    width: 16px;
+    height: 16px;
+    animation: steam-rise 2.2s ease-out infinite;
+    animation-delay: 0s;
+}
+
+.steam-particle:nth-child(2) {
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    animation: steam-rise 2.4s ease-out infinite;
+    animation-delay: 0.3s;
+}
+
+.steam-particle:nth-child(3) {
+    left: 75%;
+    width: 14px;
+    height: 14px;
+    animation: steam-rise 2s ease-out infinite;
+    animation-delay: 0.6s;
+}
+
+.steam-particle:nth-child(4) {
+    left: 35%;
+    width: 18px;
+    height: 18px;
+    animation: steam-rise 2.6s ease-out infinite;
+    animation-delay: 0.9s;
+}
+
+.steam-particle:nth-child(5) {
+    left: 60%;
+    width: 12px;
+    height: 12px;
+    animation: steam-rise 1.8s ease-out infinite;
+    animation-delay: 1.2s;
+}
+
+@keyframes steam-rise {
+    0% {
+        transform: translateY(0) translateX(0) scale(0.5);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateY(-30px) translateX(10px) scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(-60px) translateX(-5px) scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Heat shimmer effect during fixation */
+.heat-shimmer {
+    position: absolute;
+    inset: -10px;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 2px,
+            rgba(251, 191, 36, 0.03) 2px,
+            rgba(251, 191, 36, 0.03) 4px
+        );
+    pointer-events: none;
+    opacity: 0;
+    animation: shimmer-wave 0.5s ease-in-out infinite;
+    z-index: 2;
+}
+
+.glass-slide.fixing .heat-shimmer {
+    opacity: 1;
+}
+
+@keyframes shimmer-wave {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    50% {
+        transform: translateY(-3px);
+        opacity: 0.7;
+    }
+}
+
+/* ==================== DYE SPREADING EFFECT ==================== */
+.dye-drop-animation {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(
+        circle,
+        rgba(139, 92, 246, 0.9) 0%,
+        rgba(124, 58, 237, 0.7) 50%,
+        transparent 100%
+    );
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.dye-drop-animation.active {
+    animation: dye-drop-spread 1.2s ease-out forwards;
+}
+
+@keyframes dye-drop-spread {
+    0% {
+        transform: translate(-50%, -50%) scale(0.2);
+        opacity: 1;
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.9;
+    }
+    60% {
+        transform: translate(-50%, -50%) scale(2.5);
+        opacity: 0.6;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(4);
+        opacity: 0;
+    }
+}
+
+/* Ripple effect for liquid spreading */
+.stain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at center,
+        transparent 30%,
+        rgba(139, 92, 246, 0.1) 50%,
+        transparent 70%
+    );
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.8s ease-out;
+}
+
+.stain-overlay.visible::before {
+    opacity: 1;
+    transform: scale(1);
+    animation: ripple-spread 2s ease-out;
+}
+
+@keyframes ripple-spread {
+    0% {
+        box-shadow:
+            0 0 0 0 rgba(139, 92, 246, 0.4),
+            0 0 0 0 rgba(139, 92, 246, 0.3),
+            0 0 0 0 rgba(139, 92, 246, 0.2);
+    }
+    100% {
+        box-shadow:
+            0 0 0 8px rgba(139, 92, 246, 0),
+            0 0 0 16px rgba(139, 92, 246, 0),
+            0 0 0 24px rgba(139, 92, 246, 0);
+    }
+}
+
+/* ==================== WATER SPLASH EFFECT ==================== */
+.wash-runoff::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    width: 60px;
+    height: 20px;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(125, 211, 252, 0.6) 0%,
+        rgba(56, 189, 248, 0.3) 40%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    opacity: 0;
+}
+
+.wash-runoff.running::before {
+    animation: water-splash 0.8s ease-out forwards;
+}
+
+@keyframes water-splash {
+    0% {
+        transform: translateX(-50%) scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-50%) scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(-50%) scale(2);
+        opacity: 0;
+    }
+}
+
+/* Water droplets splash */
+.wash-runoff::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 24px;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(125, 211, 252, 0.8) 0%, transparent 6px),
+        radial-gradient(circle at 40% 30%, rgba(125, 211, 252, 0.7) 0%, transparent 4px),
+        radial-gradient(circle at 60% 60%, rgba(125, 211, 252, 0.9) 0%, transparent 5px),
+        radial-gradient(circle at 80% 40%, rgba(125, 211, 252, 0.6) 0%, transparent 3px);
+    opacity: 0;
+}
+
+.wash-runoff.running::after {
+    animation: droplets-splash 0.6s ease-out forwards;
+}
+
+@keyframes droplets-splash {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(0) scale(0.5);
+    }
+    30% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-8px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-16px) scale(1.2);
+    }
+}
+
 .result-scene {
     position: fixed;
     inset: 0;
     z-index: 1200;
-    background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.28), transparent 45%),
-                radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.25), transparent 45%),
-                rgba(15, 23, 42, 0.82);
+    background:
+        radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.3), transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.25), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    animation: result-scene-fade 0.5s ease-out;
+}
+
+@keyframes result-scene-fade {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
 }
 
 .result-panel {
     width: min(920px, 100%);
     max-height: calc(100vh - 40px);
     overflow-y: auto;
-    background: rgba(255, 255, 255, 0.96);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.45);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow:
+        0 30px 80px rgba(2, 6, 23, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    animation: result-panel-slide 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes result-panel-slide {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .result-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px 16px;
+    background: rgba(248, 250, 252, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+
+.result-card:hover {
+    box-shadow:
+        0 8px 24px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
 }
 
 .microscope-lens {
@@ -1316,10 +1934,45 @@ body.lab-page {
     margin: 0 auto;
     border-radius: 50%;
     padding: 18px;
-    background: radial-gradient(circle at 50% 35%, #e2e8f0, #94a3b8 55%, #334155);
-    box-shadow: inset 0 10px 28px rgba(255, 255, 255, 0.35),
-                inset 0 -16px 30px rgba(15, 23, 42, 0.45),
-                0 20px 48px rgba(2, 6, 23, 0.35);
+    background:
+        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 50% 35%, #e2e8f0, #94a3b8 55%, #334155);
+    box-shadow:
+        inset 0 10px 28px rgba(255, 255, 255, 0.35),
+        inset 0 -16px 30px rgba(15, 23, 42, 0.45),
+        0 20px 48px rgba(2, 6, 23, 0.35),
+        0 0 0 8px rgba(51, 65, 85, 0.3),
+        0 0 0 12px rgba(71, 85, 105, 0.2);
+    position: relative;
+}
+
+/* Lens glass reflection effect */
+.microscope-lens::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 15%;
+    width: 25%;
+    height: 15%;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+    );
+    border-radius: 50%;
+    filter: blur(2px);
+    pointer-events: none;
+}
+
+/* Lens edge highlight */
+.microscope-lens::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
 }
 
 .lens-core {
@@ -1377,6 +2030,12 @@ body.lab-page {
         width: 210px;
         left: 12px;
         top: 52px;
+    }
+
+    .stage-progress-panel.stage-progress-sidebar {
+        width: 100%;
+        left: auto;
+        top: auto;
     }
 }
 

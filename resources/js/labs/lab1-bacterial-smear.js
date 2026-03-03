@@ -5,13 +5,972 @@
 
 import Alpine from 'alpinejs';
 
+/**
+ * ==================== SOUND MANAGER ====================
+ * Web Audio API asosidagi dinamik ovoz effektlari tizimi
+ * Barcha tovushlar JavaScript kodida sintez qilinadi
+ */
+class SoundManager {
+    constructor() {
+        this.audioContext = null;
+        this.masterGain = null;
+        this.isInitialized = false;
+        this.isMuted = false;
+
+        // Active sound nodes for cleanup
+        this.activeSounds = new Map();
+
+        // Burner hum state
+        this.burnerHumNode = null;
+        this.burnerHumGain = null;
+        this.burnerHumActive = false;
+    }
+
+    /**
+     * AudioContext'ni ishga tushirish (foydalanuvchi interaksiyasidan keyin)
+     */
+    async init() {
+        if (this.isInitialized) return;
+
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Master gain node
+            this.masterGain = this.audioContext.createGain();
+            this.masterGain.gain.value = 0.5;
+            this.masterGain.connect(this.audioContext.destination);
+
+            // Resume if suspended
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+            }
+
+            this.isInitialized = true;
+            console.log('🔊 SoundManager initialized');
+        } catch (error) {
+            console.warn('Audio initialization failed:', error);
+        }
+    }
+
+    /**
+     * Ovozni o'chirish/yoqish
+     */
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.masterGain) {
+            this.masterGain.gain.value = this.isMuted ? 0 : 0.5;
+        }
+        return this.isMuted;
+    }
+
+    /**
+     * ==================== GORELKA SHISHILLASHI (Burner Hum) ====================
+     * WhiteNoise + LowPass Filter = Doimiy olov shishillashi
+     */
+    startBurnerHum() {
+        if (!this.isInitialized || this.burnerHumActive || this.isMuted) return;
+
+        try {
+            // White noise generator
+            const bufferSize = 2 * this.audioContext.sampleRate;
+            const noiseBuffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+
+            this.burnerHumNode = this.audioContext.createBufferSource();
+            this.burnerHumNode.buffer = noiseBuffer;
+            this.burnerHumNode.loop = true;
+
+            // Low-pass filter for fire-like sound
+            const lowPassFilter = this.audioContext.createBiquadFilter();
+            lowPassFilter.type = 'lowpass';
+            lowPassFilter.frequency.value = 200;
+            lowPassFilter.Q.value = 1;
+
+            // Bandpass for more realistic fire sound
+            const bandPassFilter = this.audioContext.createBiquadFilter();
+            bandPassFilter.type = 'bandpass';
+            bandPassFilter.frequency.value = 150;
+            bandPassFilter.Q.value = 0.5;
+
+            // Gain with fade in
+            this.burnerHumGain = this.audioContext.createGain();
+            this.burnerHumGain.gain.value = 0;
+
+            // Connect nodes
+            this.burnerHumNode.connect(lowPassFilter);
+            lowPassFilter.connect(bandPassFilter);
+            bandPassFilter.connect(this.burnerHumGain);
+            this.burnerHumGain.connect(this.masterGain);
+
+            // Start and fade in
+            this.burnerHumNode.start();
+            this.burnerHumGain.gain.linearRampToValueAtTime(0.15, this.audioContext.currentTime + 0.3);
+
+            // Add subtle crackling variation
+            this.startBurnerCrackle();
+
+            this.burnerHumActive = true;
+        } catch (error) {
+            console.warn('Burner hum error:', error);
+        }
+    }
+
+    /**
+     * Gorelka shishillashini to'xtatish
+     */
+    stopBurnerHum() {
+        if (!this.burnerHumActive || !this.burnerHumGain) return;
+
+        try {
+            // Fade out
+            this.burnerHumGain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.5);
+
+            // Stop after fade
+            setTimeout(() => {
+                if (this.burnerHumNode) {
+                    this.burnerHumNode.stop();
+                    this.burnerHumNode.disconnect();
+                    this.burnerHumNode = null;
+                }
+                this.stopBurnerCrackle();
+            }, 500);
+
+            this.burnerHumActive = false;
+        } catch (error) {
+            console.warn('Stop burner hum error:', error);
+        }
+    }
+
+    /**
+     * Olov uchun qitirlovchi effekt
+     */
+    startBurnerCrackle() {
+        if (this.crackleInterval) return;
+
+        this.crackleInterval = setInterval(() => {
+            if (!this.burnerHumActive || this.isMuted) return;
+
+            // Random crackle
+            if (Math.random() > 0.7) {
+                this.playCrackle();
+            }
+        }, 200);
+    }
+
+    stopBurnerCrackle() {
+        if (this.crackleInterval) {
+            clearInterval(this.crackleInterval);
+            this.crackleInterval = null;
+        }
+    }
+
+    playCrackle() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.value = 80 + Math.random() * 60;
+
+            gain.gain.value = 0.03;
+            gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.05);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start();
+            osc.stop(this.audioContext.currentTime + 0.05);
+        } catch (error) {}
+    }
+
+    /**
+     * ==================== MUVAFFAQIYAT SIGNALI (Success Ping) ====================
+     * Yuqori chastotali, yoqimli "ding" ovozi
+     */
+    playSuccessPing() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            // Primary tone
+            const osc1 = this.audioContext.createOscillator();
+            osc1.type = 'sine';
+            osc1.frequency.value = 880; // A5
+
+            // Harmonic overtone
+            const osc2 = this.audioContext.createOscillator();
+            osc2.type = 'sine';
+            osc2.frequency.value = 1320; // E6
+
+            // Third harmonic for richness
+            const osc3 = this.audioContext.createOscillator();
+            osc3.type = 'triangle';
+            osc3.frequency.value = 1760; // A6
+
+            // Gain envelopes
+            const gain1 = this.audioContext.createGain();
+            const gain2 = this.audioContext.createGain();
+            const gain3 = this.audioContext.createGain();
+
+            gain1.gain.setValueAtTime(0.3, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+            gain2.gain.setValueAtTime(0.15, now);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+            gain3.gain.setValueAtTime(0.08, now);
+            gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+            // Connect
+            osc1.connect(gain1);
+            osc2.connect(gain2);
+            osc3.connect(gain3);
+            gain1.connect(this.masterGain);
+            gain2.connect(this.masterGain);
+            gain3.connect(this.masterGain);
+
+            // Play
+            osc1.start(now);
+            osc2.start(now);
+            osc3.start(now);
+            osc1.stop(now + 0.8);
+            osc2.stop(now + 0.6);
+            osc3.stop(now + 0.4);
+        } catch (error) {
+            console.warn('Success ping error:', error);
+        }
+    }
+
+    /**
+     * ==================== XATO SIGNALI (Error Buzz) ====================
+     * Past chastotali, yoqimsiz "buzz" ovozi
+     */
+    playErrorBuzz() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            // Low frequency buzz
+            const osc1 = this.audioContext.createOscillator();
+            osc1.type = 'sawtooth';
+            osc1.frequency.value = 110;
+
+            // Dissonant tone
+            const osc2 = this.audioContext.createOscillator();
+            osc2.type = 'square';
+            osc2.frequency.value = 116; // Slightly detuned for unpleasant beating
+
+            // Gain envelopes
+            const gain1 = this.audioContext.createGain();
+            const gain2 = this.audioContext.createGain();
+
+            gain1.gain.setValueAtTime(0.2, now);
+            gain1.gain.linearRampToValueAtTime(0, now + 0.3);
+
+            gain2.gain.setValueAtTime(0.15, now);
+            gain2.gain.linearRampToValueAtTime(0, now + 0.3);
+
+            // Low pass filter for muffled sound
+            const filter = this.audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+
+            // Connect
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain1);
+            gain1.connect(this.masterGain);
+
+            // Play
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.3);
+            osc2.stop(now + 0.3);
+        } catch (error) {
+            console.warn('Error buzz error:', error);
+        }
+    }
+
+    /**
+     * ==================== TOMCHI OVOZI (Drop Sound) ====================
+     * Suyuqlik tomishi uchun
+     */
+    playDropSound() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            const osc = this.audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+
+            const gain = this.audioContext.createGain();
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } catch (error) {
+            console.warn('Drop sound error:', error);
+        }
+    }
+
+    /**
+     * ==================== METALL TEGISH OVOZI (Metal Clink) ====================
+     * Halqa va shisha tegishishi uchun
+     */
+    playMetalClink() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            // High frequency ping
+            const osc1 = this.audioContext.createOscillator();
+            osc1.type = 'sine';
+            osc1.frequency.value = 2000 + Math.random() * 500;
+
+            // Metallic overtone
+            const osc2 = this.audioContext.createOscillator();
+            osc2.type = 'triangle';
+            osc2.frequency.value = 4500 + Math.random() * 500;
+
+            const gain1 = this.audioContext.createGain();
+            const gain2 = this.audioContext.createGain();
+
+            gain1.gain.setValueAtTime(0.1, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+            gain2.gain.setValueAtTime(0.05, now);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            // High pass for metallic sound
+            const filter = this.audioContext.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 1500;
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain1);
+            gain1.connect(this.masterGain);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.2);
+            osc2.stop(now + 0.1);
+        } catch (error) {
+            console.warn('Metal clink error:', error);
+        }
+    }
+
+    /**
+     * ==================== SURTISH OVOZI (Smear Sound) ====================
+     * Oynada surtish uchun
+     */
+    playSmearSound() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            // Pink noise for friction
+            const bufferSize = this.audioContext.sampleRate * 0.1;
+            const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.05;
+                b6 = white * 0.115926;
+            }
+
+            const source = this.audioContext.createBufferSource();
+            source.buffer = buffer;
+
+            const filter = this.audioContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 3000;
+            filter.Q.value = 1;
+
+            const gain = this.audioContext.createGain();
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.1);
+
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.masterGain);
+
+            source.start(now);
+        } catch (error) {
+            console.warn('Smear sound error:', error);
+        }
+    }
+
+    /**
+     * ==================== SUV OQISHI OVOZI (Water Flow) ====================
+     */
+    playWaterFlow() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+            const duration = 1.2;
+
+            // White noise for water
+            const bufferSize = this.audioContext.sampleRate * duration;
+            const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const source = this.audioContext.createBufferSource();
+            source.buffer = buffer;
+
+            // Bandpass filter for water-like sound
+            const filter = this.audioContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 2500;
+            filter.Q.value = 0.5;
+
+            const gain = this.audioContext.createGain();
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+            gain.gain.linearRampToValueAtTime(0.1, now + duration - 0.3);
+            gain.gain.linearRampToValueAtTime(0, now + duration);
+
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.masterGain);
+
+            source.start(now);
+            source.stop(now + duration);
+        } catch (error) {
+            console.warn('Water flow error:', error);
+        }
+    }
+
+    /**
+     * ==================== TUGMA BOSILISHI (Button Click) ====================
+     */
+    playButtonClick() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            const osc = this.audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+
+            const gain = this.audioContext.createGain();
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } catch (error) {}
+    }
+
+    /**
+     * ==================== FINAL FANFARA (Completion Fanfare) ====================
+     * Laboratoriya tugaganda
+     */
+    playCompletionFanfare() {
+        if (!this.isInitialized || this.isMuted) return;
+
+        try {
+            const now = this.audioContext.currentTime;
+
+            // Arpeggio notes
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+
+            notes.forEach((freq, index) => {
+                const osc = this.audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+
+                const gain = this.audioContext.createGain();
+                const startTime = now + index * 0.15;
+
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.8);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc.start(startTime);
+                osc.stop(startTime + 0.8);
+            });
+
+            // Final chord
+            setTimeout(() => {
+                const chordFreqs = [523.25, 659.25, 783.99];
+                chordFreqs.forEach(freq => {
+                    const osc = this.audioContext.createOscillator();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+
+                    const gain = this.audioContext.createGain();
+                    gain.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 1.5);
+
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+
+                    osc.start();
+                    osc.stop(this.audioContext.currentTime + 1.5);
+                });
+            }, 600);
+        } catch (error) {
+            console.warn('Completion fanfare error:', error);
+        }
+    }
+
+    /**
+     * Barcha ovozlarni to'xtatish
+     */
+    stopAll() {
+        this.stopBurnerHum();
+        this.stopBurnerCrackle();
+    }
+
+    /**
+     * Tozalash
+     */
+    dispose() {
+        this.stopAll();
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+        this.isInitialized = false;
+    }
+}
+
+// Global SoundManager instance
+const soundManager = new SoundManager();
+
+/**
+ * ==================== TRANSLATIONS (i18n) ====================
+ * 3 tilli qo'llab-quvvatlash: O'zbek, Qoraqolpoq, Rus
+ */
+const translations = {
+    uz: {
+        // Page titles
+        pageTitle: 'Bakterial surtma tayyorlash',
+        pageSubtitle: 'Virtual mikrobiologiya laboratoriyasi - Lab 1',
+
+        // Header
+        progress: 'Jarayon',
+        soundOn: 'Ovoz yoqilgan',
+        soundOff: 'Ovoz o\'chirilgan',
+
+        // Status badges
+        statusSterilized: 'Sterillandi',
+        statusSampleTaken: 'Namuna olindi',
+        statusSmearReady: 'Surtma tayyor',
+        statusFixed: 'Fiksatsiya',
+        statusDyed: 'Bo\'yaldi',
+        statusWashed: 'Yuvildi',
+
+        // Tools panel
+        toolsTitle: 'Asboblar',
+        toolLoop: 'Bakterial halqa',
+        toolSlide: 'Buyum oynasi',
+        toolTube: 'Namuna probirkasi',
+        loopSterilized: 'Sterillangan',
+        smearReady: 'Surtma tayyor',
+
+        // Workbench
+        workbenchTitle: 'Ish stoli',
+        burnerLabel: 'Olov',
+        sampleLabel: 'Namuna',
+        gentianViolet: 'Gencian fiolet',
+        distilledWater: 'Distillangan suv',
+
+        // Loop labels
+        loopDragToFlame: 'Olovga suring',
+        loopHeating: 'Qizdirmoqda...',
+        loopDragToTube: 'Probirkaga suring',
+        loopSmearProgress: 'Aylana surtish',
+
+        // Steps panel
+        stepsTitle: 'Bosqichlar',
+        step1: 'Sterillash',
+        step2: 'Namuna olish',
+        step3: 'Surtma',
+        step4: 'Fiksatsiya',
+        step5: 'Bo\'yash/Yuvish',
+        resetBtn: 'Qayta boshlash',
+
+        // Stage progress
+        stageProgressTitle: 'Bosqich progress',
+        stage4Title: 'Fiksatsiya',
+        stage5Title: 'Bo\'yash/Yuvish',
+        waiting: 'Kutilmoqda',
+        ready: 'Tayyor',
+        completed: 'Tugallandi',
+
+        // Staining controls
+        stainingTitle: 'Vizual bo\'yash',
+        stainingDesc: 'Pipetkalarni oynaga tomizing: avval bo\'yoq, keyin suv.',
+        reactionTime: 'Reaksiya vaqti',
+        washNow: 'Endi suv bilan yuving!',
+        viewMicroscope: 'Mikroskopga o\'tish',
+
+        // Modal
+        modalStep: 'Bosqich',
+        modalUnderstand: 'Tushundim, boshlang',
+        modalNext: 'Keyingi bosqich',
+
+        // Step descriptions
+        step1Title: 'Halqani sterillash',
+        step1Desc: 'Bakterial halqani Bunzen gorelkasining olov ustiga olib boring va 3 soniya davomida qizdiring. Halqa qizarib ketishi kerak - bu barcha yot mikroblarni o\'ldiradi va kontaminatsiyani oldini oladi.',
+        step2Title: 'Namuna olish',
+        step2Desc: 'Sterillangan halqani bakterial kultura probirkasiga ehtiyotkorlik bilan kiriting. Halqa uchini suyuqlikka botirib, oz miqdorda namuna oling.',
+        step3Title: 'Surtma yaratish',
+        step3Desc: 'Namuna olgan halqani buyum oynasi ustiga qo\'ying va namunani tekis, yupqa qatlamda suring. Namuna shisha butun yuzasiga bir tekis yoyilishi kerak.',
+        step4Title: 'Termik fiksatsiya',
+        step4Desc: 'Surtma qilingan buyum oynasini olov ustiga olib boring. Issiqlik ta\'sirida bakteriyalar oynaga yopishib qoladi.',
+        step5Title: 'Bo\'yash va yuvish',
+        step5Desc: 'Surtmaga Gencian fioletni to\'liq quying va keyin suv bilan yuvish bosqichini bajaring.',
+
+        // Results
+        resultTitle: 'Yakuniy natija',
+        resultSubtitle: 'Dinamik mikroskop natijasi va baholash hisobot',
+        totalScore: 'Umumiy ball',
+        category: 'Baholash toifasi',
+        categoryFull: 'To\'liq javob',
+        categoryPartial: 'To\'liq emas javob',
+        categoryNone: 'Javob yo\'q',
+        criteriaTitle: 'Mezon',
+        criteriaScore: 'Ball',
+        critSterilization: 'Sterillash',
+        critSampling: 'Namuna olish',
+        critSmear: 'Surtma',
+        critFixation: 'Fiksatsiya',
+        critDye: 'Bo\'yash',
+        critWashing: 'Yuvish',
+        errorsTitle: 'Xatolar',
+        scoreInfo: 'To\'liq javob: 9-10 | To\'liq emas: 5-8.5 | Javob yo\'q: 0-4.5',
+
+        // Error messages
+        errLoopNotHeld: 'Halqa olovda ushlanmadi.',
+        errSterilizationShort: 'Sterillash vaqti 3 soniyadan kam bo\'ldi.',
+        errUnsterilizedSample: 'Namuna sterillanmagan halqa bilan olindi.',
+        errSmearIncomplete: 'Surtma uchun halqani oynada aylana qilib bir necha marta surting.',
+        errSmearNotInTarget: 'Surtma target-area ichida to\'g\'ri bajarilmadi.',
+        errFixationCount: 'Fiksatsiya {count} marta bajarildi (ideal: 3).',
+        errWashBeforeDye: 'Yuvishdan oldin bo\'yoq tomizilishi kerak.',
+        errNoWaitTime: 'Bo\'yoq reaksiyasi uchun kamida 5-10 soniya kutilmadi.',
+        errNoDyeBeforeMicroscope: 'Mikroskopga o\'tishdan oldin bo\'yoq tomizilmadi.',
+        errNoWashBeforeMicroscope: 'Bo\'yoq yuvilmasdan mikroskopga o\'tildi, natija buzildi.',
+
+        // Footer
+        footerTitle: 'Tibbiy Virtual Laboratoriya',
+        footerSubtitle: 'Ta\'limiy simulyatsiya',
+
+        // Language names
+        langUz: 'O\'zbekcha',
+        langKaa: 'Qaraqalpaqsha',
+        langRu: 'Ruscha'
+    },
+
+    kaa: {
+        // Page titles
+        pageTitle: 'Bakterial sürtpe tayarlaw',
+        pageSubtitle: 'Virtual mikrobiologiya laboratoriyası - Lab 1',
+
+        // Header
+        progress: 'Barísi',
+        soundOn: 'Ses qosılǵan',
+        soundOff: 'Ses óshirilgen',
+
+        // Status badges
+        statusSterilized: 'Sterillendi',
+        statusSampleTaken: 'Úlgi alındı',
+        statusSmearReady: 'Sürtpe tayar',
+        statusFixed: 'Fiksatsiya',
+        statusDyed: 'Boyaldı',
+        statusWashed: 'Juwıldı',
+
+        // Tools panel
+        toolsTitle: 'Ásbaplar',
+        toolLoop: 'Bakterial ilmek',
+        toolSlide: 'Buyım aynası',
+        toolTube: 'Úlgi probirkası',
+        loopSterilized: 'Sterillengen',
+        smearReady: 'Sürtpe tayar',
+
+        // Workbench
+        workbenchTitle: 'Jumıs stolı',
+        burnerLabel: 'Jalın',
+        sampleLabel: 'Úlgi',
+        gentianViolet: 'Gensian fiolet',
+        distilledWater: 'Distillengen suw',
+
+        // Loop labels
+        loopDragToFlame: 'Jalınǵa tartıń',
+        loopHeating: 'Qızdırılmaqta...',
+        loopDragToTube: 'Probirkaga tartıń',
+        loopSmearProgress: 'Aylanma sürtpelew',
+
+        // Steps panel
+        stepsTitle: 'Basqıshlar',
+        step1: 'Sterillew',
+        step2: 'Úlgi alıw',
+        step3: 'Sürtpe',
+        step4: 'Fiksatsiya',
+        step5: 'Boyaw/Juwıw',
+        resetBtn: 'Qayta baslaw',
+
+        // Stage progress
+        stageProgressTitle: 'Basqısh progressi',
+        stage4Title: 'Fiksatsiya',
+        stage5Title: 'Boyaw/Juwıw',
+        waiting: 'Kútilmekte',
+        ready: 'Tayar',
+        completed: 'Tamamlandı',
+
+        // Staining controls
+        stainingTitle: 'Vizual boyaw',
+        stainingDesc: 'Pipetkaları aynaga tamızıń: aldı boyaq, keyin suw.',
+        reactionTime: 'Reaksiya waqtı',
+        washNow: 'Endi suw menen juwıń!',
+        viewMicroscope: 'Mikroskopqaótıw',
+
+        // Modal
+        modalStep: 'Basqısh',
+        modalUnderstand: 'Túsindim, baslaymız',
+        modalNext: 'Keyingi basqısh',
+
+        // Step descriptions
+        step1Title: 'İlmekti sterillew',
+        step1Desc: 'Bakterial ilmekti Bunzen gorelkasınıń jalınıústine alıp barıń hám 3 sekund dawamında qızdırıń. İlmek qızarıp ketiwi kerek - bul barlıq mikroblardı óltiredi.',
+        step2Title: 'Úlgi alıw',
+        step2Desc: 'Sterillengen ilmekti bakterial kultura probirkasına ehtiyatkorlik penen kiritiń. İlmek ushın suyıqlıqqa batırıp, az múgdarda úlgi alıń.',
+        step3Title: 'Sürtpe jaratıw',
+        step3Desc: 'Úlgi alǵan ilmekti buyım aynası üstine qoyıń hám úlgini tegis, jupqa qatlamda surtıń.',
+        step4Title: 'Termik fiksatsiya',
+        step4Desc: 'Sürtpe qılınǵan buyım aynasın jalın üstine alıp barıń. Isıqlıq tásirinde bakteriyalar aynaga jabısıp qaladi.',
+        step5Title: 'Boyaw hám juwıw',
+        step5Desc: 'Sürtpege Gensian fioletti tolıq quyıń hám keyin suw menen juwıw basqıshın orınlań.',
+
+        // Results
+        resultTitle: 'Juwmaqlawshı nátiyje',
+        resultSubtitle: 'Dinamik mikroskop nátiyjes hám bahalaw есеби',
+        totalScore: 'Ulıwma ball',
+        category: 'Bahalaw kategoriyası',
+        categoryFull: 'Tolıq juwap',
+        categoryPartial: 'Tolıq emes juwap',
+        categoryNone: 'Juwap joq',
+        criteriaTitle: 'Kriteriya',
+        criteriaScore: 'Ball',
+        critSterilization: 'Sterillew',
+        critSampling: 'Úlgi alıw',
+        critSmear: 'Sürtpe',
+        critFixation: 'Fiksatsiya',
+        critDye: 'Boyaw',
+        critWashing: 'Juwıw',
+        errorsTitle: 'Qátelikler',
+        scoreInfo: 'Tolıq juwap: 9-10 | Tolıq emes: 5-8.5 | Juwap joq: 0-4.5',
+
+        // Error messages
+        errLoopNotHeld: 'İlmek jalında uslanbadı.',
+        errSterilizationShort: 'Sterillew waqtı 3 sekundtan az boldı.',
+        errUnsterilizedSample: 'Úlgi sterillenbegenilmek penen alındı.',
+        errSmearIncomplete: 'Sürtpe ushın ilmekti aynada aylanma etip bir neshe ret surtıń.',
+        errSmearNotInTarget: 'Sürtpe target-area ishinde durıs orınlanmadı.',
+        errFixationCount: 'Fiksatsiya {count} ret orınlandı (ideal: 3).',
+        errWashBeforeDye: 'Juwıwdan aldın boyaq tamızılıwı kerek.',
+        errNoWaitTime: 'Boyaq reaksiyası ushın keminde 5-10 sekund kútilmedi.',
+        errNoDyeBeforeMicroscope: 'Mikroskopqa ótiw aldında boyaq tamızılmadı.',
+        errNoWashBeforeMicroscope: 'Boyaq juwılmay mikroskopqa ótildi, nátiyje buzıldı.',
+
+        // Footer
+        footerTitle: 'Meditsinalıq Virtual Laboratoriya',
+        footerSubtitle: 'Oqıw simulyatsiyası',
+
+        // Language names
+        langUz: 'Ózbeksha',
+        langKaa: 'Qaraqalpaqsha',
+        langRu: 'Russha'
+    },
+
+    ru: {
+        // Page titles
+        pageTitle: 'Приготовление бактериального мазка',
+        pageSubtitle: 'Виртуальная микробиологическая лаборатория - Лаб 1',
+
+        // Header
+        progress: 'Прогресс',
+        soundOn: 'Звук включен',
+        soundOff: 'Звук выключен',
+
+        // Status badges
+        statusSterilized: 'Стерилизовано',
+        statusSampleTaken: 'Образец взят',
+        statusSmearReady: 'Мазок готов',
+        statusFixed: 'Фиксация',
+        statusDyed: 'Окрашено',
+        statusWashed: 'Промыто',
+
+        // Tools panel
+        toolsTitle: 'Инструменты',
+        toolLoop: 'Бактериальная петля',
+        toolSlide: 'Предметное стекло',
+        toolTube: 'Пробирка с образцом',
+        loopSterilized: 'Стерилизована',
+        smearReady: 'Мазок готов',
+
+        // Workbench
+        workbenchTitle: 'Рабочий стол',
+        burnerLabel: 'Пламя',
+        sampleLabel: 'Образец',
+        gentianViolet: 'Генциан фиолет',
+        distilledWater: 'Дистиллированная вода',
+
+        // Loop labels
+        loopDragToFlame: 'Перетащите к пламени',
+        loopHeating: 'Нагревается...',
+        loopDragToTube: 'Перетащите к пробирке',
+        loopSmearProgress: 'Круговое нанесение',
+
+        // Steps panel
+        stepsTitle: 'Этапы',
+        step1: 'Стерилизация',
+        step2: 'Взятие образца',
+        step3: 'Мазок',
+        step4: 'Фиксация',
+        step5: 'Окраска/Промывка',
+        resetBtn: 'Начать заново',
+
+        // Stage progress
+        stageProgressTitle: 'Прогресс этапа',
+        stage4Title: 'Фиксация',
+        stage5Title: 'Окраска/Промывка',
+        waiting: 'Ожидание',
+        ready: 'Готово',
+        completed: 'Завершено',
+
+        // Staining controls
+        stainingTitle: 'Визуальная окраска',
+        stainingDesc: 'Нанесите на стекло: сначала краситель, затем воду.',
+        reactionTime: 'Время реакции',
+        washNow: 'Теперь промойте водой!',
+        viewMicroscope: 'К микроскопу',
+
+        // Modal
+        modalStep: 'Этап',
+        modalUnderstand: 'Понятно, начинаем',
+        modalNext: 'Следующий этап',
+
+        // Step descriptions
+        step1Title: 'Стерилизация петли',
+        step1Desc: 'Поднесите бактериальную петлю к пламени горелки Бунзена и держите 3 секунды. Петля должна раскалиться - это убивает все микробы и предотвращает контаминацию.',
+        step2Title: 'Взятие образца',
+        step2Desc: 'Осторожно введите стерилизованную петлю в пробирку с бактериальной культурой. Погрузите кончик петли в жидкость и возьмите небольшое количество образца.',
+        step3Title: 'Создание мазка',
+        step3Desc: 'Поместите петлю с образцом на предметное стекло и равномерно распределите образец тонким слоем по поверхности.',
+        step4Title: 'Термическая фиксация',
+        step4Desc: 'Поднесите стекло с мазком к пламени. Под действием тепла бактерии прикрепляются к стеклу.',
+        step5Title: 'Окраска и промывка',
+        step5Desc: 'Нанесите генциан фиолет на мазок, затем промойте водой.',
+
+        // Results
+        resultTitle: 'Итоговый результат',
+        resultSubtitle: 'Динамический результат микроскопии и отчет оценки',
+        totalScore: 'Общий балл',
+        category: 'Категория оценки',
+        categoryFull: 'Полный ответ',
+        categoryPartial: 'Неполный ответ',
+        categoryNone: 'Нет ответа',
+        criteriaTitle: 'Критерий',
+        criteriaScore: 'Балл',
+        critSterilization: 'Стерилизация',
+        critSampling: 'Взятие образца',
+        critSmear: 'Мазок',
+        critFixation: 'Фиксация',
+        critDye: 'Окраска',
+        critWashing: 'Промывка',
+        errorsTitle: 'Ошибки',
+        scoreInfo: 'Полный ответ: 9-10 | Неполный: 5-8.5 | Нет ответа: 0-4.5',
+
+        // Error messages
+        errLoopNotHeld: 'Петля не была удержана в пламени.',
+        errSterilizationShort: 'Время стерилизации менее 3 секунд.',
+        errUnsterilizedSample: 'Образец взят нестерилизованной петлей.',
+        errSmearIncomplete: 'Для мазка нужно круговыми движениями нанести образец на стекло.',
+        errSmearNotInTarget: 'Мазок не нанесен правильно в целевую область.',
+        errFixationCount: 'Фиксация выполнена {count} раз (идеально: 3).',
+        errWashBeforeDye: 'Перед промывкой нужно нанести краситель.',
+        errNoWaitTime: 'Не выдержано время реакции красителя (5-10 сек).',
+        errNoDyeBeforeMicroscope: 'Краситель не нанесен перед переходом к микроскопу.',
+        errNoWashBeforeMicroscope: 'Переход к микроскопу без промывки, результат искажен.',
+
+        // Footer
+        footerTitle: 'Медицинская Виртуальная Лаборатория',
+        footerSubtitle: 'Учебная симуляция',
+
+        // Language names
+        langUz: 'Узбекский',
+        langKaa: 'Каракалпакский',
+        langRu: 'Русский'
+    }
+};
+
 // Register component before Alpine starts
 Alpine.data('bacterialSmearLab', () => ({
+    // Language state
+    currentLang: 'uz',
+
     // Drag state
     isDragging: false,
     draggedItem: null,
     dragOffset: { x: 0, y: 0 },
     hoveredZone: null,
+
+    // Drag direction tracking for loop bending
+    dragDirection: null,
+    lastDragX: 0,
+    lastDragY: 0,
+    dragVelocityX: 0,
+    dragVelocityY: 0,
+
+    // Steam effect state
+    showSteam: false,
+    dyeDropAnimating: false,
+
+    // Audio state
+    soundEnabled: true,
+    soundInitialized: false,
 
     // Item positions (absolute positioning within workbench)
     itemPositions: {
@@ -191,7 +1150,13 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     get currentStepData() {
-        return this.steps[this.currentStep];
+        const step = this.steps[this.currentStep];
+        // Return step with translated title and description
+        return {
+            ...step,
+            title: this.t(`step${this.currentStep}Title`),
+            description: this.t(`step${this.currentStep}Desc`)
+        };
     },
 
     get sampleProgressText() {
@@ -235,6 +1200,57 @@ Alpine.data('bacterialSmearLab', () => ({
         return 'low';
     },
 
+    // ==================== TRANSLATION METHODS ====================
+    /**
+     * Tilni olish (Translation getter)
+     * @param {string} key - Tarjima kaliti
+     * @returns {string} - Tarjima qilingan matn
+     */
+    t(key) {
+        const lang = translations[this.currentLang];
+        if (!lang) return key;
+        return lang[key] || translations['uz'][key] || key;
+    },
+
+    /**
+     * Tilni o'zgartirish
+     * @param {string} lang - Yangi til kodi ('uz', 'kaa', 'ru')
+     */
+    setLanguage(lang) {
+        if (['uz', 'kaa', 'ru'].includes(lang)) {
+            this.currentLang = lang;
+            // Update document title
+            document.title = `Lab 1: ${this.t('pageTitle')} - ${this.t('footerTitle')}`;
+            // Play button click sound
+            soundManager.playButtonClick();
+            // Save to localStorage
+            try {
+                localStorage.setItem('labLang', lang);
+            } catch (e) {}
+        }
+    },
+
+    /**
+     * Saqlangan tilni yuklash
+     */
+    loadSavedLanguage() {
+        try {
+            const savedLang = localStorage.getItem('labLang');
+            if (savedLang && ['uz', 'kaa', 'ru'].includes(savedLang)) {
+                this.currentLang = savedLang;
+            }
+        } catch (e) {}
+    },
+
+    /**
+     * Answer category with translation
+     */
+    get answerCategoryTranslated() {
+        if (this.scoreOutOfTen >= 9) return this.t('categoryFull');
+        if (this.scoreOutOfTen >= 5) return this.t('categoryPartial');
+        return this.t('categoryNone');
+    },
+
     // Modal methods
     openModal(stepNumber) {
         this.currentStep = stepNumber;
@@ -244,6 +1260,28 @@ Alpine.data('bacterialSmearLab', () => ({
     closeModal() {
         this.showModal = false;
         this.modalViewed[this.currentStep] = true;
+
+        // Initialize sound on first user interaction
+        if (!this.soundInitialized) {
+            this.initSound();
+            // Also load saved language on first interaction
+            this.loadSavedLanguage();
+        }
+        soundManager.playButtonClick();
+    },
+
+    // ==================== SOUND METHODS ====================
+    async initSound() {
+        await soundManager.init();
+        this.soundInitialized = true;
+    },
+
+    toggleSound() {
+        if (!this.soundInitialized) {
+            this.initSound();
+        }
+        this.soundEnabled = !soundManager.toggleMute();
+        soundManager.playButtonClick();
     },
 
     checkAndShowModal() {
@@ -282,8 +1320,34 @@ Alpine.data('bacterialSmearLab', () => ({
 
         const workbenchRect = workbench.getBoundingClientRect();
 
-        this.itemPositions[this.draggedItem].x = event.clientX - workbenchRect.left - this.dragOffset.x;
-        this.itemPositions[this.draggedItem].y = event.clientY - workbenchRect.top - this.dragOffset.y;
+        const newX = event.clientX - workbenchRect.left - this.dragOffset.x;
+        const newY = event.clientY - workbenchRect.top - this.dragOffset.y;
+
+        // Track drag velocity for direction-based bending
+        this.dragVelocityX = newX - this.lastDragX;
+        this.dragVelocityY = newY - this.lastDragY;
+
+        // Determine drag direction
+        const threshold = 2;
+        if (Math.abs(this.dragVelocityX) > Math.abs(this.dragVelocityY)) {
+            if (this.dragVelocityX > threshold) {
+                this.dragDirection = 'right';
+            } else if (this.dragVelocityX < -threshold) {
+                this.dragDirection = 'left';
+            }
+        } else {
+            if (this.dragVelocityY > threshold) {
+                this.dragDirection = 'down';
+            } else if (this.dragVelocityY < -threshold) {
+                this.dragDirection = 'up';
+            }
+        }
+
+        this.lastDragX = newX;
+        this.lastDragY = newY;
+
+        this.itemPositions[this.draggedItem].x = newX;
+        this.itemPositions[this.draggedItem].y = newY;
 
         if (this.heatingStartAt !== null) {
             const liveMs = this.sterilizationHoldMs + (Date.now() - this.heatingStartAt);
@@ -304,6 +1368,10 @@ Alpine.data('bacterialSmearLab', () => ({
         this.hoveredZone = null;
         this.isHeating = false;
         this.isSmearing = false;
+        // Reset drag direction
+        this.dragDirection = null;
+        this.dragVelocityX = 0;
+        this.dragVelocityY = 0;
     },
 
     checkCollisions() {
@@ -353,6 +1421,10 @@ Alpine.data('bacterialSmearLab', () => ({
                     this.isSmearing = true;
                     this.addSmearLine(item.x - slidePos.x);
                     this.trackSmearOrbit(item.x + itemWidth / 2, item.y + itemHeight / 2, slidePos);
+                    // Play occasional smear sound
+                    if (Math.random() > 0.85) {
+                        soundManager.playSmearSound();
+                    }
                 }
                 return;
             } else {
@@ -470,6 +1542,8 @@ Alpine.data('bacterialSmearLab', () => ({
     startHeating() {
         if (this.heatingStartAt !== null) return;
         this.heatingStartAt = Date.now();
+        // Start burner sound
+        soundManager.startBurnerHum();
     },
 
     stopHeating() {
@@ -479,6 +1553,8 @@ Alpine.data('bacterialSmearLab', () => ({
         const percent = Math.min(100, (this.sterilizationHoldMs / 3000) * 100);
         this.sterilizationProgress = Math.round(percent);
         this.sterilizationSeconds = Number((this.sterilizationHoldMs / 1000).toFixed(1));
+        // Stop burner sound
+        soundManager.stopBurnerHum();
     },
 
     recomputeTotalScore() {
@@ -493,6 +1569,8 @@ Alpine.data('bacterialSmearLab', () => ({
     addError(message) {
         if (!this.errors.includes(message)) {
             this.errors.push(message);
+            // Play error sound
+            soundManager.playErrorBuzz();
         }
     },
 
@@ -500,7 +1578,7 @@ Alpine.data('bacterialSmearLab', () => ({
         this.stopHeating();
 
         if (this.sterilizationHoldMs <= 0) {
-            this.addError('Halqa olovda ushlanmadi.');
+            this.addError(this.t('errLoopNotHeld'));
             this.setStepScore('sterilization', 0);
             return;
         }
@@ -511,10 +1589,12 @@ Alpine.data('bacterialSmearLab', () => ({
         this.setStepScore('sterilization', sterilizationScore);
 
         if (seconds < 3) {
-            this.addError('Sterillash vaqti 3 soniyadan kam bo\'ldi.');
+            this.addError(this.t('errSterilizationShort'));
         }
 
         this.state.isSterilized = true;
+        // Play success sound
+        soundManager.playSuccessPing();
         setTimeout(() => {
             this.checkAndShowModal();
         }, 300);
@@ -523,12 +1603,14 @@ Alpine.data('bacterialSmearLab', () => ({
     collectSample() {
         if (!this.state.isSterilized) {
             this.setStepScore('sampling', 0);
-            this.addError('Namuna sterillanmagan halqa bilan olindi.');
+            this.addError(this.t('errUnsterilizedSample'));
             return;
         }
 
         this.sampleDipCount += 1;
         this.liquidLevel = Math.max(20, 60 - (this.sampleDipCount * 8));
+        // Play dip sound
+        soundManager.playDropSound();
 
         if (this.sampleDipCount < this.sampleDipTarget) {
             return;
@@ -537,6 +1619,8 @@ Alpine.data('bacterialSmearLab', () => ({
         this.setStepScore('sampling', 2);
         setTimeout(() => {
             this.state.hasSample = true;
+            // Play success sound
+            soundManager.playSuccessPing();
             this.checkAndShowModal();
         }, 250);
     },
@@ -545,7 +1629,7 @@ Alpine.data('bacterialSmearLab', () => ({
         if (this.state.isSmearCreated) return;
 
         if (this.smearOrbitTurns < this.smearRequiredTurns || this.smearLines.length < 18) {
-            this.addError('Surtma uchun halqani oynada aylana qilib bir necha marta surting.');
+            this.addError(this.t('errSmearIncomplete'));
             return;
         }
 
@@ -564,11 +1648,13 @@ Alpine.data('bacterialSmearLab', () => ({
 
         this.setStepScore('smear', isTargetSmear ? 1 : 0);
         if (!isTargetSmear) {
-            this.addError('Surtma target-area ichida to\'g\'ri bajarilmadi.');
+            this.addError(this.t('errSmearNotInTarget'));
         }
 
         setTimeout(() => {
             this.state.isSmearCreated = true;
+            // Play success sound
+            soundManager.playSuccessPing();
             this.checkAndShowModal();
         }, 300);
     },
@@ -576,6 +1662,12 @@ Alpine.data('bacterialSmearLab', () => ({
     fixSmear() {
         this.fixationPasses += 1;
         this.isFixing = true;
+        // Show steam effect during fixation
+        this.showSteam = true;
+        // Play metal clink sound when slide touches flame
+        soundManager.playMetalClink();
+        // Brief burner sound
+        soundManager.startBurnerHum();
 
         let fixationScore = 0;
         if (this.fixationPasses === 3) {
@@ -589,10 +1681,14 @@ Alpine.data('bacterialSmearLab', () => ({
 
         setTimeout(() => {
             this.isFixing = false;
+            this.showSteam = false;
+            soundManager.stopBurnerHum();
             if (this.fixationPasses >= 3) {
                 this.state.isFixed = true;
+                // Play success sound
+                soundManager.playSuccessPing();
                 if (this.fixationPasses !== 3) {
-                    this.addError(`Fiksatsiya ${this.fixationPasses} marta bajarildi (ideal: 3).`);
+                    this.addError(this.t('errFixationCount').replace('{count}', this.fixationPasses));
                 }
                 this.checkAndShowModal();
             }
@@ -601,6 +1697,15 @@ Alpine.data('bacterialSmearLab', () => ({
 
     dropDye() {
         if (!this.state.isFixed || this.state.isDyed) return;
+
+        // Play drop sound
+        soundManager.playDropSound();
+
+        // Trigger dye drop spreading animation
+        this.dyeDropAnimating = true;
+        setTimeout(() => {
+            this.dyeDropAnimating = false;
+        }, 1200);
 
         this.dyeCoverage = 100;
         this.isDyeSpreadVisible = true;
@@ -628,10 +1733,13 @@ Alpine.data('bacterialSmearLab', () => ({
     dropWater() {
         if (!this.state.isFixed || this.state.isWashed) return;
         if (!this.state.isDyed) {
-            this.addError('Yuvishdan oldin bo\'yoq tomizilishi kerak.');
+            this.addError(this.t('errWashBeforeDye'));
             this.setStepScore('washing', 0);
             return;
         }
+
+        // Play water flow sound
+        soundManager.playWaterFlow();
 
         this.state.isWashed = true;
         this.isRunoffAnimating = true;
@@ -643,9 +1751,11 @@ Alpine.data('bacterialSmearLab', () => ({
 
         if (this.canWashNow) {
             this.setStepScore('washing', 2);
+            // Play success sound
+            soundManager.playSuccessPing();
         } else {
             this.setStepScore('washing', 0);
-            this.addError('Bo\'yoq reaksiyasi uchun kamida 5-10 soniya kutilmadi.');
+            this.addError(this.t('errNoWaitTime'));
         }
 
         setTimeout(() => {
@@ -656,11 +1766,11 @@ Alpine.data('bacterialSmearLab', () => ({
 
     observeMicroscope() {
         if (!this.state.isDyed) {
-            this.addError('Mikroskopga o\'tishdan oldin bo\'yoq tomizilmadi.');
+            this.addError(this.t('errNoDyeBeforeMicroscope'));
             this.setStepScore('dye', 0);
         }
         if (!this.state.isWashed) {
-            this.addError('Bo\'yoq yuvilmasdan mikroskopga o\'tildi, natija buzildi.');
+            this.addError(this.t('errNoWashBeforeMicroscope'));
             this.setStepScore('washing', 0);
             this.setStepScore('dye', Math.min(this.stepScores.dye, 0.5));
         }
@@ -693,11 +1803,15 @@ Alpine.data('bacterialSmearLab', () => ({
     finishLab(force = false) {
         if (!this.allStepsCompleted && !force) return;
         if (this.fixationPasses !== 3) {
-            this.addError(`Fiksatsiya ${this.fixationPasses} marta bajarildi (ideal: 3).`);
+            this.addError(this.t('errFixationCount').replace('{count}', this.fixationPasses));
         }
         this.buildBacteriaParticles();
         this.resultSceneVisible = true;
         this.showModal = false;
+        // Stop any active sounds
+        soundManager.stopAll();
+        // Play completion fanfare
+        soundManager.playCompletionFanfare();
     },
 
     resetSimulation() {
@@ -754,6 +1868,14 @@ Alpine.data('bacterialSmearLab', () => ({
         this.smearOrbitTurns = 0;
         this.smearPrevAngle = null;
         this.smearCompleted = false;
+        // Reset new visual effect states
+        this.dragDirection = null;
+        this.lastDragX = 0;
+        this.lastDragY = 0;
+        this.dragVelocityX = 0;
+        this.dragVelocityY = 0;
+        this.showSteam = false;
+        this.dyeDropAnimating = false;
         if (this.sterilizationInterval) {
             clearInterval(this.sterilizationInterval);
         }
