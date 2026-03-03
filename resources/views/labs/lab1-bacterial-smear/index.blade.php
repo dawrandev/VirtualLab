@@ -80,7 +80,8 @@
                     <div class="loop-label">
                         <span x-show="!state.isSterilized && !isHeating">Olovga suring</span>
                         <span x-show="isHeating">Qizdirmoqda...</span>
-                        <span x-show="state.isSterilized && !state.hasSample">Probirkaga suring</span>
+                        <span x-show="state.isSterilized && !state.hasSample">Probirkaga suring (<span x-text="sampleProgressText"></span>)</span>
+                        <span x-show="state.hasSample && !state.isSmearCreated">Aylana surtish: <span x-text="smearOrbitPercent"></span>%</span>
                     </div>
                 </div>
 
@@ -91,11 +92,16 @@
                     <div class="slide-glass">
                         <div class="smear-trail">
                             <template x-for="line in smearLines" :key="line.id">
-                                <div class="smear-line" :style="`left: ${line.x}px; top: 50%; width: ${line.width}px; transform: translateY(-50%);`"></div>
+                                <div class="smear-line" :style="`left:${line.x}px; top:${line.y}px; width:${line.width}px; height:${line.height}px; opacity:${line.opacity}; transform:translateY(-50%) rotate(${line.rotate}deg);`"></div>
                             </template>
                         </div>
                         <div class="target-area"></div>
+                        <div class="smear-orbit-guide" x-show="state.hasSample && !state.isSmearCreated">
+                            <div class="orbit-ring"></div>
+                            <div class="orbit-progress" :style="`background: conic-gradient(#8b5cf6 ${smearOrbitPercent}%, rgba(203,213,225,0.35) ${smearOrbitPercent}% 100%);`"></div>
+                        </div>
                         <div class="smear" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
+                        <div class="smear-pigment" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
                         <div class="stain-overlay" :class="{'visible': isDyeSpreadVisible, 'mature': isDyeMatured, 'washed': state.isWashed}"></div>
                         <div class="wash-runoff" :class="{'running': isRunoffAnimating}">
                             <span></span><span></span><span></span>
@@ -117,6 +123,31 @@
                 <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'dyeDrop'}" :style="`left: ${itemPositions.slide.x + 14}px; top: ${itemPositions.slide.y + 2}px; width: 92px; height: 36px;`"></div>
                 <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'washDrop'}" :style="`left: ${itemPositions.slide.x + 14}px; top: ${itemPositions.slide.y + 2}px; width: 92px; height: 36px;`"></div>
 
+                <div x-show="!resultSceneVisible && state.isSmearCreated" class="stage-progress-panel">
+                    <p class="stage-progress-title">Bosqich progress</p>
+                    <div class="stage-progress-item" :class="{'done': state.isFixed}">
+                        <div class="stage-progress-head">
+                            <span>4-bosqich: Fiksatsiya</span>
+                            <span x-text="`${Math.min(fixationPasses, 3)}/3`"></span>
+                        </div>
+                        <div class="stage-progress-bar">
+                            <div class="stage-progress-fill fix" :style="`width:${fixationProgressPercent}%`"></div>
+                        </div>
+                    </div>
+                    <div class="stage-progress-item" :class="{'done': state.isWashed}">
+                        <div class="stage-progress-head">
+                            <span>5-bosqich: Bo'yash/Yuvish</span>
+                            <span x-show="!state.isDyed">Bo'yoq kutilmoqda</span>
+                            <span x-show="state.isDyed && !canWashNow">Kutish: <span x-text="stainingTimeLeft"></span>s</span>
+                            <span x-show="state.isDyed && canWashNow && !state.isWashed">Yuvishga tayyor</span>
+                            <span x-show="state.isWashed">Tugallandi</span>
+                        </div>
+                        <div class="stage-progress-bar">
+                            <div class="stage-progress-fill stain" :style="`width:${stainingProgressPercent}%`"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div x-show="state.isFixed && !resultSceneVisible" class="staining-controls absolute right-6 bottom-6 bg-white/95 rounded-xl p-4 shadow-xl border border-violet-200">
                     <p class="text-sm font-semibold text-violet-800 mb-1">5-bosqich: Vizual bo'yash</p>
                     <p class="text-xs text-gray-600 mb-2">Pipetkalarni oynaga tomizing: avval bo'yoq, keyin suv.</p>
@@ -130,10 +161,10 @@
                     </div>
                 </div>
 
-                <div x-show="state.isFixed && !resultSceneVisible"
+                <div x-show="!resultSceneVisible"
                      class="reagent-tool reagent-dye"
                      :style="`left:${itemPositions.dyePipette.x}px; top:${itemPositions.dyePipette.y}px;`"
-                     :class="{'dragging': isDragging && draggedItem === 'dyePipette', 'used': state.isDyed}"
+                     :class="{'dragging': isDragging && draggedItem === 'dyePipette', 'used': state.isDyed, 'locked': !state.isFixed}"
                      @mousedown="startDrag('dyePipette', $event)">
                     <svg viewBox="0 0 120 60" width="110" height="56" aria-label="Gencian fiolet pipetka">
                         <rect x="6" y="20" width="52" height="30" rx="10" fill="#6d28d9"/>
@@ -144,10 +175,10 @@
                     <span>Gencian fiolet</span>
                 </div>
 
-                <div x-show="state.isFixed && !resultSceneVisible"
+                <div x-show="!resultSceneVisible"
                      class="reagent-tool reagent-water"
                      :style="`left:${itemPositions.waterPipette.x}px; top:${itemPositions.waterPipette.y}px;`"
-                     :class="{'dragging': isDragging && draggedItem === 'waterPipette', 'used': state.isWashed}"
+                     :class="{'dragging': isDragging && draggedItem === 'waterPipette', 'used': state.isWashed, 'locked': !state.isFixed}"
                      @mousedown="startDrag('waterPipette', $event)">
                     <svg viewBox="0 0 120 60" width="110" height="56" aria-label="Distillangan suv pipetka">
                         <rect x="6" y="20" width="52" height="30" rx="10" fill="#0ea5e9"/>

@@ -17,8 +17,8 @@ Alpine.data('bacterialSmearLab', () => ({
     itemPositions: {
         loop: { x: 50, y: 100 },
         slide: { x: 25, y: 395 },
-        dyePipette: { x: 610, y: 300 },
-        waterPipette: { x: 610, y: 390 }
+        dyePipette: { x: 430, y: 248 },
+        waterPipette: { x: 430, y: 336 }
     },
 
     // Experiment state
@@ -45,6 +45,13 @@ Alpine.data('bacterialSmearLab', () => ({
     isSmearing: false,
     smearLines: [],
     lastLoopCenterX: 0,
+    sampleDipCount: 0,
+    sampleDipTarget: 3,
+    smearRequiredTurns: 2,
+    smearOrbitAccum: 0,
+    smearOrbitTurns: 0,
+    smearPrevAngle: null,
+    smearCompleted: false,
     fixationPasses: 0,
     isFixing: false,
     dyeCoverage: 0,
@@ -187,6 +194,26 @@ Alpine.data('bacterialSmearLab', () => ({
         return this.steps[this.currentStep];
     },
 
+    get sampleProgressText() {
+        return `${this.sampleDipCount}/${this.sampleDipTarget}`;
+    },
+
+    get smearOrbitPercent() {
+        const ratio = this.smearOrbitTurns / this.smearRequiredTurns;
+        return Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    },
+
+    get fixationProgressPercent() {
+        return Math.max(0, Math.min(100, Math.round((this.fixationPasses / 3) * 100)));
+    },
+
+    get stainingProgressPercent() {
+        if (!this.state.isDyed) return 0;
+        if (this.canWashNow || this.stainingWaitRequired <= 0) return 100;
+        const elapsed = this.stainingWaitRequired - this.stainingTimeLeft;
+        return Math.max(0, Math.min(100, Math.round((elapsed / this.stainingWaitRequired) * 100)));
+    },
+
     get scoreOutOfTen() {
         const scaled = (this.userScore / 9) * 10;
         return Math.max(0, Math.min(10, Number(scaled.toFixed(1))));
@@ -271,6 +298,7 @@ Alpine.data('bacterialSmearLab', () => ({
             this.handleDrop(this.draggedItem, this.hoveredZone);
         }
         this.stopHeating();
+        this.smearPrevAngle = null;
         this.isDragging = false;
         this.draggedItem = null;
         this.hoveredZone = null;
@@ -324,10 +352,12 @@ Alpine.data('bacterialSmearLab', () => ({
                 if (this.state.hasSample && !this.state.isSmearCreated) {
                     this.isSmearing = true;
                     this.addSmearLine(item.x - slidePos.x);
+                    this.trackSmearOrbit(item.x + itemWidth / 2, item.y + itemHeight / 2, slidePos);
                 }
                 return;
             } else {
                 this.isSmearing = false;
+                this.smearPrevAngle = null;
             }
         }
 
@@ -351,13 +381,17 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     addSmearLine(xPos) {
-        // Limit number of smear lines
-        if (this.smearLines.length < 15) {
+        // Build a denser, organic smear trail
+        if (this.smearLines.length < 28) {
             const clampedX = Math.max(5, Math.min(xPos + 40, 100));
             const line = {
                 id: Date.now(),
                 x: clampedX,
-                width: Math.random() * 30 + 20,
+                y: (Math.random() * 16) + 12,
+                width: Math.random() * 40 + 26,
+                height: Math.random() * 4 + 3,
+                rotate: (Math.random() * 18) - 9,
+                opacity: (Math.random() * 0.35) + 0.45,
                 inTarget: clampedX >= 30 && clampedX <= 90
             };
             this.smearLines.push(line);
@@ -394,6 +428,41 @@ Alpine.data('bacterialSmearLab', () => ({
             this.dropDye();
         } else if (item === 'waterPipette' && zone === 'washDrop' && this.state.isFixed) {
             this.dropWater();
+        }
+    },
+
+    trackSmearOrbit(loopCenterX, loopCenterY, slidePos) {
+        const cx = slidePos.x + 60;
+        const cy = slidePos.y + 20;
+        const dx = loopCenterX - cx;
+        const dy = loopCenterY - cy;
+        const radius = Math.sqrt((dx * dx) + (dy * dy));
+
+        // Keep motion near circular path so user visibly rubs in oval/circle manner
+        if (radius < 20 || radius > 68) {
+            this.smearPrevAngle = null;
+            return;
+        }
+
+        const angle = Math.atan2(dy, dx);
+        if (this.smearPrevAngle === null) {
+            this.smearPrevAngle = angle;
+            return;
+        }
+
+        let delta = angle - this.smearPrevAngle;
+        while (delta > Math.PI) delta -= (Math.PI * 2);
+        while (delta < -Math.PI) delta += (Math.PI * 2);
+
+        if (Math.abs(delta) < 1.2) {
+            this.smearOrbitAccum += Math.abs(delta);
+            this.smearOrbitTurns = this.smearOrbitAccum / (Math.PI * 2);
+        }
+
+        this.smearPrevAngle = angle;
+
+        if (!this.smearCompleted && this.smearOrbitTurns >= this.smearRequiredTurns && this.smearLines.length >= 18) {
+            this.completeSmearStep();
         }
     },
 
@@ -452,22 +521,41 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     collectSample() {
-        this.liquidLevel = 40;
-
-        if (this.state.isSterilized) {
-            this.setStepScore('sampling', 2);
-        } else {
+        if (!this.state.isSterilized) {
             this.setStepScore('sampling', 0);
             this.addError('Namuna sterillanmagan halqa bilan olindi.');
+            return;
         }
 
+        this.sampleDipCount += 1;
+        this.liquidLevel = Math.max(20, 60 - (this.sampleDipCount * 8));
+
+        if (this.sampleDipCount < this.sampleDipTarget) {
+            return;
+        }
+
+        this.setStepScore('sampling', 2);
         setTimeout(() => {
             this.state.hasSample = true;
             this.checkAndShowModal();
-        }, 600);
+        }, 250);
     },
 
     createSmear() {
+        if (this.state.isSmearCreated) return;
+
+        if (this.smearOrbitTurns < this.smearRequiredTurns || this.smearLines.length < 18) {
+            this.addError('Surtma uchun halqani oynada aylana qilib bir necha marta surting.');
+            return;
+        }
+
+        this.completeSmearStep();
+    },
+
+    completeSmearStep() {
+        if (this.smearCompleted) return;
+        this.smearCompleted = true;
+
         const targetHits = this.smearLines.filter(line => line.inTarget).length;
         const targetRate = this.smearLines.length > 0 ? (targetHits / this.smearLines.length) : 0;
         const localCenterX = this.lastLoopCenterX - this.itemPositions.slide.x;
@@ -482,7 +570,7 @@ Alpine.data('bacterialSmearLab', () => ({
         setTimeout(() => {
             this.state.isSmearCreated = true;
             this.checkAndShowModal();
-        }, 800);
+        }, 300);
     },
 
     fixSmear() {
@@ -626,8 +714,8 @@ Alpine.data('bacterialSmearLab', () => ({
         this.itemPositions = {
             loop: { x: 50, y: 100 },
             slide: { x: 25, y: 395 },
-            dyePipette: { x: 610, y: 300 },
-            waterPipette: { x: 610, y: 390 }
+            dyePipette: { x: 430, y: 248 },
+            waterPipette: { x: 430, y: 336 }
         };
         this.sterilizationHoldMs = 0;
         this.heatingStartAt = null;
@@ -659,6 +747,13 @@ Alpine.data('bacterialSmearLab', () => ({
         this.isHeating = false;
         this.isSmearing = false;
         this.smearLines = [];
+        this.sampleDipCount = 0;
+        this.sampleDipTarget = 3;
+        this.smearRequiredTurns = 2;
+        this.smearOrbitAccum = 0;
+        this.smearOrbitTurns = 0;
+        this.smearPrevAngle = null;
+        this.smearCompleted = false;
         if (this.sterilizationInterval) {
             clearInterval(this.sterilizationInterval);
         }
