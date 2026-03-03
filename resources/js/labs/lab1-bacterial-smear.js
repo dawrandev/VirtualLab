@@ -16,7 +16,9 @@ Alpine.data('bacterialSmearLab', () => ({
     // Item positions (absolute positioning within workbench)
     itemPositions: {
         loop: { x: 50, y: 100 },
-        slide: { x: 25, y: 395 }
+        slide: { x: 25, y: 395 },
+        dyePipette: { x: 610, y: 300 },
+        waterPipette: { x: 610, y: 390 }
     },
 
     // Experiment state
@@ -24,12 +26,17 @@ Alpine.data('bacterialSmearLab', () => ({
         isSterilized: false,
         hasSample: false,
         isSmearCreated: false,
-        isFixed: false
+        isFixed: false,
+        isDyed: false,
+        isWashed: false
     },
 
     sterilizationProgress: 0,
     liquidLevel: 60,
     sterilizationInterval: null,
+    sterilizationHoldMs: 0,
+    heatingStartAt: null,
+    sterilizationSeconds: 0,
 
     // Heating state
     isHeating: false,
@@ -37,11 +44,36 @@ Alpine.data('bacterialSmearLab', () => ({
     // Smearing state
     isSmearing: false,
     smearLines: [],
+    lastLoopCenterX: 0,
+    fixationPasses: 0,
+    isFixing: false,
+    dyeCoverage: 0,
+    isDyeSpreadVisible: false,
+    isDyeMatured: false,
+    isRunoffAnimating: false,
+    stainingWaitRequired: 7,
+    stainingTimeLeft: 0,
+    stainingTimer: null,
+    canWashNow: false,
+    resultSceneVisible: false,
+    bacteriaParticles: [],
+
+    // Scoring state
+    userScore: 0,
+    errors: [],
+    stepScores: {
+        sterilization: 0,
+        sampling: 0,
+        smear: 0,
+        fixation: 0,
+        dye: 0,
+        washing: 0
+    },
 
     // Modal state
     showModal: true,
     currentStep: 1,
-    modalViewed: { 1: false, 2: false, 3: false, 4: false },
+    modalViewed: { 1: false, 2: false, 3: false, 4: false, 5: false },
 
     // Steps data (O'zbek tilida)
     steps: {
@@ -64,12 +96,24 @@ Alpine.data('bacterialSmearLab', () => ({
             title: 'Termik fiksatsiya',
             description: 'Surtma qilingan buyum oynasini olov ustiga olib boring. Issiqlik ta\'sirida bakteriyalar oynaga yopishib qoladi va keyinchalik bo\'yash jarayonida yuvilib ketmaydi.',
             animationType: 'fixation'
+        },
+        5: {
+            title: 'Bo\'yash va yuvish',
+            description: 'Surtmaga Gencian fioletni to\'liq quying va keyin suv bilan yuvish bosqichini bajaring. Shu bosqichdan keyin mikroskop natijasi chiqadi.',
+            animationType: 'staining'
         }
     },
 
     // Computed properties
     get completedSteps() {
-        return Object.values(this.state).filter(v => v).length;
+        const milestones = [
+            this.state.isSterilized,
+            this.state.hasSample,
+            this.state.isSmearCreated,
+            this.state.isFixed,
+            this.state.isDyed && this.state.isWashed
+        ];
+        return milestones.filter(Boolean).length;
     },
 
     get allStepsCompleted() {
@@ -78,6 +122,27 @@ Alpine.data('bacterialSmearLab', () => ({
 
     get currentStepData() {
         return this.steps[this.currentStep];
+    },
+
+    get scoreOutOfTen() {
+        const scaled = (this.userScore / 9) * 10;
+        return Math.max(0, Math.min(10, Number(scaled.toFixed(1))));
+    },
+
+    get scorePercent() {
+        return Math.round((this.scoreOutOfTen / 10) * 100);
+    },
+
+    get answerCategory() {
+        if (this.scoreOutOfTen >= 9) return 'To\'liq javob';
+        if (this.scoreOutOfTen >= 5) return 'To\'liq emas javob';
+        return 'Javob yo\'q';
+    },
+
+    get microscopeQuality() {
+        if (this.scoreOutOfTen > 8) return 'high';
+        if (this.scoreOutOfTen >= 5) return 'medium';
+        return 'low';
     },
 
     // Modal methods
@@ -100,12 +165,16 @@ Alpine.data('bacterialSmearLab', () => ({
             this.openModal(3);
         } else if (this.state.isSmearCreated && !this.state.isFixed && !this.modalViewed[4]) {
             this.openModal(4);
+        } else if (this.state.isFixed && (!this.state.isDyed || !this.state.isWashed) && !this.modalViewed[5]) {
+            this.openModal(5);
         }
     },
 
     // Drag methods
     startDrag(itemName, event) {
         if (this.showModal) return;
+        if (this.resultSceneVisible) return;
+        if ((itemName === 'dyePipette' || itemName === 'waterPipette') && !this.state.isFixed) return;
 
         this.isDragging = true;
         this.draggedItem = itemName;
@@ -126,6 +195,11 @@ Alpine.data('bacterialSmearLab', () => ({
         this.itemPositions[this.draggedItem].x = event.clientX - workbenchRect.left - this.dragOffset.x;
         this.itemPositions[this.draggedItem].y = event.clientY - workbenchRect.top - this.dragOffset.y;
 
+        if (this.heatingStartAt !== null) {
+            const liveMs = this.sterilizationHoldMs + (Date.now() - this.heatingStartAt);
+            this.sterilizationProgress = Math.min(100, Math.round((liveMs / 3000) * 100));
+        }
+
         this.checkCollisions();
     },
 
@@ -133,6 +207,7 @@ Alpine.data('bacterialSmearLab', () => ({
         if (this.isDragging && this.hoveredZone) {
             this.handleDrop(this.draggedItem, this.hoveredZone);
         }
+        this.stopHeating();
         this.isDragging = false;
         this.draggedItem = null;
         this.hoveredZone = null;
@@ -144,8 +219,14 @@ Alpine.data('bacterialSmearLab', () => ({
         if (!this.draggedItem) return;
 
         const item = this.itemPositions[this.draggedItem];
-        const itemWidth = this.draggedItem === 'loop' ? 80 : 120;
-        const itemHeight = this.draggedItem === 'loop' ? 120 : 40;
+        const itemMetrics = {
+            loop: { width: 80, height: 120 },
+            slide: { width: 120, height: 40 },
+            dyePipette: { width: 110, height: 56 },
+            waterPipette: { width: 110, height: 56 }
+        };
+        const itemWidth = itemMetrics[this.draggedItem]?.width ?? 80;
+        const itemHeight = itemMetrics[this.draggedItem]?.height ?? 40;
 
         // Bunsen burner flame zone (strict center hit for heating)
         const flameZone = { x: 332, y: 188, width: 36, height: 76 };
@@ -154,10 +235,12 @@ Alpine.data('bacterialSmearLab', () => ({
             // Heating effect while dragging over flame
             if (this.draggedItem === 'loop' && !this.state.isSterilized) {
                 this.isHeating = true;
+                this.startHeating();
             }
             return;
         } else {
             this.isHeating = false;
+            this.stopHeating();
         }
 
         // Sample tube zone
@@ -173,6 +256,7 @@ Alpine.data('bacterialSmearLab', () => ({
             const slideZone = { x: slidePos.x, y: slidePos.y, width: 120, height: 40 };
             if (this.isColliding(item, itemWidth, itemHeight, slideZone)) {
                 this.hoveredZone = 'slideArea';
+                this.lastLoopCenterX = item.x + itemWidth / 2;
                 // Smearing effect while dragging over slide
                 if (this.state.hasSample && !this.state.isSmearCreated) {
                     this.isSmearing = true;
@@ -181,6 +265,15 @@ Alpine.data('bacterialSmearLab', () => ({
                 return;
             } else {
                 this.isSmearing = false;
+            }
+        }
+
+        if (this.draggedItem === 'dyePipette' || this.draggedItem === 'waterPipette') {
+            const slidePos = this.itemPositions.slide;
+            const stainZone = { x: slidePos.x + 14, y: slidePos.y + 2, width: 92, height: 36 };
+            if (this.isColliding(item, itemWidth, itemHeight, stainZone, 6)) {
+                this.hoveredZone = this.draggedItem === 'dyePipette' ? 'dyeDrop' : 'washDrop';
+                return;
             }
         }
 
@@ -197,10 +290,12 @@ Alpine.data('bacterialSmearLab', () => ({
     addSmearLine(xPos) {
         // Limit number of smear lines
         if (this.smearLines.length < 15) {
+            const clampedX = Math.max(5, Math.min(xPos + 40, 100));
             const line = {
                 id: Date.now(),
-                x: Math.max(5, Math.min(xPos + 40, 100)),
-                width: Math.random() * 30 + 20
+                x: clampedX,
+                width: Math.random() * 30 + 20,
+                inTarget: clampedX >= 30 && clampedX <= 90
             };
             this.smearLines.push(line);
         }
@@ -226,35 +321,83 @@ Alpine.data('bacterialSmearLab', () => ({
     handleDrop(item, zone) {
         if (item === 'loop' && zone === 'sterilize' && !this.state.isSterilized) {
             this.startSterilization();
-        } else if (item === 'loop' && zone === 'sampleTube' && this.state.isSterilized && !this.state.hasSample) {
+        } else if (item === 'loop' && zone === 'sampleTube' && !this.state.hasSample) {
             this.collectSample();
         } else if (item === 'loop' && zone === 'slideArea' && this.state.hasSample && !this.state.isSmearCreated) {
             this.createSmear();
-        } else if (item === 'slide' && zone === 'fixation' && this.state.isSmearCreated && !this.state.isFixed) {
+        } else if (item === 'slide' && zone === 'fixation' && this.state.isSmearCreated) {
             this.fixSmear();
+        } else if (item === 'dyePipette' && zone === 'dyeDrop' && this.state.isFixed) {
+            this.dropDye();
+        } else if (item === 'waterPipette' && zone === 'washDrop' && this.state.isFixed) {
+            this.dropWater();
         }
     },
 
     // Action methods
+    startHeating() {
+        if (this.heatingStartAt !== null) return;
+        this.heatingStartAt = Date.now();
+    },
+
+    stopHeating() {
+        if (this.heatingStartAt === null) return;
+        this.sterilizationHoldMs += Date.now() - this.heatingStartAt;
+        this.heatingStartAt = null;
+        const percent = Math.min(100, (this.sterilizationHoldMs / 3000) * 100);
+        this.sterilizationProgress = Math.round(percent);
+        this.sterilizationSeconds = Number((this.sterilizationHoldMs / 1000).toFixed(1));
+    },
+
+    recomputeTotalScore() {
+        this.userScore = Object.values(this.stepScores).reduce((acc, value) => acc + value, 0);
+    },
+
+    setStepScore(step, score) {
+        this.stepScores[step] = score;
+        this.recomputeTotalScore();
+    },
+
+    addError(message) {
+        if (!this.errors.includes(message)) {
+            this.errors.push(message);
+        }
+    },
+
     startSterilization() {
-        let progress = 0;
-        this.sterilizationProgress = 0;
-        this.sterilizationInterval = setInterval(() => {
-            progress += 10;
-            this.sterilizationProgress = progress;
-            if (progress >= 100) {
-                clearInterval(this.sterilizationInterval);
-                this.state.isSterilized = true;
-                setTimeout(() => {
-                    this.sterilizationProgress = 0;
-                    this.checkAndShowModal();
-                }, 500);
-            }
+        this.stopHeating();
+
+        if (this.sterilizationHoldMs <= 0) {
+            this.addError('Halqa olovda ushlanmadi.');
+            this.setStepScore('sterilization', 0);
+            return;
+        }
+
+        const seconds = this.sterilizationHoldMs / 1000;
+        this.sterilizationSeconds = Number(seconds.toFixed(1));
+        const sterilizationScore = seconds >= 3 ? 1 : 0.5;
+        this.setStepScore('sterilization', sterilizationScore);
+
+        if (seconds < 3) {
+            this.addError('Sterillash vaqti 3 soniyadan kam bo\'ldi.');
+        }
+
+        this.state.isSterilized = true;
+        setTimeout(() => {
+            this.checkAndShowModal();
         }, 300);
     },
 
     collectSample() {
         this.liquidLevel = 40;
+
+        if (this.state.isSterilized) {
+            this.setStepScore('sampling', 2);
+        } else {
+            this.setStepScore('sampling', 0);
+            this.addError('Namuna sterillanmagan halqa bilan olindi.');
+        }
+
         setTimeout(() => {
             this.state.hasSample = true;
             this.checkAndShowModal();
@@ -262,6 +405,17 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     createSmear() {
+        const targetHits = this.smearLines.filter(line => line.inTarget).length;
+        const targetRate = this.smearLines.length > 0 ? (targetHits / this.smearLines.length) : 0;
+        const localCenterX = this.lastLoopCenterX - this.itemPositions.slide.x;
+        const droppedInTarget = localCenterX >= 30 && localCenterX <= 90;
+        const isTargetSmear = targetRate >= 0.5 || droppedInTarget;
+
+        this.setStepScore('smear', isTargetSmear ? 1 : 0);
+        if (!isTargetSmear) {
+            this.addError('Surtma target-area ichida to\'g\'ri bajarilmadi.');
+        }
+
         setTimeout(() => {
             this.state.isSmearCreated = true;
             this.checkAndShowModal();
@@ -269,9 +423,130 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     fixSmear() {
+        this.fixationPasses += 1;
+        this.isFixing = true;
+
+        let fixationScore = 0;
+        if (this.fixationPasses === 3) {
+            fixationScore = 2;
+        } else if (this.fixationPasses === 2 || this.fixationPasses === 4) {
+            fixationScore = 1;
+        } else if (this.fixationPasses === 1 || this.fixationPasses === 5) {
+            fixationScore = 0.5;
+        }
+        this.setStepScore('fixation', fixationScore);
+
         setTimeout(() => {
-            this.state.isFixed = true;
+            this.isFixing = false;
+            if (this.fixationPasses >= 3) {
+                this.state.isFixed = true;
+                if (this.fixationPasses !== 3) {
+                    this.addError(`Fiksatsiya ${this.fixationPasses} marta bajarildi (ideal: 3).`);
+                }
+                this.checkAndShowModal();
+            }
+        }, 500);
+    },
+
+    dropDye() {
+        if (!this.state.isFixed || this.state.isDyed) return;
+
+        this.dyeCoverage = 100;
+        this.isDyeSpreadVisible = true;
+        this.canWashNow = false;
+        this.state.isDyed = true;
+        this.setStepScore('dye', 1);
+        this.stainingTimeLeft = this.stainingWaitRequired;
+
+        if (this.stainingTimer) {
+            clearInterval(this.stainingTimer);
+        }
+
+        this.stainingTimer = setInterval(() => {
+            this.stainingTimeLeft -= 1;
+            if (this.stainingTimeLeft <= 0) {
+                clearInterval(this.stainingTimer);
+                this.stainingTimer = null;
+                this.stainingTimeLeft = 0;
+                this.canWashNow = true;
+                this.isDyeMatured = true;
+            }
         }, 1000);
+    },
+
+    dropWater() {
+        if (!this.state.isFixed || this.state.isWashed) return;
+        if (!this.state.isDyed) {
+            this.addError('Yuvishdan oldin bo\'yoq tomizilishi kerak.');
+            this.setStepScore('washing', 0);
+            return;
+        }
+
+        this.state.isWashed = true;
+        this.isRunoffAnimating = true;
+
+        if (this.stainingTimer) {
+            clearInterval(this.stainingTimer);
+            this.stainingTimer = null;
+        }
+
+        if (this.canWashNow) {
+            this.setStepScore('washing', 2);
+        } else {
+            this.setStepScore('washing', 0);
+            this.addError('Bo\'yoq reaksiyasi uchun kamida 5-10 soniya kutilmadi.');
+        }
+
+        setTimeout(() => {
+            this.isRunoffAnimating = false;
+            this.finishLab();
+        }, 1300);
+    },
+
+    observeMicroscope() {
+        if (!this.state.isDyed) {
+            this.addError('Mikroskopga o\'tishdan oldin bo\'yoq tomizilmadi.');
+            this.setStepScore('dye', 0);
+        }
+        if (!this.state.isWashed) {
+            this.addError('Bo\'yoq yuvilmasdan mikroskopga o\'tildi, natija buzildi.');
+            this.setStepScore('washing', 0);
+            this.setStepScore('dye', Math.min(this.stepScores.dye, 0.5));
+        }
+        this.finishLab(true);
+    },
+
+    buildBacteriaParticles() {
+        const quality = this.microscopeQuality;
+        const count = quality === 'high' ? 28 : quality === 'medium' ? 10 : 5;
+        const particles = [];
+
+        for (let i = 0; i < count; i += 1) {
+            particles.push({
+                id: `b-${i}`,
+                left: Math.random() * 90 + 5,
+                top: Math.random() * 90 + 5,
+                size: quality === 'high'
+                    ? (Math.random() * 10 + 7)
+                    : quality === 'medium'
+                        ? (Math.random() * 7 + 5)
+                        : (Math.random() * 12 + 6),
+                delay: (Math.random() * 1.8).toFixed(2),
+                opacity: quality === 'high' ? 0.95 : quality === 'medium' ? 0.45 : 0.25
+            });
+        }
+
+        this.bacteriaParticles = particles;
+    },
+
+    finishLab(force = false) {
+        if (!this.allStepsCompleted && !force) return;
+        if (this.fixationPasses !== 3) {
+            this.addError(`Fiksatsiya ${this.fixationPasses} marta bajarildi (ideal: 3).`);
+        }
+        this.buildBacteriaParticles();
+        this.resultSceneVisible = true;
+        this.showModal = false;
     },
 
     resetSimulation() {
@@ -279,13 +554,41 @@ Alpine.data('bacterialSmearLab', () => ({
             isSterilized: false,
             hasSample: false,
             isSmearCreated: false,
-            isFixed: false
+            isFixed: false,
+            isDyed: false,
+            isWashed: false
         };
         this.sterilizationProgress = 0;
         this.liquidLevel = 60;
         this.itemPositions = {
             loop: { x: 50, y: 100 },
-            slide: { x: 25, y: 395 }
+            slide: { x: 25, y: 395 },
+            dyePipette: { x: 610, y: 300 },
+            waterPipette: { x: 610, y: 390 }
+        };
+        this.sterilizationHoldMs = 0;
+        this.heatingStartAt = null;
+        this.sterilizationSeconds = 0;
+        this.fixationPasses = 0;
+        this.isFixing = false;
+        this.dyeCoverage = 0;
+        this.isDyeSpreadVisible = false;
+        this.isDyeMatured = false;
+        this.isRunoffAnimating = false;
+        this.stainingWaitRequired = 7;
+        this.stainingTimeLeft = 0;
+        this.canWashNow = false;
+        this.resultSceneVisible = false;
+        this.bacteriaParticles = [];
+        this.userScore = 0;
+        this.errors = [];
+        this.stepScores = {
+            sterilization: 0,
+            sampling: 0,
+            smear: 0,
+            fixation: 0,
+            dye: 0,
+            washing: 0
         };
         this.isDragging = false;
         this.draggedItem = null;
@@ -296,7 +599,11 @@ Alpine.data('bacterialSmearLab', () => ({
         if (this.sterilizationInterval) {
             clearInterval(this.sterilizationInterval);
         }
-        this.modalViewed = { 1: false, 2: false, 3: false, 4: false };
+        if (this.stainingTimer) {
+            clearInterval(this.stainingTimer);
+            this.stainingTimer = null;
+        }
+        this.modalViewed = { 1: false, 2: false, 3: false, 4: false, 5: false };
         this.currentStep = 1;
         this.showModal = true;
     }
