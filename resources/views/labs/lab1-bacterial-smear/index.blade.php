@@ -213,15 +213,17 @@
                          @mousedown="startDrag('loop', $event)">
                         <div class="loop-handle"></div>
                         <div class="loop-circle" :class="{
-                            'sterilized': state.isSterilized,
+                            'heating': isHeating,
+                            'sterilized': state.isSterilized && !isHeating,
                             'has-sample': state.hasSample
                         }"></div>
                         <div x-show="sterilizationProgress > 0 && sterilizationProgress < 100" class="sterilization-progress">
                             <div class="sterilization-bar" :style="`width: ${sterilizationProgress}%`"></div>
                         </div>
                         <div class="loop-label">
-                            <span x-show="!state.isSterilized">Olovga suring</span>
-                            <span x-show="state.isSterilized && !state.hasSample">Probirkaga suring</span>
+                            <span x-show="!state.isSterilized && !isHeating">Olovga suring</span>
+                            <span x-show="isHeating">Qizdirmoqda...</span>
+                            <span x-show="state.isSterilized && !state.hasSample && !isHeating">Probirkaga suring</span>
                             <span x-show="state.hasSample && !state.isSmearCreated">Oynaga suring</span>
                             <span x-show="state.isSmearCreated">Tayyor</span>
                         </div>
@@ -232,13 +234,24 @@
                          :style="`left: ${itemPositions.slide.x}px; top: ${itemPositions.slide.y}px;`"
                          :class="{
                              'dragging': isDragging && draggedItem === 'slide',
-                             'waiting-for-sample': state.hasSample && !state.isSmearCreated
+                             'waiting-for-sample': state.hasSample && !state.isSmearCreated,
+                             'smearing-active': isSmearing
                          }"
                          @mousedown="startDrag('slide', $event)">
                         <div class="slide-glass">
+                            {{-- Smear trail lines --}}
+                            <div class="smear-trail">
+                                <template x-for="line in smearLines" :key="line.id">
+                                    <div class="smear-line"
+                                         :style="`left: ${line.x}px; top: 50%; width: ${line.width}px; transform: translateY(-50%);`">
+                                    </div>
+                                </template>
+                            </div>
+                            {{-- Final smear --}}
                             <div class="smear" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
                         </div>
-                        <div class="slide-label" x-show="!state.isSmearCreated">Buyum oynasi</div>
+                        <div class="slide-label" x-show="!state.isSmearCreated && !isSmearing">Buyum oynasi</div>
+                        <div class="slide-label" x-show="isSmearing" style="color: #8b5cf6;">Surtma qilinmoqda...</div>
                         <div class="slide-label" x-show="state.isSmearCreated && !state.isFixed" style="color: #7c3aed;">Olovga olib boring</div>
                     </div>
 

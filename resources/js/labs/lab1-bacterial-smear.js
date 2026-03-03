@@ -31,6 +31,13 @@ Alpine.data('bacterialSmearLab', () => ({
     liquidLevel: 60,
     sterilizationInterval: null,
 
+    // Heating state
+    isHeating: false,
+
+    // Smearing state
+    isSmearing: false,
+    smearLines: [],
+
     // Modal state
     showModal: true,
     currentStep: 1,
@@ -129,6 +136,8 @@ Alpine.data('bacterialSmearLab', () => ({
         this.isDragging = false;
         this.draggedItem = null;
         this.hoveredZone = null;
+        this.isHeating = false;
+        this.isSmearing = false;
     },
 
     checkCollisions() {
@@ -142,7 +151,13 @@ Alpine.data('bacterialSmearLab', () => ({
         const bunsenZone = { x: 250, y: 180, width: 100, height: 200 };
         if (this.isColliding(item, itemWidth, itemHeight, bunsenZone)) {
             this.hoveredZone = 'sterilize';
+            // Heating effect while dragging over flame
+            if (this.draggedItem === 'loop' && !this.state.isSterilized) {
+                this.isHeating = true;
+            }
             return;
+        } else {
+            this.isHeating = false;
         }
 
         // Sample tube zone
@@ -158,7 +173,14 @@ Alpine.data('bacterialSmearLab', () => ({
             const slideZone = { x: slidePos.x, y: slidePos.y, width: 120, height: 40 };
             if (this.isColliding(item, itemWidth, itemHeight, slideZone)) {
                 this.hoveredZone = 'slideArea';
+                // Smearing effect while dragging over slide
+                if (this.state.hasSample && !this.state.isSmearCreated) {
+                    this.isSmearing = true;
+                    this.addSmearLine(item.x - slidePos.x);
+                }
                 return;
+            } else {
+                this.isSmearing = false;
             }
         }
 
@@ -170,6 +192,18 @@ Alpine.data('bacterialSmearLab', () => ({
         }
 
         this.hoveredZone = null;
+    },
+
+    addSmearLine(xPos) {
+        // Limit number of smear lines
+        if (this.smearLines.length < 15) {
+            const line = {
+                id: Date.now(),
+                x: Math.max(5, Math.min(xPos + 40, 100)),
+                width: Math.random() * 30 + 20
+            };
+            this.smearLines.push(line);
+        }
     },
 
     isColliding(item, itemWidth, itemHeight, zone) {
@@ -256,6 +290,9 @@ Alpine.data('bacterialSmearLab', () => ({
         this.isDragging = false;
         this.draggedItem = null;
         this.hoveredZone = null;
+        this.isHeating = false;
+        this.isSmearing = false;
+        this.smearLines = [];
         if (this.sterilizationInterval) {
             clearInterval(this.sterilizationInterval);
         }
