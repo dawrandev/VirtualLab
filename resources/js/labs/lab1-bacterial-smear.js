@@ -80,27 +80,90 @@ Alpine.data('bacterialSmearLab', () => ({
         1: {
             title: 'Halqani sterillash',
             description: 'Bakterial halqani Bunzen gorelkasining olov ustiga olib boring va 3 soniya davomida qizdiring. Halqa qizarib ketishi kerak - bu barcha yot mikroblarni o\'ldiradi va kontaminatsiyani oldini oladi.',
-            animationType: 'sterilization'
+            animationType: 'sterilization',
+            animationHTML: `
+                <svg class="step-svg" viewBox="0 0 240 220" aria-label="Sterillash animatsiyasi">
+                    <rect x="90" y="176" width="60" height="18" rx="5" fill="#334155"></rect>
+                    <rect x="108" y="132" width="24" height="44" rx="3" fill="#64748b"></rect>
+                    <rect x="96" y="116" width="48" height="18" rx="10" fill="#475569"></rect>
+                    <g class="step1-flame">
+                        <ellipse cx="120" cy="93" rx="18" ry="30" fill="#2563eb"></ellipse>
+                        <ellipse cx="120" cy="98" rx="9" ry="16" fill="#fef3c7"></ellipse>
+                    </g>
+                    <g class="step1-loop">
+                        <line x1="174" y1="144" x2="158" y2="106" stroke="#64748b" stroke-width="5" stroke-linecap="round"></line>
+                        <circle cx="152" cy="92" r="14" fill="none" stroke="#f97316" stroke-width="5"></circle>
+                    </g>
+                </svg>
+            `
         },
         2: {
             title: 'Namuna olish',
             description: 'Sterillangan halqani bakterial kultura probirkasiga ehtiyotkorlik bilan kiriting. Halqa uchini suyuqlikka botirib, oz miqdorda namuna oling. Probirkadagi suyuqlik darajasi kamayadi.',
-            animationType: 'sampling'
+            animationType: 'sampling',
+            animationHTML: `
+                <svg class="step-svg" viewBox="0 0 240 220" aria-label="Namuna olish animatsiyasi">
+                    <rect x="84" y="56" width="48" height="22" rx="4" fill="#374151"></rect>
+                    <rect x="86" y="74" width="44" height="112" rx="8" fill="rgba(209,213,219,0.5)" stroke="#94a3b8" stroke-width="2"></rect>
+                    <rect x="88" y="128" width="40" height="54" rx="0" fill="rgba(34,197,94,0.45)"></rect>
+                    <g class="step2-loop">
+                        <line x1="176" y1="54" x2="150" y2="96" stroke="#ef4444" stroke-width="5" stroke-linecap="round"></line>
+                        <circle cx="144" cy="108" r="12" fill="none" stroke="#ef4444" stroke-width="5"></circle>
+                    </g>
+                </svg>
+            `
         },
         3: {
             title: 'Surtma yaratish',
             description: 'Namuna olgan halqani buyum oynasi (slide) ustiga qo\'ying va namunani tekis, yupqa qatlamda suring. Namuna shisha butun yuzasiga bir tekis yoyilishi kerak.',
-            animationType: 'smearing'
+            animationType: 'smearing',
+            animationHTML: `
+                <svg class="step-svg" viewBox="0 0 240 220" aria-label="Surtma tayyorlash animatsiyasi">
+                    <rect x="34" y="90" width="172" height="52" rx="5" fill="rgba(248,250,252,0.9)" stroke="#94a3b8" stroke-width="2"></rect>
+                    <ellipse cx="120" cy="116" rx="58" ry="14" fill="rgba(139,92,246,0.25)"></ellipse>
+                    <path d="M66 116 C78 103, 162 103, 174 116 C162 129, 78 129, 66 116 Z" fill="none" stroke="#7c3aed" stroke-width="3" stroke-dasharray="6 6"></path>
+                    <g class="step3-loop">
+                        <line x1="120" y1="78" x2="120" y2="94" stroke="#ef4444" stroke-width="4" stroke-linecap="round"></line>
+                        <circle cx="120" cy="103" r="8" fill="none" stroke="#ef4444" stroke-width="3"></circle>
+                    </g>
+                </svg>
+            `
         },
         4: {
             title: 'Termik fiksatsiya',
             description: 'Surtma qilingan buyum oynasini olov ustiga olib boring. Issiqlik ta\'sirida bakteriyalar oynaga yopishib qoladi va keyinchalik bo\'yash jarayonida yuvilib ketmaydi.',
-            animationType: 'fixation'
+            animationType: 'fixation',
+            animationHTML: `
+                <svg class="step-svg" viewBox="0 0 240 220" aria-label="Fiksatsiya animatsiyasi">
+                    <rect x="94" y="176" width="52" height="16" rx="5" fill="#334155"></rect>
+                    <rect x="108" y="132" width="24" height="44" rx="3" fill="#64748b"></rect>
+                    <rect x="96" y="116" width="48" height="18" rx="10" fill="#475569"></rect>
+                    <g class="step4-flame">
+                        <ellipse cx="120" cy="92" rx="16" ry="28" fill="#2563eb"></ellipse>
+                        <ellipse cx="120" cy="98" rx="8" ry="14" fill="#fde68a"></ellipse>
+                    </g>
+                    <g class="step4-slide">
+                        <rect x="74" y="42" width="92" height="26" rx="4" fill="rgba(255,255,255,0.92)" stroke="#9ca3af" stroke-width="2"></rect>
+                        <ellipse cx="120" cy="56" rx="20" ry="6" fill="rgba(139,92,246,0.45)"></ellipse>
+                    </g>
+                </svg>
+            `
         },
         5: {
             title: 'Bo\'yash va yuvish',
             description: 'Surtmaga Gencian fioletni to\'liq quying va keyin suv bilan yuvish bosqichini bajaring. Shu bosqichdan keyin mikroskop natijasi chiqadi.',
-            animationType: 'staining'
+            animationType: 'staining',
+            animationHTML: `
+                <svg class="step-svg" viewBox="0 0 240 220" aria-label="Bo'yash animatsiyasi">
+                    <rect x="42" y="108" width="156" height="40" rx="5" fill="rgba(255,255,255,0.9)" stroke="#9ca3af" stroke-width="2"></rect>
+                    <ellipse cx="120" cy="128" rx="44" ry="10" fill="rgba(124,58,237,0.25)"></ellipse>
+                    <g class="step5-pipette">
+                        <rect x="82" y="28" width="34" height="72" rx="10" fill="#8b5cf6"></rect>
+                        <path d="M99 100 L99 114" stroke="#6d28d9" stroke-width="5" stroke-linecap="round"></path>
+                    </g>
+                    <circle class="step5-drop" cx="99" cy="118" r="5" fill="#7c3aed"></circle>
+                </svg>
+            `
         }
     },
 

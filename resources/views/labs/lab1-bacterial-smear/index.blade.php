@@ -20,8 +20,9 @@
                 </div>
                 <div class="modal-body">
                     <div class="animation-container">
-                        <p class="text-slate-700 text-center px-6" x-text="currentStepData.description"></p>
+                        <div class="step-animation-wrap" x-html="currentStepData.animationHTML"></div>
                     </div>
+                    <p class="modal-description text-slate-700 text-center px-6 mt-4" x-text="currentStepData.description"></p>
                     <div class="modal-actions">
                         <button @click="closeModal()" class="btn-primary">Tushundim, boshlang</button>
                         <button @click="openModal(currentStep === 5 ? 1 : currentStep + 1)" class="btn-secondary" x-show="currentStep < 5">Keyingi bosqich</button>

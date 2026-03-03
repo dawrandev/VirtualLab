@@ -1216,3 +1216,98 @@ body.lab-page {
         padding: 18px;
     }
 }
+
+/* ==================== MODAL STEP SVG ANIMATIONS ==================== */
+.step-animation-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.step-svg {
+    width: min(240px, 100%);
+    height: auto;
+}
+
+.step1-flame {
+    transform-origin: 120px 98px;
+    animation: step1FlameFlicker 0.35s ease-in-out infinite alternate;
+}
+
+.step1-loop {
+    transform-origin: 152px 92px;
+    animation: step1LoopHeat 1s ease-in-out infinite;
+}
+
+@keyframes step1FlameFlicker {
+    0% { transform: scaleY(0.96) scaleX(1.02); opacity: 0.85; }
+    100% { transform: scaleY(1.08) scaleX(0.94); opacity: 1; }
+}
+
+@keyframes step1LoopHeat {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(249,115,22,0)); }
+    50% { filter: drop-shadow(0 0 8px rgba(249,115,22,0.8)); }
+}
+
+.step2-loop {
+    animation: step2Approach 2.4s ease-in-out infinite;
+}
+
+@keyframes step2Approach {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-44px, 34px); }
+}
+
+.step3-loop {
+    transform-origin: 120px 116px;
+    animation: step3Orbit 2.6s linear infinite;
+}
+
+@keyframes step3Orbit {
+    0% { transform: translate(52px, 0); }
+    25% { transform: translate(0, 12px); }
+    50% { transform: translate(-52px, 0); }
+    75% { transform: translate(0, -12px); }
+    100% { transform: translate(52px, 0); }
+}
+
+.step4-flame {
+    transform-origin: 120px 96px;
+    animation: step4Flame 0.35s ease-in-out infinite alternate;
+}
+
+.step4-slide {
+    animation: step4TriplePass 3s ease-in-out infinite;
+}
+
+@keyframes step4Flame {
+    0% { transform: scaleY(0.95); }
+    100% { transform: scaleY(1.1); }
+}
+
+@keyframes step4TriplePass {
+    0%, 8%, 16%, 24%, 100% { transform: translateY(0); }
+    4%, 12%, 20% { transform: translateY(62px); }
+}
+
+.step5-pipette {
+    animation: step5PipettePulse 1.4s ease-in-out infinite;
+}
+
+.step5-drop {
+    animation: step5DropFall 1.4s ease-in-out infinite;
+}
+
+@keyframes step5PipettePulse {
+    0%, 100% { transform: translateY(0); }
+    35% { transform: translateY(6px); }
+    70% { transform: translateY(0); }
+}
+
+@keyframes step5DropFall {
+    0% { transform: translateY(0); opacity: 0; }
+    20% { opacity: 1; }
+    70% { transform: translateY(22px); opacity: 1; }
+    100% { transform: translateY(26px); opacity: 0; }
+}
