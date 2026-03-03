@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run dev:*)",
+      "Bash(php artisan serve:*)",
+      "Bash(php artisan:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)"
+    ]
+  }
+}
