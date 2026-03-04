@@ -1,0 +1,27 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BJwJku4C.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/css/labs/lab1-bacterial-smear.css": {
+    "file": "assets/lab1-bacterial-smear-CeEWysha.css",
+    "src": "resources/css/labs/lab1-bacterial-smear.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BH4sXoQq.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "css": [
+      "assets/app-BJwJku4C.css"
+    ]
+  },
+  "resources/js/labs/lab1-bacterial-smear.js": {
+    "file": "assets/lab1-bacterial-smear-BunoFXnt.js",
+    "name": "lab1-bacterial-smear",
+    "src": "resources/js/labs/lab1-bacterial-smear.js",
+    "isEntry": true
+  }
+}

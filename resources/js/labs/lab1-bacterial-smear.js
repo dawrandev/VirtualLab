@@ -1,9 +1,25 @@
 /**
  * Lab 1: Bacterial Smear Preparation
  * Alpine.js Component for Virtual Microbiology Laboratory
+ *
+ * Multilingual support: UZ (O'zbek), KAA (Qaraqalpaq), RU (Rus)
+ * Sound Effects: Web Audio API
+ * Animations: CSS + JS controlled
  */
 
 import Alpine from 'alpinejs';
+
+/**
+ * ==================== GLOBAL ERROR HANDLER ====================
+ * Xatolarni tutish va logga yozish
+ */
+window.addEventListener('error', (event) => {
+    console.warn('[Lab1] Global error caught:', event.error?.message || event.message);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.warn('[Lab1] Unhandled promise rejection:', event.reason);
+});
 
 /**
  * ==================== SOUND MANAGER ====================
@@ -948,6 +964,44 @@ const translations = {
 
 // Register component before Alpine starts
 Alpine.data('bacterialSmearLab', () => ({
+    // ==================== INIT METHOD ====================
+    /**
+     * Alpine.js init lifecycle hook
+     * Komponent yuklanganida avtomatik chaqiriladi
+     */
+    init() {
+        try {
+            // Load saved language preference
+            this.loadSavedLanguage();
+
+            // Set up cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                this.cleanup();
+            });
+
+            console.log('[Lab1] Component initialized successfully');
+        } catch (error) {
+            console.warn('[Lab1] Init error:', error);
+        }
+    },
+
+    /**
+     * Cleanup method - resurslarni tozalash
+     */
+    cleanup() {
+        try {
+            soundManager.dispose();
+            if (this.stainingTimer) {
+                clearInterval(this.stainingTimer);
+            }
+            if (this.sterilizationInterval) {
+                clearInterval(this.sterilizationInterval);
+            }
+        } catch (e) {
+            console.debug('[Lab1] Cleanup error:', e);
+        }
+    },
+
     // Language state
     currentLang: 'uz',
 
@@ -1203,13 +1257,33 @@ Alpine.data('bacterialSmearLab', () => ({
     // ==================== TRANSLATION METHODS ====================
     /**
      * Tilni olish (Translation getter)
+     * Safe fallback: currentLang -> 'uz' -> key
      * @param {string} key - Tarjima kaliti
      * @returns {string} - Tarjima qilingan matn
      */
     t(key) {
-        const lang = translations[this.currentLang];
-        if (!lang) return key;
-        return lang[key] || translations['uz'][key] || key;
+        try {
+            // Validate currentLang, fallback to 'uz' if invalid
+            const validLangs = ['uz', 'kaa', 'ru'];
+            const langCode = validLangs.includes(this.currentLang) ? this.currentLang : 'uz';
+
+            // Get translation with fallback chain
+            const currentTranslations = translations[langCode] || translations['uz'] || {};
+            const defaultTranslations = translations['uz'] || {};
+
+            // Return found translation or key itself
+            const result = currentTranslations[key] || defaultTranslations[key] || key;
+
+            // Warn if key not found (for development)
+            if (result === key && key.length > 0) {
+                console.debug(`[i18n] Missing translation for key: "${key}" in lang: "${langCode}"`);
+            }
+
+            return result;
+        } catch (error) {
+            console.warn('[i18n] Translation error:', error);
+            return key;
+        }
     },
 
     /**
@@ -1217,29 +1291,72 @@ Alpine.data('bacterialSmearLab', () => ({
      * @param {string} lang - Yangi til kodi ('uz', 'kaa', 'ru')
      */
     setLanguage(lang) {
-        if (['uz', 'kaa', 'ru'].includes(lang)) {
+        try {
+            const validLangs = ['uz', 'kaa', 'ru'];
+            if (!validLangs.includes(lang)) {
+                console.warn(`[i18n] Invalid language code: "${lang}", using default "uz"`);
+                lang = 'uz';
+            }
+
             this.currentLang = lang;
-            // Update document title
-            document.title = `Lab 1: ${this.t('pageTitle')} - ${this.t('footerTitle')}`;
+
+            // Update document title safely
+            this.updateDocumentTitle();
+
             // Play button click sound
-            soundManager.playButtonClick();
+            try {
+                soundManager.playButtonClick();
+            } catch (e) {
+                console.debug('[Sound] Button click sound failed:', e);
+            }
+
             // Save to localStorage
             try {
                 localStorage.setItem('labLang', lang);
-            } catch (e) {}
+            } catch (e) {
+                console.debug('[Storage] Failed to save language preference:', e);
+            }
+        } catch (error) {
+            console.warn('[i18n] setLanguage error:', error);
+            this.currentLang = 'uz';
+        }
+    },
+
+    /**
+     * Document titleni yangilash
+     */
+    updateDocumentTitle() {
+        try {
+            const pageTitle = this.t('pageTitle');
+            const footerTitle = this.t('footerTitle');
+            document.title = `Lab 1: ${pageTitle} - ${footerTitle}`;
+        } catch (e) {
+            document.title = 'Lab 1: Bakterial surtma tayyorlash - Virtual Laboratoriya';
         }
     },
 
     /**
      * Saqlangan tilni yuklash
+     * Default: 'uz' tili
      */
     loadSavedLanguage() {
         try {
             const savedLang = localStorage.getItem('labLang');
-            if (savedLang && ['uz', 'kaa', 'ru'].includes(savedLang)) {
+            const validLangs = ['uz', 'kaa', 'ru'];
+
+            if (savedLang && validLangs.includes(savedLang)) {
                 this.currentLang = savedLang;
+            } else {
+                // Default to Uzbek
+                this.currentLang = 'uz';
             }
-        } catch (e) {}
+
+            // Update document title after loading language
+            this.updateDocumentTitle();
+        } catch (e) {
+            console.debug('[Storage] Failed to load language preference:', e);
+            this.currentLang = 'uz';
+        }
     },
 
     /**
@@ -1258,16 +1375,25 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     closeModal() {
-        this.showModal = false;
-        this.modalViewed[this.currentStep] = true;
+        try {
+            this.showModal = false;
+            this.modalViewed[this.currentStep] = true;
 
-        // Initialize sound on first user interaction
-        if (!this.soundInitialized) {
-            this.initSound();
-            // Also load saved language on first interaction
-            this.loadSavedLanguage();
+            // Initialize sound on first user interaction (required by browser policy)
+            if (!this.soundInitialized) {
+                this.initSound();
+            }
+
+            // Play button click sound
+            try {
+                soundManager.playButtonClick();
+            } catch (e) {
+                console.debug('[Sound] Button click error:', e);
+            }
+        } catch (error) {
+            console.warn('[Lab1] closeModal error:', error);
+            this.showModal = false;
         }
-        soundManager.playButtonClick();
     },
 
     // ==================== SOUND METHODS ====================
@@ -1659,109 +1785,189 @@ Alpine.data('bacterialSmearLab', () => ({
         }, 300);
     },
 
+    /**
+     * 4-bosqich: Termik fiksatsiya
+     * Buyum oynasini olov ustida 3 marta o'tkazish
+     */
     fixSmear() {
-        this.fixationPasses += 1;
-        this.isFixing = true;
-        // Show steam effect during fixation
-        this.showSteam = true;
-        // Play metal clink sound when slide touches flame
-        soundManager.playMetalClink();
-        // Brief burner sound
-        soundManager.startBurnerHum();
+        try {
+            this.fixationPasses += 1;
+            this.isFixing = true;
 
-        let fixationScore = 0;
-        if (this.fixationPasses === 3) {
-            fixationScore = 2;
-        } else if (this.fixationPasses === 2 || this.fixationPasses === 4) {
-            fixationScore = 1;
-        } else if (this.fixationPasses === 1 || this.fixationPasses === 5) {
-            fixationScore = 0.5;
-        }
-        this.setStepScore('fixation', fixationScore);
+            // Show steam effect during fixation
+            this.showSteam = true;
 
-        setTimeout(() => {
+            // Play metal clink sound when slide touches flame
+            try {
+                soundManager.playMetalClink();
+                soundManager.startBurnerHum();
+            } catch (e) {
+                console.debug('[Sound] Fixation sound error:', e);
+            }
+
+            // Calculate fixation score based on pass count
+            let fixationScore = 0;
+            if (this.fixationPasses === 3) {
+                fixationScore = 2; // Perfect: 3 passes
+            } else if (this.fixationPasses === 2 || this.fixationPasses === 4) {
+                fixationScore = 1; // Good: 2 or 4 passes
+            } else if (this.fixationPasses === 1 || this.fixationPasses === 5) {
+                fixationScore = 0.5; // Acceptable: 1 or 5 passes
+            }
+            this.setStepScore('fixation', fixationScore);
+
+            // Clear effects after 500ms
+            setTimeout(() => {
+                try {
+                    this.isFixing = false;
+                    this.showSteam = false;
+                    soundManager.stopBurnerHum();
+
+                    if (this.fixationPasses >= 3) {
+                        this.state.isFixed = true;
+
+                        // Play success sound
+                        try {
+                            soundManager.playSuccessPing();
+                        } catch (e) {}
+
+                        // Add error if not exactly 3 passes
+                        if (this.fixationPasses !== 3) {
+                            this.addError(this.t('errFixationCount').replace('{count}', this.fixationPasses));
+                        }
+
+                        this.checkAndShowModal();
+                    }
+                } catch (innerError) {
+                    console.warn('[Lab1] Fixation timeout error:', innerError);
+                }
+            }, 500);
+        } catch (error) {
+            console.warn('[Lab1] fixSmear error:', error);
+            // Reset state on error
             this.isFixing = false;
             this.showSteam = false;
-            soundManager.stopBurnerHum();
-            if (this.fixationPasses >= 3) {
-                this.state.isFixed = true;
-                // Play success sound
-                soundManager.playSuccessPing();
-                if (this.fixationPasses !== 3) {
-                    this.addError(this.t('errFixationCount').replace('{count}', this.fixationPasses));
-                }
-                this.checkAndShowModal();
-            }
-        }, 500);
+        }
     },
 
+    /**
+     * 5-bosqich (1-qism): Bo'yoq tomizish
+     * Gencian fiolet tomizish va 7 soniya kutish
+     */
     dropDye() {
-        if (!this.state.isFixed || this.state.isDyed) return;
+        try {
+            if (!this.state.isFixed || this.state.isDyed) return;
 
-        // Play drop sound
-        soundManager.playDropSound();
+            // Play drop sound
+            try {
+                soundManager.playDropSound();
+            } catch (e) {
+                console.debug('[Sound] Drop sound error:', e);
+            }
 
-        // Trigger dye drop spreading animation
-        this.dyeDropAnimating = true;
-        setTimeout(() => {
-            this.dyeDropAnimating = false;
-        }, 1200);
+            // Trigger dye drop spreading animation
+            this.dyeDropAnimating = true;
+            setTimeout(() => {
+                this.dyeDropAnimating = false;
+            }, 1200);
 
-        this.dyeCoverage = 100;
-        this.isDyeSpreadVisible = true;
-        this.canWashNow = false;
-        this.state.isDyed = true;
-        this.setStepScore('dye', 1);
-        this.stainingTimeLeft = this.stainingWaitRequired;
+            // Update state
+            this.dyeCoverage = 100;
+            this.isDyeSpreadVisible = true;
+            this.canWashNow = false;
+            this.state.isDyed = true;
+            this.setStepScore('dye', 1);
+            this.stainingTimeLeft = this.stainingWaitRequired;
 
-        if (this.stainingTimer) {
-            clearInterval(this.stainingTimer);
-        }
-
-        this.stainingTimer = setInterval(() => {
-            this.stainingTimeLeft -= 1;
-            if (this.stainingTimeLeft <= 0) {
+            // Clear any existing timer
+            if (this.stainingTimer) {
                 clearInterval(this.stainingTimer);
                 this.stainingTimer = null;
-                this.stainingTimeLeft = 0;
-                this.canWashNow = true;
-                this.isDyeMatured = true;
             }
-        }, 1000);
+
+            // Start countdown timer for staining
+            this.stainingTimer = setInterval(() => {
+                try {
+                    this.stainingTimeLeft -= 1;
+
+                    if (this.stainingTimeLeft <= 0) {
+                        clearInterval(this.stainingTimer);
+                        this.stainingTimer = null;
+                        this.stainingTimeLeft = 0;
+                        this.canWashNow = true;
+                        this.isDyeMatured = true;
+                    }
+                } catch (timerError) {
+                    console.warn('[Lab1] Staining timer error:', timerError);
+                    clearInterval(this.stainingTimer);
+                    this.stainingTimer = null;
+                }
+            }, 1000);
+        } catch (error) {
+            console.warn('[Lab1] dropDye error:', error);
+        }
     },
 
+    /**
+     * 5-bosqich (2-qism): Suv bilan yuvish
+     * Bo'yoq reaksiyasidan keyin yuvish
+     */
     dropWater() {
-        if (!this.state.isFixed || this.state.isWashed) return;
-        if (!this.state.isDyed) {
-            this.addError(this.t('errWashBeforeDye'));
-            this.setStepScore('washing', 0);
-            return;
-        }
+        try {
+            if (!this.state.isFixed || this.state.isWashed) return;
 
-        // Play water flow sound
-        soundManager.playWaterFlow();
+            // Check if dye was applied first
+            if (!this.state.isDyed) {
+                this.addError(this.t('errWashBeforeDye'));
+                this.setStepScore('washing', 0);
+                return;
+            }
 
-        this.state.isWashed = true;
-        this.isRunoffAnimating = true;
+            // Play water flow sound
+            try {
+                soundManager.playWaterFlow();
+            } catch (e) {
+                console.debug('[Sound] Water flow sound error:', e);
+            }
 
-        if (this.stainingTimer) {
-            clearInterval(this.stainingTimer);
-            this.stainingTimer = null;
-        }
+            // Update state
+            this.state.isWashed = true;
+            this.isRunoffAnimating = true;
 
-        if (this.canWashNow) {
-            this.setStepScore('washing', 2);
-            // Play success sound
-            soundManager.playSuccessPing();
-        } else {
-            this.setStepScore('washing', 0);
-            this.addError(this.t('errNoWaitTime'));
-        }
+            // Clear staining timer if still running
+            if (this.stainingTimer) {
+                clearInterval(this.stainingTimer);
+                this.stainingTimer = null;
+            }
 
-        setTimeout(() => {
+            // Calculate washing score based on timing
+            if (this.canWashNow) {
+                // Waited proper time before washing
+                this.setStepScore('washing', 2);
+
+                try {
+                    soundManager.playSuccessPing();
+                } catch (e) {}
+            } else {
+                // Washed too early
+                this.setStepScore('washing', 0);
+                this.addError(this.t('errNoWaitTime'));
+            }
+
+            // Finish animation and complete lab
+            setTimeout(() => {
+                try {
+                    this.isRunoffAnimating = false;
+                    this.finishLab();
+                } catch (finishError) {
+                    console.warn('[Lab1] Finish lab error:', finishError);
+                }
+            }, 1300);
+        } catch (error) {
+            console.warn('[Lab1] dropWater error:', error);
+            // Reset animation state on error
             this.isRunoffAnimating = false;
-            this.finishLab();
-        }, 1300);
+        }
     },
 
     observeMicroscope() {
@@ -1800,94 +2006,183 @@ Alpine.data('bacterialSmearLab', () => ({
         this.bacteriaParticles = particles;
     },
 
+    /**
+     * Laboratoriyani yakunlash va natijalarni ko'rsatish
+     * @param {boolean} force - Majburiy yakunlash (barcha bosqichlar tugallanmagan bo'lsa ham)
+     */
     finishLab(force = false) {
-        if (!this.allStepsCompleted && !force) return;
-        if (this.fixationPasses !== 3) {
-            this.addError(this.t('errFixationCount').replace('{count}', this.fixationPasses));
+        try {
+            if (!this.allStepsCompleted && !force) return;
+
+            // Check fixation pass count
+            if (this.fixationPasses !== 3) {
+                this.addError(this.t('errFixationCount').replace('{count}', this.fixationPasses));
+            }
+
+            // Build bacteria particles for microscope visualization
+            this.buildBacteriaParticles();
+
+            // Show result scene
+            this.resultSceneVisible = true;
+            this.showModal = false;
+
+            // Stop any active sounds and play fanfare
+            try {
+                soundManager.stopAll();
+                soundManager.playCompletionFanfare();
+            } catch (soundError) {
+                console.debug('[Sound] Completion sound error:', soundError);
+            }
+
+            console.log('[Lab1] Lab completed. Score:', this.scoreOutOfTen, '/ 10');
+        } catch (error) {
+            console.warn('[Lab1] finishLab error:', error);
+            // Still show results even if there's an error
+            this.resultSceneVisible = true;
+            this.showModal = false;
         }
-        this.buildBacteriaParticles();
-        this.resultSceneVisible = true;
-        this.showModal = false;
-        // Stop any active sounds
-        soundManager.stopAll();
-        // Play completion fanfare
-        soundManager.playCompletionFanfare();
     },
 
+    /**
+     * Simulyatsiyani qayta boshlash
+     * Barcha state va vizual elementlarni boshlang'ich holatga qaytarish
+     */
     resetSimulation() {
-        this.state = {
-            isSterilized: false,
-            hasSample: false,
-            isSmearCreated: false,
-            isFixed: false,
-            isDyed: false,
-            isWashed: false
-        };
-        this.sterilizationProgress = 0;
-        this.liquidLevel = 60;
-        this.itemPositions = {
-            loop: { x: 50, y: 100 },
-            slide: { x: 25, y: 395 },
-            dyePipette: { x: 430, y: 248 },
-            waterPipette: { x: 430, y: 336 }
-        };
-        this.sterilizationHoldMs = 0;
-        this.heatingStartAt = null;
-        this.sterilizationSeconds = 0;
-        this.fixationPasses = 0;
-        this.isFixing = false;
-        this.dyeCoverage = 0;
-        this.isDyeSpreadVisible = false;
-        this.isDyeMatured = false;
-        this.isRunoffAnimating = false;
-        this.stainingWaitRequired = 7;
-        this.stainingTimeLeft = 0;
-        this.canWashNow = false;
-        this.resultSceneVisible = false;
-        this.bacteriaParticles = [];
-        this.userScore = 0;
-        this.errors = [];
-        this.stepScores = {
-            sterilization: 0,
-            sampling: 0,
-            smear: 0,
-            fixation: 0,
-            dye: 0,
-            washing: 0
-        };
-        this.isDragging = false;
-        this.draggedItem = null;
-        this.hoveredZone = null;
-        this.isHeating = false;
-        this.isSmearing = false;
-        this.smearLines = [];
-        this.sampleDipCount = 0;
-        this.sampleDipTarget = 3;
-        this.smearRequiredTurns = 2;
-        this.smearOrbitAccum = 0;
-        this.smearOrbitTurns = 0;
-        this.smearPrevAngle = null;
-        this.smearCompleted = false;
-        // Reset new visual effect states
-        this.dragDirection = null;
-        this.lastDragX = 0;
-        this.lastDragY = 0;
-        this.dragVelocityX = 0;
-        this.dragVelocityY = 0;
-        this.showSteam = false;
-        this.dyeDropAnimating = false;
-        if (this.sterilizationInterval) {
-            clearInterval(this.sterilizationInterval);
+        try {
+            // Stop any active sounds
+            try {
+                soundManager.stopAll();
+            } catch (e) {}
+
+            // Reset experiment state
+            this.state = {
+                isSterilized: false,
+                hasSample: false,
+                isSmearCreated: false,
+                isFixed: false,
+                isDyed: false,
+                isWashed: false
+            };
+
+            // Reset progress indicators
+            this.sterilizationProgress = 0;
+            this.liquidLevel = 60;
+
+            // Reset item positions
+            this.itemPositions = {
+                loop: { x: 50, y: 100 },
+                slide: { x: 25, y: 395 },
+                dyePipette: { x: 430, y: 248 },
+                waterPipette: { x: 430, y: 336 }
+            };
+
+            // Reset sterilization state
+            this.sterilizationHoldMs = 0;
+            this.heatingStartAt = null;
+            this.sterilizationSeconds = 0;
+
+            // Reset fixation state
+            this.fixationPasses = 0;
+            this.isFixing = false;
+
+            // Reset staining state
+            this.dyeCoverage = 0;
+            this.isDyeSpreadVisible = false;
+            this.isDyeMatured = false;
+            this.isRunoffAnimating = false;
+            this.stainingWaitRequired = 7;
+            this.stainingTimeLeft = 0;
+            this.canWashNow = false;
+
+            // Reset result scene
+            this.resultSceneVisible = false;
+            this.bacteriaParticles = [];
+
+            // Reset scoring
+            this.userScore = 0;
+            this.errors = [];
+            this.stepScores = {
+                sterilization: 0,
+                sampling: 0,
+                smear: 0,
+                fixation: 0,
+                dye: 0,
+                washing: 0
+            };
+
+            // Reset drag state
+            this.isDragging = false;
+            this.draggedItem = null;
+            this.hoveredZone = null;
+            this.isHeating = false;
+            this.isSmearing = false;
+
+            // Reset smear state
+            this.smearLines = [];
+            this.sampleDipCount = 0;
+            this.sampleDipTarget = 3;
+            this.smearRequiredTurns = 2;
+            this.smearOrbitAccum = 0;
+            this.smearOrbitTurns = 0;
+            this.smearPrevAngle = null;
+            this.smearCompleted = false;
+
+            // Reset visual effect states
+            this.dragDirection = null;
+            this.lastDragX = 0;
+            this.lastDragY = 0;
+            this.dragVelocityX = 0;
+            this.dragVelocityY = 0;
+            this.showSteam = false;
+            this.dyeDropAnimating = false;
+
+            // Clear timers
+            if (this.sterilizationInterval) {
+                clearInterval(this.sterilizationInterval);
+                this.sterilizationInterval = null;
+            }
+            if (this.stainingTimer) {
+                clearInterval(this.stainingTimer);
+                this.stainingTimer = null;
+            }
+
+            // Reset modal state
+            this.modalViewed = { 1: false, 2: false, 3: false, 4: false, 5: false };
+            this.currentStep = 1;
+            this.showModal = true;
+
+            console.log('[Lab1] Simulation reset');
+        } catch (error) {
+            console.warn('[Lab1] resetSimulation error:', error);
         }
-        if (this.stainingTimer) {
-            clearInterval(this.stainingTimer);
-            this.stainingTimer = null;
-        }
-        this.modalViewed = { 1: false, 2: false, 3: false, 4: false, 5: false };
-        this.currentStep = 1;
-        this.showModal = true;
     }
 }));
 
-// Start Alpine
-Alpine.start();
+// ==================== ALPINE INITIALIZATION ====================
+/**
+ * DOMContentLoaded ichida Alpine.start() chaqiriladi
+ * Bu barcha DOM elementlar yuklanganidan keyin ishga tushishini ta'minlaydi
+ */
+function initializeAlpine() {
+    try {
+        // Check if Alpine is already started
+        if (window.Alpine && window.Alpine.version) {
+            console.debug('[Alpine] Already initialized');
+            return;
+        }
+
+        // Start Alpine
+        Alpine.start();
+        console.log('[Lab1] Alpine.js started successfully');
+    } catch (error) {
+        console.error('[Lab1] Failed to start Alpine.js:', error);
+    }
+}
+
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAlpine);
+} else {
+    // DOM already loaded (script loaded with defer or at end of body)
+    initializeAlpine();
+}
