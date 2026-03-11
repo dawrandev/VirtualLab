@@ -109,23 +109,116 @@
                     </svg>
                     <span x-text="t('toolsTitle')"></span>
                 </h2>
-                <div class="space-y-3">
-                    <div class="inventory-item">
-                        <div class="text-sm font-medium text-gray-700" x-text="t('toolLoop')"></div>
-                        <div class="text-xs text-gray-500 mt-1" x-show="state.isSterilized" x-text="t('loopSterilized')"></div>
-                    </div>
-                    <div class="inventory-item">
-                        <div class="text-sm font-medium text-gray-700" x-text="t('toolSlide')"></div>
-                        <div class="text-xs text-gray-500 mt-1" x-show="state.isSmearCreated" x-text="t('smearReady')"></div>
-                    </div>
-                    <div class="inventory-item">
-                        <div class="text-sm font-medium text-gray-700" x-text="t('toolTube')"></div>
-                        <div class="flex items-center gap-2 mt-2">
-                            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500" :style="`width: ${liquidLevel}%`"></div>
-                            </div>
-                            <span class="text-xs font-semibold text-emerald-600" x-text="liquidLevel + '%'"></span>
+                <p class="text-xs text-slate-500 mb-3 text-center italic" x-text="t('dragHint')"></p>
+                <div class="inventory-container" style="position: relative; min-height: 400px;">
+                    <!-- Matchbox in Sidebar -->
+                    <div class="matchbox"
+                         style="position: absolute; left: 50%; top: 380px; transform: translateX(-50%);">
+                        <div class="matchbox-container">
+                            <div class="matchbox-label" x-text="t('matches')"></div>
+                            <div class="matchbox-striker"></div>
                         </div>
+                    </div>
+
+                    <!-- Match (draggable) in Sidebar -->
+                    <div x-show="matchState.inInventory && !matchState.isBurned"
+                         class="match-stick"
+                         style="position: absolute; left: 50%; top: 340px; transform: translateX(-50%);"
+                         :class="{
+                             'dragging': isDragging && draggedItem === 'match',
+                             'burning': matchState.isLit
+                         }"
+                         @mousedown="startDrag('match', $event)">
+                        <div class="match-head" :class="{'lit': matchState.isLit}"></div>
+                        <div class="match-stick-body"></div>
+                        <div x-show="matchState.isLit" class="match-flame"></div>
+                        <div x-show="matchState.isLit && matchState.burnTimeLeft > 0" class="match-burn-timer">
+                            <span x-text="matchState.burnTimeLeft + 's'"></span>
+                        </div>
+                    </div>
+
+                    <!-- Inoculating Loop in Sidebar -->
+                    <div x-show="inventoryState.loop"
+                         class="inoculating-loop"
+                         style="position: absolute; left: 50%; top: 20px; transform: translateX(-50%);"
+                         :class="{
+                             'dragging': isDragging && draggedItem === 'loop',
+                             'drag-left': isDragging && draggedItem === 'loop' && dragDirection === 'left',
+                             'drag-right': isDragging && draggedItem === 'loop' && dragDirection === 'right',
+                             'drag-up': isDragging && draggedItem === 'loop' && dragDirection === 'up',
+                             'drag-down': isDragging && draggedItem === 'loop' && dragDirection === 'down'
+                         }"
+                         @mousedown="startDrag('loop', $event)">
+                        <div class="loop-handle"></div>
+                        <div class="loop-circle" :class="{'heating': isHeating, 'sterilized': state.isSterilized && !isHeating, 'has-sample': state.hasSample}"></div>
+                        <div x-show="sterilizationProgress > 0 && sterilizationProgress < 100" class="sterilization-progress">
+                            <div class="sterilization-bar" :style="`width: ${sterilizationProgress}%`"></div>
+                        </div>
+                    </div>
+
+                    <!-- Glass Slide in Sidebar -->
+                    <div x-show="inventoryState.slide"
+                         class="glass-slide"
+                         style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%);"
+                         :class="{'dragging': isDragging && draggedItem === 'slide', 'smearing-active': isSmearing, 'fixing': isFixing, 'drying': isDrying}"
+                         @mousedown="startDrag('slide', $event)">
+                        <div class="steam-container" x-show="showSteam">
+                            <div class="steam-particle"></div>
+                            <div class="steam-particle"></div>
+                            <div class="steam-particle"></div>
+                            <div class="steam-particle"></div>
+                            <div class="steam-particle"></div>
+                        </div>
+                        <div class="heat-shimmer" x-show="isFixing"></div>
+                        <div class="slide-glass">
+                            <div class="smear-trail">
+                                <template x-for="line in smearLines" :key="line.id">
+                                    <div class="smear-line" :style="`left:${line.x}px; top:${line.y}px; width:${line.width}px; height:${line.height}px; opacity:${line.opacity}; transform:translateY(-50%) rotate(${line.rotate}deg);`"></div>
+                                </template>
+                            </div>
+                            <div class="target-area"></div>
+                            <div class="smear-orbit-guide" x-show="state.hasSample && !state.isSmearCreated">
+                                <div class="orbit-ring"></div>
+                                <div class="orbit-progress" :style="`background: conic-gradient(#8b5cf6 ${smearOrbitPercent}%, rgba(203,213,225,0.35) ${smearOrbitPercent}% 100%);`"></div>
+                            </div>
+                            <div class="smear" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
+                            <div class="smear-pigment" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
+                            <div class="dye-drop-animation" :class="{'active': dyeDropAnimating}"></div>
+                            <div class="stain-overlay" :class="{'visible': isDyeSpreadVisible, 'mature': isDyeMatured, 'washed': state.isWashed}"></div>
+                            <div class="wash-runoff" :class="{'running': isRunoffAnimating}">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dye Pipette in Sidebar -->
+                    <div x-show="inventoryState.dyePipette && !resultSceneVisible"
+                         class="reagent-tool reagent-dye"
+                         style="position: absolute; left: 50%; top: 220px; transform: translateX(-50%);"
+                         :class="{'dragging': isDragging && draggedItem === 'dyePipette', 'used': state.isDyed, 'locked': !state.isFixed}"
+                         @mousedown="startDrag('dyePipette', $event)">
+                        <svg viewBox="0 0 120 60" width="110" height="56" :aria-label="t('gentianViolet')">
+                            <rect x="6" y="20" width="52" height="30" rx="10" fill="#6d28d9"/>
+                            <rect x="12" y="24" width="40" height="22" rx="7" fill="#8b5cf6"/>
+                            <path d="M58 33 L112 24 L114 30 L61 39 Z" fill="#cbd5e1"/>
+                            <circle cx="25" cy="35" r="6" fill="#ddd6fe"/>
+                        </svg>
+                        <span x-text="t('gentianViolet')"></span>
+                    </div>
+
+                    <!-- Water Pipette in Sidebar -->
+                    <div x-show="inventoryState.waterPipette && !resultSceneVisible"
+                         class="reagent-tool reagent-water"
+                         style="position: absolute; left: 50%; top: 300px; transform: translateX(-50%);"
+                         :class="{'dragging': isDragging && draggedItem === 'waterPipette', 'used': state.isWashed, 'locked': !state.isFixed}"
+                         @mousedown="startDrag('waterPipette', $event)">
+                        <svg viewBox="0 0 120 60" width="110" height="56" :aria-label="t('distilledWater')">
+                            <rect x="6" y="20" width="52" height="30" rx="10" fill="#0ea5e9"/>
+                            <rect x="12" y="24" width="40" height="22" rx="7" fill="#67e8f9"/>
+                            <path d="M58 33 L112 24 L114 30 L61 39 Z" fill="#cbd5e1"/>
+                            <circle cx="25" cy="35" r="6" fill="#ecfeff"/>
+                        </svg>
+                        <span x-text="t('distilledWater')"></span>
                     </div>
                 </div>
             </div>
@@ -184,7 +277,9 @@
             <div class="workbench-surface bg-white rounded-lg shadow-2xl p-8" x-ref="workbench">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4" x-text="t('workbenchTitle')"></h2>
 
-                <div class="inoculating-loop"
+                <!-- Inoculating Loop on Workbench -->
+                <div x-show="!inventoryState.loop"
+                     class="inoculating-loop"
                      :style="`left: ${itemPositions.loop.x}px; top: ${itemPositions.loop.y}px;`"
                      :class="{
                          'dragging': isDragging && draggedItem === 'loop',
@@ -207,11 +302,29 @@
                     </div>
                 </div>
 
-                <div class="glass-slide"
-                     :style="`left: ${itemPositions.slide.x}px; top: ${itemPositions.slide.y}px;`"
-                     :class="{'dragging': isDragging && draggedItem === 'slide', 'smearing-active': isSmearing, 'fixing': isFixing}"
+                <!-- Match on Workbench -->
+                <div x-show="!matchState.inInventory && !matchState.isBurned"
+                     class="match-stick"
+                     :style="`left: ${itemPositions.match.x}px; top: ${itemPositions.match.y}px;`"
+                     :class="{
+                         'dragging': isDragging && draggedItem === 'match',
+                         'burning': matchState.isLit
+                     }"
+                     @mousedown="startDrag('match', $event)">
+                    <div class="match-head" :class="{'lit': matchState.isLit}"></div>
+                    <div class="match-stick-body"></div>
+                    <div x-show="matchState.isLit" class="match-flame"></div>
+                    <div x-show="matchState.isLit && matchState.burnTimeLeft > 0" class="match-burn-timer">
+                        <span x-text="matchState.burnTimeLeft + 's'"></span>
+                    </div>
+                </div>
+
+                <!-- Glass Slide on Workbench -->
+                <div x-show="!inventoryState.slide"
+                     class="glass-slide"
+                     :style="`left: ${itemPositions.slide.x}px; top: ${itemPositions.slide.y}px; ${slideRotation > 0 ? 'transform: rotate(' + slideRotation + 'deg); transform-origin: left center;' : ''}`"
+                     :class="{'dragging': isDragging && draggedItem === 'slide', 'smearing-active': isSmearing, 'fixing': isFixing, 'drying': isDrying, 'rotated': slideRotation > 0}"
                      @mousedown="startDrag('slide', $event)">
-                    <!-- Steam particles for fixation -->
                     <div class="steam-container" x-show="showSteam">
                         <div class="steam-particle"></div>
                         <div class="steam-particle"></div>
@@ -219,9 +332,11 @@
                         <div class="steam-particle"></div>
                         <div class="steam-particle"></div>
                     </div>
-                    <!-- Heat shimmer effect -->
                     <div class="heat-shimmer" x-show="isFixing"></div>
                     <div class="slide-glass">
+                        <!-- Frosted edge zones (safe grip areas) -->
+                        <div class="frosted-edge frosted-edge-left"></div>
+                        <div class="frosted-edge frosted-edge-right"></div>
                         <div class="smear-trail">
                             <template x-for="line in smearLines" :key="line.id">
                                 <div class="smear-line" :style="`left:${line.x}px; top:${line.y}px; width:${line.width}px; height:${line.height}px; opacity:${line.opacity}; transform:translateY(-50%) rotate(${line.rotate}deg);`"></div>
@@ -234,31 +349,73 @@
                         </div>
                         <div class="smear" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
                         <div class="smear-pigment" :class="{'visible': state.isSmearCreated, 'fixed': state.isFixed}"></div>
-                        <!-- Dye drop spreading animation -->
                         <div class="dye-drop-animation" :class="{'active': dyeDropAnimating}"></div>
                         <div class="stain-overlay" :class="{'visible': isDyeSpreadVisible, 'mature': isDyeMatured, 'washed': state.isWashed}"></div>
-                        <div class="wash-runoff" :class="{'running': isRunoffAnimating}">
+                        <div class="wash-runoff" :class="{'running': isRunoffAnimating, 'angled': slideRotation >= 30}">
                             <span></span><span></span><span></span>
                         </div>
                     </div>
+
+                    <!-- Rotation control (visible when dye applied and waiting for wash) -->
+                    <div x-show="state.isDyed && canWashNow && !state.isWashed"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-90"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         class="rotation-control">
+                        <div class="rotation-control-label" x-text="t('rotationLabel') || 'Burchak'"></div>
+                        <input type="range"
+                               class="rotation-slider"
+                               min="0"
+                               max="90"
+                               step="5"
+                               x-model="slideRotation"
+                               @input="updateSlideRotation($event.target.value)">
+                        <div class="rotation-angle-display"
+                             :class="{
+                                 'perfect': slideRotation >= 40 && slideRotation <= 50,
+                                 'good': (slideRotation >= 30 && slideRotation < 40) || (slideRotation > 50 && slideRotation <= 60),
+                                 'warning': slideRotation < 30 || slideRotation > 60
+                             }">
+                            <span x-text="slideRotation + '°'"></span>
+                        </div>
+                    </div>
+
+                    <!-- Angle indicator guide line -->
+                    <div x-show="state.isDyed && canWashNow && !state.isWashed" class="angle-indicator"></div>
                 </div>
 
-                <div class="bunsen-burner" style="left: 300px; top: 180px;">
-                    <div class="burner-base"></div><div class="burner-stem"></div><div class="burner-head"></div><div class="flame"></div><div class="burner-label" x-text="t('burnerLabel')"></div>
+                <!-- Spirit Lamp (static) -->
+                <div class="spirit-lamp" style="left: 300px; top: 180px;" :class="{'lit': lampState.isLit}">
+                    <div class="lamp-holder"></div>
+                    <div class="lamp-flask">
+                        <div class="lamp-liquid"></div>
+                        <div class="lamp-wick"></div>
+                    </div>
+                    <div class="lamp-flame" x-show="lampState.isLit"></div>
+                    <div class="lamp-glow" x-show="lampState.isLit"></div>
+                    <div class="lamp-smoke" x-show="lampState.isLit">
+                        <div class="smoke-particle"></div>
+                        <div class="smoke-particle"></div>
+                        <div class="smoke-particle"></div>
+                    </div>
+                    <div class="lamp-label" x-text="t('spiritLamp')"></div>
                 </div>
+
+                <!-- Sample Tube (static) -->
                 <div class="sample-tube" style="left: 520px; top: 120px;" :class="{'tube-waiting': state.isSterilized && !state.hasSample}">
                     <div class="tube-cap"></div><div class="tube-body"><div class="liquid" :style="`height: ${liquidLevel}%`"></div></div><div class="tube-label" x-text="t('sampleLabel')"></div>
                 </div>
 
+                <!-- Drop Zone Highlights -->
                 <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'sterilize'}" style="left: 332px; top: 188px; width: 36px; height: 76px;"></div>
                 <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'sampleTube'}" style="left: 520px; top: 120px; width: 60px; height: 120px;"></div>
-                <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'slideArea'}" :style="`left: ${itemPositions.slide.x}px; top: ${itemPositions.slide.y}px; width: 120px; height: 40px;`"></div>
+                <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'slideArea' && !inventoryState.slide}" :style="`left: ${itemPositions.slide.x}px; top: ${itemPositions.slide.y}px; width: 120px; height: 40px;`"></div>
                 <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'fixation'}" style="left: 320px; top: 178px; width: 60px; height: 96px;"></div>
-                <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'dyeDrop'}" :style="`left: ${itemPositions.slide.x + 14}px; top: ${itemPositions.slide.y + 2}px; width: 92px; height: 36px;`"></div>
-                <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'washDrop'}" :style="`left: ${itemPositions.slide.x + 14}px; top: ${itemPositions.slide.y + 2}px; width: 92px; height: 36px;`"></div>
+                <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'dyeDrop' && !inventoryState.slide}" :style="`left: ${itemPositions.slide.x + 14}px; top: ${itemPositions.slide.y + 2}px; width: 92px; height: 36px;`"></div>
+                <div class="drop-zone-highlight" :class="{'active': hoveredZone === 'washDrop' && !inventoryState.slide}" :style="`left: ${itemPositions.slide.x + 14}px; top: ${itemPositions.slide.y + 2}px; width: 92px; height: 36px;`"></div>
 
-
-                <div x-show="!resultSceneVisible"
+                <!-- Dye Pipette on Workbench -->
+                <div x-show="!resultSceneVisible && !inventoryState.dyePipette"
                      class="reagent-tool reagent-dye"
                      :style="`left:${itemPositions.dyePipette.x}px; top:${itemPositions.dyePipette.y}px;`"
                      :class="{'dragging': isDragging && draggedItem === 'dyePipette', 'used': state.isDyed, 'locked': !state.isFixed}"
@@ -272,7 +429,8 @@
                     <span x-text="t('gentianViolet')"></span>
                 </div>
 
-                <div x-show="!resultSceneVisible"
+                <!-- Water Pipette on Workbench -->
+                <div x-show="!resultSceneVisible && !inventoryState.waterPipette"
                      class="reagent-tool reagent-water"
                      :style="`left:${itemPositions.waterPipette.x}px; top:${itemPositions.waterPipette.y}px;`"
                      :class="{'dragging': isDragging && draggedItem === 'waterPipette', 'used': state.isWashed, 'locked': !state.isFixed}"
@@ -329,8 +487,37 @@
                 </button>
             </div>
 
+            <!-- Drying Timer Card - O'ng panelda -->
+            <div x-show="state.isFixed && !isDried && !resultSceneVisible"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 class="glass-panel rounded-2xl shadow-xl p-5 border border-amber-200/30">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800" x-text="t('dryingTitle')"></p>
+                </div>
+                <p class="text-xs text-slate-600 mb-3 leading-relaxed" x-text="t('dryingDesc')"></p>
+                <div x-show="isDrying" class="mb-3 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/50">
+                    <div class="flex items-center justify-between text-xs mb-2">
+                        <span class="text-amber-700 font-medium" x-text="t('dryingTime') + ':'"></span>
+                        <span class="font-bold text-amber-800" x-text="dryingTimeLeft + 's'"></span>
+                    </div>
+                    <div class="h-2 bg-amber-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-1000 rounded-full" :style="`width: ${100 - (dryingTimeLeft / 4 * 100)}%`"></div>
+                    </div>
+                </div>
+                <div x-show="!isDrying" class="text-center py-2">
+                    <p class="text-xs text-amber-600 font-medium" x-text="t('dryingWaiting')"></p>
+                </div>
+            </div>
+
             <!-- 5-bosqich: Vizual bo'yash - O'ng panelda -->
-            <div x-show="state.isFixed && !resultSceneVisible"
+            <div x-show="isDried && !resultSceneVisible"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 transform translate-y-2"
                  x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -434,6 +621,46 @@
             <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-semibold" x-text="t('footerSubtitle')"></span>
         </div>
     </footer>
+
+    <!-- Virtual Hand Overlay -->
+    <div x-show="isDragging && draggedItem"
+         class="virtual-hand"
+         :class="handGripClass"
+         :style="`left: ${handPosition.x}px; top: ${handPosition.y}px;`">
+        <svg viewBox="0 0 100 120" width="80" height="96">
+            <!-- Palm -->
+            <ellipse cx="50" cy="70" rx="25" ry="30" fill="#ffd4a3" stroke="#d4a574" stroke-width="1.5"/>
+
+            <!-- Thumb -->
+            <g class="hand-thumb">
+                <ellipse cx="25" cy="65" rx="8" ry="18" fill="#ffd4a3" stroke="#d4a574" stroke-width="1.5" transform="rotate(-25 25 65)"/>
+            </g>
+
+            <!-- Index finger -->
+            <g class="hand-index">
+                <rect x="45" y="20" width="10" height="35" rx="5" fill="#ffd4a3" stroke="#d4a574" stroke-width="1.5"/>
+                <ellipse cx="50" cy="20" rx="5" ry="7" fill="#ffb380" stroke="#d4a574" stroke-width="1"/>
+            </g>
+
+            <!-- Middle finger -->
+            <g class="hand-middle">
+                <rect x="55" y="15" width="10" height="40" rx="5" fill="#ffd4a3" stroke="#d4a574" stroke-width="1.5"/>
+                <ellipse cx="60" cy="15" rx="5" ry="7" fill="#ffb380" stroke="#d4a574" stroke-width="1"/>
+            </g>
+
+            <!-- Ring finger -->
+            <g class="hand-ring">
+                <rect x="65" y="20" width="10" height="35" rx="5" fill="#ffd4a3" stroke="#d4a574" stroke-width="1.5"/>
+                <ellipse cx="70" cy="20" rx="5" ry="7" fill="#ffb380" stroke="#d4a574" stroke-width="1"/>
+            </g>
+
+            <!-- Pinky -->
+            <g class="hand-pinky">
+                <rect x="75" y="30" width="8" height="28" rx="4" fill="#ffd4a3" stroke="#d4a574" stroke-width="1.5"/>
+                <ellipse cx="79" cy="30" rx="4" ry="6" fill="#ffb380" stroke="#d4a574" stroke-width="1"/>
+            </g>
+        </svg>
+    </div>
 </div>
 </body>
 </html>

@@ -1,25 +1,25 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BJwJku4C.css",
+    "file": "assets/app-Dvcz7Cw7.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/css/labs/lab1-bacterial-smear.css": {
-    "file": "assets/lab1-bacterial-smear-CeEWysha.css",
+    "file": "assets/lab1-bacterial-smear-CxQeaTl9.css",
     "src": "resources/css/labs/lab1-bacterial-smear.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BH4sXoQq.js",
+    "file": "assets/app-Cb1s3I0l.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-BJwJku4C.css"
+      "assets/app-Dvcz7Cw7.css"
     ]
   },
   "resources/js/labs/lab1-bacterial-smear.js": {
-    "file": "assets/lab1-bacterial-smear-BunoFXnt.js",
+    "file": "assets/lab1-bacterial-smear-BlxToBvN.js",
     "name": "lab1-bacterial-smear",
     "src": "resources/js/labs/lab1-bacterial-smear.js",
     "isEntry": true

@@ -618,6 +618,7 @@ const translations = {
 
         // Tools panel
         toolsTitle: 'Asboblar',
+        dragHint: 'Asboblarni ish stoliga sudrab olib boring',
         toolLoop: 'Bakterial halqa',
         toolSlide: 'Buyum oynasi',
         toolTube: 'Namuna probirkasi',
@@ -626,7 +627,8 @@ const translations = {
 
         // Workbench
         workbenchTitle: 'Ish stoli',
-        burnerLabel: 'Olov',
+        spiritLamp: 'Spirt chiroq',
+        matches: 'Gugurt',
         sampleLabel: 'Namuna',
         gentianViolet: 'Gencian fiolet',
         distilledWater: 'Distillangan suv',
@@ -654,12 +656,19 @@ const translations = {
         ready: 'Tayyor',
         completed: 'Tugallandi',
 
+        // Drying controls
+        dryingTitle: 'Quritish',
+        dryingDesc: 'Surtma fiksatsiyadan keyin quritilishi kerak. Kutib turing...',
+        dryingTime: 'Quritish vaqti',
+        dryingWaiting: 'Quritish boshlanmoqda...',
+
         // Staining controls
         stainingTitle: 'Vizual bo\'yash',
         stainingDesc: 'Pipetkalarni oynaga tomizing: avval bo\'yoq, keyin suv.',
         reactionTime: 'Reaksiya vaqti',
         washNow: 'Endi suv bilan yuving!',
         viewMicroscope: 'Mikroskopga o\'tish',
+        rotationLabel: 'Burchak',
 
         // Modal
         modalStep: 'Bosqich',
@@ -668,7 +677,7 @@ const translations = {
 
         // Step descriptions
         step1Title: 'Halqani sterillash',
-        step1Desc: 'Bakterial halqani Bunzen gorelkasining olov ustiga olib boring va 3 soniya davomida qizdiring. Halqa qizarib ketishi kerak - bu barcha yot mikroblarni o\'ldiradi va kontaminatsiyani oldini oladi.',
+        step1Desc: 'Avval gugurtni gugurt qutisiga urting va spirt chiroqni yoqing. Keyin bakterial halqani olov ustiga olib boring va 3 soniya davomida qizdiring. Halqa qizarib ketishi kerak - bu barcha yot mikroblarni o\'ldiradi va kontaminatsiyani oldini oladi.',
         step2Title: 'Namuna olish',
         step2Desc: 'Sterillangan halqani bakterial kultura probirkasiga ehtiyotkorlik bilan kiriting. Halqa uchini suyuqlikka botirib, oz miqdorda namuna oling.',
         step3Title: 'Surtma yaratish',
@@ -698,6 +707,9 @@ const translations = {
         scoreInfo: 'To\'liq javob: 9-10 | To\'liq emas: 5-8.5 | Javob yo\'q: 0-4.5',
 
         // Error messages
+        errLampNotLit: 'Iltimos, avval chiroqni yoqing!',
+        errMatchBurnedOut: 'Gugurt ishlatilmay yonib ketdi.',
+        errNotDried: 'Surtma quritilmagan. Iltimos, quritishni kuting!',
         errLoopNotHeld: 'Halqa olovda ushlanmadi.',
         errSterilizationShort: 'Sterillash vaqti 3 soniyadan kam bo\'ldi.',
         errUnsterilizedSample: 'Namuna sterillanmagan halqa bilan olindi.',
@@ -708,6 +720,10 @@ const translations = {
         errNoWaitTime: 'Bo\'yoq reaksiyasi uchun kamida 5-10 soniya kutilmadi.',
         errNoDyeBeforeMicroscope: 'Mikroskopga o\'tishdan oldin bo\'yoq tomizilmadi.',
         errNoWashBeforeMicroscope: 'Bo\'yoq yuvilmasdan mikroskopga o\'tildi, natija buzildi.',
+        errSlideGripWrong: 'Buyum oynasini chetidan (frosted edge) ushlang!',
+        errWashingAngleWrong: 'Yuvish uchun slideni 45° ga buring!',
+        errWashingAngleFlat: 'Burchak juda past (0-20°), surtma yuvildi!',
+        errWashingAngleSteep: 'Burchak juda baland (60-90°), bo\'yoq to\'liq yuvilmadi!',
 
         // Footer
         footerTitle: 'Tibbiy Virtual Laboratoriya',
@@ -739,6 +755,7 @@ const translations = {
 
         // Tools panel
         toolsTitle: 'Ásbaplar',
+        dragHint: 'Ásbapları jumıs stoliga súyrep keltiriń',
         toolLoop: 'Bakterial ilmek',
         toolSlide: 'Buyım aynası',
         toolTube: 'Úlgi probirkası',
@@ -747,7 +764,8 @@ const translations = {
 
         // Workbench
         workbenchTitle: 'Jumıs stolı',
-        burnerLabel: 'Jalın',
+        spiritLamp: 'Spirt shıram',
+        matches: 'Shırpı',
         sampleLabel: 'Úlgi',
         gentianViolet: 'Gensian fiolet',
         distilledWater: 'Distillengen suw',
@@ -775,12 +793,19 @@ const translations = {
         ready: 'Tayar',
         completed: 'Tamamlandı',
 
+        // Drying controls
+        dryingTitle: 'Quratıw',
+        dryingDesc: 'Sürtpe fiksatsiyadan keyin quratılıwı kerek. Kútip turıń...',
+        dryingTime: 'Quratıw waqtı',
+        dryingWaiting: 'Quratıw baslanmaqta...',
+
         // Staining controls
         stainingTitle: 'Vizual boyaw',
         stainingDesc: 'Pipetkaları aynaga tamızıń: aldı boyaq, keyin suw.',
         reactionTime: 'Reaksiya waqtı',
         washNow: 'Endi suw menen juwıń!',
-        viewMicroscope: 'Mikroskopqaótıw',
+        viewMicroscope: 'Mikroskopqa ótıw',
+        rotationLabel: 'Burısh',
 
         // Modal
         modalStep: 'Basqısh',
@@ -789,7 +814,7 @@ const translations = {
 
         // Step descriptions
         step1Title: 'İlmekti sterillew',
-        step1Desc: 'Bakterial ilmekti Bunzen gorelkasınıń jalınıústine alıp barıń hám 3 sekund dawamında qızdırıń. İlmek qızarıp ketiwi kerek - bul barlıq mikroblardı óltiredi.',
+        step1Desc: 'Avval shırpını shırpı qutısına urtıń hám spirt shıramdi yaqıń. Keyin bakterial ilmekti jalın ústine alıp barıń hám 3 sekund dawamında qızdırıń. İlmek qızarıp ketiwi kerek - bul barlıq mikroblardı óltiredi.',
         step2Title: 'Úlgi alıw',
         step2Desc: 'Sterillengen ilmekti bakterial kultura probirkasına ehtiyatkorlik penen kiritiń. İlmek ushın suyıqlıqqa batırıp, az múgdarda úlgi alıń.',
         step3Title: 'Sürtpe jaratıw',
@@ -819,6 +844,9 @@ const translations = {
         scoreInfo: 'Tolıq juwap: 9-10 | Tolıq emes: 5-8.5 | Juwap joq: 0-4.5',
 
         // Error messages
+        errLampNotLit: 'Iltimas, avval shıramdi yaqın!',
+        errMatchBurnedOut: 'Shırpı isletilmey jańıp ketti.',
+        errNotDried: 'Sürtpe qurıtılmagan. Iltimas, qurıtıwdı kútińız!',
         errLoopNotHeld: 'İlmek jalında uslanbadı.',
         errSterilizationShort: 'Sterillew waqtı 3 sekundtan az boldı.',
         errUnsterilizedSample: 'Úlgi sterillenbegenilmek penen alındı.',
@@ -829,6 +857,10 @@ const translations = {
         errNoWaitTime: 'Boyaq reaksiyası ushın keminde 5-10 sekund kútilmedi.',
         errNoDyeBeforeMicroscope: 'Mikroskopqa ótiw aldında boyaq tamızılmadı.',
         errNoWashBeforeMicroscope: 'Boyaq juwılmay mikroskopqa ótildi, nátiyje buzıldı.',
+        errSlideGripWrong: 'Buyım aynasın shetinen (frosted edge) uslań!',
+        errWashingAngleWrong: 'Juwıw ushın aynanı 45° ga burıń!',
+        errWashingAngleFlat: 'Burısh juqarı past (0-20°), súrtpe juwıldı!',
+        errWashingAngleSteep: 'Burısh juqarı joqarı (60-90°), boyaq tolıq juwılmadı!',
 
         // Footer
         footerTitle: 'Meditsinalıq Virtual Laboratoriya',
@@ -860,6 +892,7 @@ const translations = {
 
         // Tools panel
         toolsTitle: 'Инструменты',
+        dragHint: 'Перетащите инструменты на рабочий стол',
         toolLoop: 'Бактериальная петля',
         toolSlide: 'Предметное стекло',
         toolTube: 'Пробирка с образцом',
@@ -868,7 +901,8 @@ const translations = {
 
         // Workbench
         workbenchTitle: 'Рабочий стол',
-        burnerLabel: 'Пламя',
+        spiritLamp: 'Спиртовка',
+        matches: 'Спички',
         sampleLabel: 'Образец',
         gentianViolet: 'Генциан фиолет',
         distilledWater: 'Дистиллированная вода',
@@ -896,12 +930,19 @@ const translations = {
         ready: 'Готово',
         completed: 'Завершено',
 
+        // Drying controls
+        dryingTitle: 'Сушка',
+        dryingDesc: 'Мазок необходимо высушить после фиксации. Подождите...',
+        dryingTime: 'Время сушки',
+        dryingWaiting: 'Начинается сушка...',
+
         // Staining controls
         stainingTitle: 'Визуальная окраска',
         stainingDesc: 'Нанесите на стекло: сначала краситель, затем воду.',
         reactionTime: 'Время реакции',
         washNow: 'Теперь промойте водой!',
         viewMicroscope: 'К микроскопу',
+        rotationLabel: 'Угол',
 
         // Modal
         modalStep: 'Этап',
@@ -910,7 +951,7 @@ const translations = {
 
         // Step descriptions
         step1Title: 'Стерилизация петли',
-        step1Desc: 'Поднесите бактериальную петлю к пламени горелки Бунзена и держите 3 секунды. Петля должна раскалиться - это убивает все микробы и предотвращает контаминацию.',
+        step1Desc: 'Сначала зажгите спичку о коробок и зажгите спиртовку. Затем поднесите бактериальную петлю к пламени и держите 3 секунды. Петля должна раскалиться - это убивает все микробы и предотвращает контаминацию.',
         step2Title: 'Взятие образца',
         step2Desc: 'Осторожно введите стерилизованную петлю в пробирку с бактериальной культурой. Погрузите кончик петли в жидкость и возьмите небольшое количество образца.',
         step3Title: 'Создание мазка',
@@ -940,6 +981,9 @@ const translations = {
         scoreInfo: 'Полный ответ: 9-10 | Неполный: 5-8.5 | Нет ответа: 0-4.5',
 
         // Error messages
+        errLampNotLit: 'Пожалуйста, сначала зажгите спиртовку!',
+        errMatchBurnedOut: 'Спичка сгорела не используясь.',
+        errNotDried: 'Мазок не высушен. Пожалуйста, дождитесь окончания сушки!',
         errLoopNotHeld: 'Петля не была удержана в пламени.',
         errSterilizationShort: 'Время стерилизации менее 3 секунд.',
         errUnsterilizedSample: 'Образец взят нестерилизованной петлей.',
@@ -950,6 +994,10 @@ const translations = {
         errNoWaitTime: 'Не выдержано время реакции красителя (5-10 сек).',
         errNoDyeBeforeMicroscope: 'Краситель не нанесен перед переходом к микроскопу.',
         errNoWashBeforeMicroscope: 'Переход к микроскопу без промывки, результат искажен.',
+        errSlideGripWrong: 'Держите стекло за край (frosted edge)!',
+        errWashingAngleWrong: 'Для промывки поверните стекло на 45°!',
+        errWashingAngleFlat: 'Угол слишком мал (0-20°), мазок смыт!',
+        errWashingAngleSteep: 'Угол слишком большой (60-90°), краситель не полностью смыт!',
 
         // Footer
         footerTitle: 'Медицинская Виртуальная Лаборатория',
@@ -1018,6 +1066,15 @@ Alpine.data('bacterialSmearLab', () => ({
     dragVelocityX: 0,
     dragVelocityY: 0,
 
+    // Virtual hand state
+    handPosition: { x: 0, y: 0 },
+    slideGripValid: true,
+    slideGripError: false,
+
+    // Slide rotation state (for washing)
+    slideRotation: 0,
+    isRotating: false,
+
     // Steam effect state
     showSteam: false,
     dyeDropAnimating: false,
@@ -1026,13 +1083,43 @@ Alpine.data('bacterialSmearLab', () => ({
     soundEnabled: true,
     soundInitialized: false,
 
+    // Inventory state - tracks if items are in sidebar (true) or on workbench (false)
+    inventoryState: {
+        loop: true,
+        slide: true,
+        dyePipette: true,
+        waterPipette: true
+    },
+
     // Item positions (absolute positioning within workbench)
     itemPositions: {
         loop: { x: 50, y: 100 },
         slide: { x: 25, y: 395 },
         dyePipette: { x: 430, y: 248 },
-        waterPipette: { x: 430, y: 336 }
+        waterPipette: { x: 430, y: 336 },
+        match: { x: 200, y: 250 }
     },
+
+    // Spirit Lamp state
+    lampState: {
+        isLit: false
+    },
+
+    // Match state
+    matchState: {
+        inInventory: true,
+        isLit: false,
+        isBurned: false,
+        burnTimeLeft: 5,
+        burnTimer: null,
+        hasIgnitedLamp: false
+    },
+
+    // Drying state
+    isDried: false,
+    dryingTimeLeft: 4,
+    dryingTimer: null,
+    isDrying: false,
 
     // Experiment state
     state: {
@@ -1099,7 +1186,7 @@ Alpine.data('bacterialSmearLab', () => ({
     steps: {
         1: {
             title: 'Halqani sterillash',
-            description: 'Bakterial halqani Bunzen gorelkasining olov ustiga olib boring va 3 soniya davomida qizdiring. Halqa qizarib ketishi kerak - bu barcha yot mikroblarni o\'ldiradi va kontaminatsiyani oldini oladi.',
+            description: 'Avval gugurtni gugurt qutisiga urting va spirt chiroqni yoqing. Keyin bakterial halqani olov ustiga olib boring va 3 soniya davomida qizdiring. Halqa qizarib ketishi kerak - bu barcha yot mikroblarni o\'ldiradi va kontaminatsiyani oldini oladi.',
             animationType: 'sterilization',
             animationHTML: `
                 <svg class="step-svg" viewBox="0 0 240 220" aria-label="Sterillash animatsiyasi">
@@ -1252,6 +1339,25 @@ Alpine.data('bacterialSmearLab', () => ({
         if (this.scoreOutOfTen > 8) return 'high';
         if (this.scoreOutOfTen >= 5) return 'medium';
         return 'low';
+    },
+
+    // Virtual hand grip class based on dragged item
+    get handGripClass() {
+        if (!this.draggedItem) return '';
+
+        switch (this.draggedItem) {
+            case 'loop':
+                return 'grip-pencil';
+            case 'dyePipette':
+            case 'waterPipette':
+                return 'grip-pipette';
+            case 'slide':
+                return this.slideGripValid ? 'grip-edge' : 'grip-edge shake-error';
+            case 'match':
+                return 'grip-match';
+            default:
+                return '';
+        }
     },
 
     // ==================== TRANSLATION METHODS ====================
@@ -1432,14 +1538,157 @@ Alpine.data('bacterialSmearLab', () => ({
 
         this.isDragging = true;
         this.draggedItem = itemName;
-        const rect = event.currentTarget.getBoundingClientRect();
-        this.dragOffset.x = event.clientX - rect.left;
-        this.dragOffset.y = event.clientY - rect.top;
+
+        // Handle match specially - uses matchState instead of inventoryState
+        if (itemName === 'match') {
+            if (this.matchState.inInventory) {
+                this.matchState.inInventory = false;
+                const workbench = this.$refs.workbench;
+                if (workbench) {
+                    const workbenchRect = workbench.getBoundingClientRect();
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    this.dragOffset.x = event.clientX - rect.left;
+                    this.dragOffset.y = event.clientY - rect.top;
+                    this.itemPositions.match.x = event.clientX - workbenchRect.left - this.dragOffset.x;
+                    this.itemPositions.match.y = event.clientY - workbenchRect.top - this.dragOffset.y;
+                }
+            } else {
+                const rect = event.currentTarget.getBoundingClientRect();
+                this.dragOffset.x = event.clientX - rect.left;
+                this.dragOffset.y = event.clientY - rect.top;
+            }
+            event.preventDefault();
+            return;
+        }
+
+        // If item is in inventory (sidebar), move it to workbench on drag start
+        if (this.inventoryState[itemName]) {
+            this.inventoryState[itemName] = false;
+            // Set initial position based on mouse location
+            const workbench = this.$refs.workbench;
+            if (workbench) {
+                const workbenchRect = workbench.getBoundingClientRect();
+                const rect = event.currentTarget.getBoundingClientRect();
+                this.dragOffset.x = event.clientX - rect.left;
+                this.dragOffset.y = event.clientY - rect.top;
+                // Position item at cursor location relative to workbench
+                this.itemPositions[itemName].x = event.clientX - workbenchRect.left - this.dragOffset.x;
+                this.itemPositions[itemName].y = event.clientY - workbenchRect.top - this.dragOffset.y;
+            }
+        } else {
+            const rect = event.currentTarget.getBoundingClientRect();
+            this.dragOffset.x = event.clientX - rect.left;
+            this.dragOffset.y = event.clientY - rect.top;
+
+            // Validate slide grip - must grab from frosted edge (left or right 15px)
+            if (itemName === 'slide') {
+                const slideWidth = 120;
+                const frostedEdgeWidth = 15;
+                const clickX = this.dragOffset.x;
+
+                // Check if clicking on frosted edge (left 15px or right 15px)
+                const isOnLeftEdge = clickX <= frostedEdgeWidth;
+                const isOnRightEdge = clickX >= (slideWidth - frostedEdgeWidth);
+
+                if (isOnLeftEdge || isOnRightEdge) {
+                    this.slideGripValid = true;
+                    this.slideGripError = false;
+                } else {
+                    // Wrong grip - center of slide
+                    this.slideGripValid = false;
+                    this.slideGripError = true;
+                    this.showSlideGripError();
+                }
+            }
+        }
+
+        // Initialize hand position
+        this.handPosition.x = event.clientX;
+        this.handPosition.y = event.clientY;
+
         event.preventDefault();
+    },
+
+    /**
+     * Show slide grip error with shake animation
+     */
+    showSlideGripError() {
+        // Add shake animation to slide
+        const slideElement = document.querySelector('.glass-slide:not([x-show="inventoryState.slide"])');
+        if (slideElement) {
+            slideElement.classList.add('shake-error');
+            setTimeout(() => {
+                slideElement.classList.remove('shake-error');
+            }, 500);
+        }
+
+        // Show error message
+        this.showError(this.t('errSlideGripWrong') || 'Buyum oynasini chetidan ushlang!');
+        soundManager.playErrorBuzz();
+
+        // Reduce score for fixation if smear created
+        if (this.state.isSmearCreated && !this.state.isFixed) {
+            // Deduct score for wrong grip
+            this.setStepScore('fixation', Math.max(0, this.stepScores.fixation - 0.5));
+        }
+    },
+
+    /**
+     * Update slide rotation (0-90 degrees)
+     * @param {number|string} angle - Rotation angle in degrees
+     */
+    updateSlideRotation(angle) {
+        const numAngle = parseInt(angle, 10) || 0;
+        this.slideRotation = Math.max(0, Math.min(90, numAngle));
+        this.isRotating = true;
+
+        // Clear rotation flag after animation
+        setTimeout(() => {
+            this.isRotating = false;
+        }, 300);
+    },
+
+    /**
+     * Validate washing angle
+     * @returns {object} - Validation result with score and message
+     */
+    validateWashingAngle() {
+        const angle = this.slideRotation;
+
+        // Perfect: 40-50 degrees
+        if (angle >= 40 && angle <= 50) {
+            return { valid: true, score: 1, message: 'perfect' };
+        }
+        // Acceptable: 30-60 degrees (excluding perfect range)
+        if ((angle >= 30 && angle < 40) || (angle > 50 && angle <= 60)) {
+            return { valid: true, score: 0.5, message: 'good' };
+        }
+        // Too flat: 0-20 degrees
+        if (angle <= 20) {
+            return { valid: false, score: 0, message: 'flat' };
+        }
+        // Too steep: 60-90 degrees
+        if (angle >= 60) {
+            return { valid: false, score: 0, message: 'steep' };
+        }
+        // Other angles: 20-30 degrees
+        return { valid: true, score: 0.25, message: 'acceptable' };
+    },
+
+    /**
+     * Get rotation transform style for slide
+     */
+    get slideTransformStyle() {
+        if (this.slideRotation === 0) return '';
+        return `transform: rotate(${this.slideRotation}deg); transform-origin: left center;`;
     },
 
     onDrag(event) {
         if (!this.isDragging || !this.draggedItem || this.showModal) return;
+
+        // Update virtual hand position (follows cursor)
+        this.handPosition.x = event.clientX;
+        this.handPosition.y = event.clientY;
 
         const workbench = this.$refs.workbench;
         if (!workbench) return;
@@ -1508,22 +1757,50 @@ Alpine.data('bacterialSmearLab', () => ({
             loop: { width: 80, height: 120 },
             slide: { width: 120, height: 40 },
             dyePipette: { width: 110, height: 56 },
-            waterPipette: { width: 110, height: 56 }
+            waterPipette: { width: 110, height: 56 },
+            match: { width: 6, height: 60 }
         };
         const itemWidth = itemMetrics[this.draggedItem]?.width ?? 80;
         const itemHeight = itemMetrics[this.draggedItem]?.height ?? 40;
 
-        // Bunsen burner flame zone (strict center hit for heating)
-        const flameZone = { x: 332, y: 188, width: 36, height: 76 };
-        if (this.isColliding(item, itemWidth, itemHeight, flameZone, 0)) {
-            this.hoveredZone = 'sterilize';
-            // Heating effect while dragging over flame
-            if (this.draggedItem === 'loop' && !this.state.isSterilized) {
-                this.isHeating = true;
-                this.startHeating();
+        // Match collision zones
+        if (this.draggedItem === 'match' && !this.matchState.isBurned) {
+            // Matchbox strike zone (in sidebar - absolute positioning)
+            // Note: Sidebar elements use absolute positioning within the sidebar
+            if (this.matchState.inInventory === false) {
+                // Matchbox strike zone (when match is on workbench, check if dragged back to matchbox)
+                const matchboxStrikeZone = { x: -150, y: 380, width: 60, height: 36 };
+                if (this.isColliding(item, itemWidth, itemHeight, matchboxStrikeZone, 15)) {
+                    this.hoveredZone = 'matchboxStrike';
+                    return;
+                }
+
+                // Lamp wick zone (to ignite lamp)
+                const wickZone = { x: 328, y: 158, width: 44, height: 30 };
+                if (this.matchState.isLit && this.isColliding(item, itemWidth, itemHeight, wickZone, 10)) {
+                    this.hoveredZone = 'lampWick';
+                    return;
+                }
             }
-            return;
+        }
+
+        // Spirit lamp flame zone (strict center hit for heating) - only if lit
+        if (this.lampState.isLit) {
+            const flameZone = { x: 332, y: 188, width: 36, height: 76 };
+            if (this.isColliding(item, itemWidth, itemHeight, flameZone, 0)) {
+                this.hoveredZone = 'sterilize';
+                // Heating effect while dragging over flame
+                if (this.draggedItem === 'loop' && !this.state.isSterilized) {
+                    this.isHeating = true;
+                    this.startHeating();
+                }
+                return;
+            } else {
+                this.isHeating = false;
+                this.stopHeating();
+            }
         } else {
+            // Lamp not lit, stop any heating
             this.isHeating = false;
             this.stopHeating();
         }
@@ -1614,7 +1891,23 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     handleDrop(item, zone) {
+        // Match actions
+        if (item === 'match' && zone === 'matchboxStrike' && !this.matchState.isLit && !this.matchState.isBurned) {
+            this.lightMatch();
+            return;
+        }
+        if (item === 'match' && zone === 'lampWick' && this.matchState.isLit && !this.lampState.isLit) {
+            this.igniteLamp();
+            return;
+        }
+
+        // Sterilization - requires lit lamp
         if (item === 'loop' && zone === 'sterilize' && !this.state.isSterilized) {
+            if (!this.lampState.isLit) {
+                this.showError(this.t('errLampNotLit'));
+                soundManager.playErrorBuzz();
+                return;
+            }
             this.startSterilization();
         } else if (item === 'loop' && zone === 'sampleTube' && !this.state.hasSample) {
             this.collectSample();
@@ -1697,6 +1990,186 @@ Alpine.data('bacterialSmearLab', () => ({
             this.errors.push(message);
             // Play error sound
             soundManager.playErrorBuzz();
+        }
+    },
+
+    showError(message) {
+        // Add to errors list
+        this.addError(message);
+
+        // Show temporary toast notification
+        if (typeof window !== 'undefined' && console) {
+            console.warn('[Lab Error]:', message);
+        }
+    },
+
+    /**
+     * Light the match by striking it on matchbox
+     */
+    lightMatch() {
+        if (this.matchState.isLit || this.matchState.isBurned) return;
+
+        this.matchState.isLit = true;
+        this.matchState.burnTimeLeft = 5;
+
+        // Play match strike sound
+        this.playMatchStrikeSound();
+
+        // Start burn countdown
+        this.startMatchBurnTimer();
+
+        // Play success sound
+        soundManager.playSuccessPing();
+    },
+
+    /**
+     * Match burn countdown timer
+     */
+    startMatchBurnTimer() {
+        if (this.matchState.burnTimer) {
+            clearInterval(this.matchState.burnTimer);
+        }
+
+        this.matchState.burnTimer = setInterval(() => {
+            this.matchState.burnTimeLeft -= 1;
+
+            if (this.matchState.burnTimeLeft <= 0) {
+                this.burnOutMatch();
+            }
+        }, 1000);
+    },
+
+    /**
+     * Match burns out (not used)
+     */
+    burnOutMatch() {
+        if (this.matchState.burnTimer) {
+            clearInterval(this.matchState.burnTimer);
+            this.matchState.burnTimer = null;
+        }
+
+        this.matchState.isLit = false;
+        this.matchState.isBurned = true;
+        this.matchState.burnTimeLeft = 0;
+
+        // Play error sound if lamp was never lit
+        if (!this.matchState.hasIgnitedLamp) {
+            this.showError(this.t('errMatchBurnedOut'));
+            soundManager.playErrorBuzz();
+        }
+    },
+
+    /**
+     * Ignite the spirit lamp with lit match
+     */
+    igniteLamp() {
+        if (this.lampState.isLit || !this.matchState.isLit) return;
+
+        this.lampState.isLit = true;
+        this.matchState.hasIgnitedLamp = true;
+
+        // Play lamp ignition whoosh sound
+        this.playLampIgnitionSound();
+
+        // Start burner hum
+        soundManager.startBurnerHum();
+
+        // Success sound
+        soundManager.playSuccessPing();
+
+        // Clear match burn timer since it successfully lit the lamp
+        if (this.matchState.burnTimer) {
+            clearInterval(this.matchState.burnTimer);
+            this.matchState.burnTimer = null;
+        }
+
+        // Mark match as burned after use
+        setTimeout(() => {
+            this.matchState.isLit = false;
+            this.matchState.isBurned = true;
+        }, 500);
+    },
+
+    /**
+     * Play match strike sound effect
+     */
+    playMatchStrikeSound() {
+        if (!soundManager.isInitialized || soundManager.isMuted) return;
+
+        try {
+            const now = soundManager.audioContext.currentTime;
+
+            // Scratchy noise burst
+            const bufferSize = soundManager.audioContext.sampleRate * 0.15;
+            const buffer = soundManager.audioContext.createBuffer(1, bufferSize, soundManager.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+            }
+
+            const source = soundManager.audioContext.createBufferSource();
+            source.buffer = buffer;
+
+            const filter = soundManager.audioContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 2000;
+            filter.Q.value = 0.8;
+
+            const gain = soundManager.audioContext.createGain();
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(soundManager.masterGain);
+
+            source.start(now);
+        } catch (error) {
+            console.warn('Match strike sound error:', error);
+        }
+    },
+
+    /**
+     * Play lamp ignition whoosh sound
+     */
+    playLampIgnitionSound() {
+        if (!soundManager.isInitialized || soundManager.isMuted) return;
+
+        try {
+            const now = soundManager.audioContext.currentTime;
+
+            // Whoosh effect with filtered noise
+            const bufferSize = soundManager.audioContext.sampleRate * 0.4;
+            const buffer = soundManager.audioContext.createBuffer(1, bufferSize, soundManager.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                const envelope = Math.sin((i / bufferSize) * Math.PI);
+                data[i] = (Math.random() * 2 - 1) * envelope;
+            }
+
+            const source = soundManager.audioContext.createBufferSource();
+            source.buffer = buffer;
+
+            const filter = soundManager.audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(400, now);
+            filter.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+            filter.Q.value = 2;
+
+            const gain = soundManager.audioContext.createGain();
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(soundManager.masterGain);
+
+            source.start(now);
+        } catch (error) {
+            console.warn('Lamp ignition sound error:', error);
         }
     },
 
@@ -1837,6 +2310,11 @@ Alpine.data('bacterialSmearLab', () => ({
                         }
 
                         this.checkAndShowModal();
+
+                        // Start drying phase after fixation
+                        setTimeout(() => {
+                            this.startDrying();
+                        }, 800);
                     }
                 } catch (innerError) {
                     console.warn('[Lab1] Fixation timeout error:', innerError);
@@ -1851,12 +2329,60 @@ Alpine.data('bacterialSmearLab', () => ({
     },
 
     /**
+     * Start drying phase after fixation
+     */
+    startDrying() {
+        if (this.isDried || this.isDrying) return;
+
+        this.isDrying = true;
+        this.dryingTimeLeft = 4;
+
+        // Clear any existing timer
+        if (this.dryingTimer) {
+            clearInterval(this.dryingTimer);
+        }
+
+        // Start countdown
+        this.dryingTimer = setInterval(() => {
+            this.dryingTimeLeft -= 1;
+
+            if (this.dryingTimeLeft <= 0) {
+                this.completeDrying();
+            }
+        }, 1000);
+    },
+
+    /**
+     * Complete drying phase
+     */
+    completeDrying() {
+        if (this.dryingTimer) {
+            clearInterval(this.dryingTimer);
+            this.dryingTimer = null;
+        }
+
+        this.isDrying = false;
+        this.isDried = true;
+        this.dryingTimeLeft = 0;
+
+        // Play success sound
+        soundManager.playSuccessPing();
+    },
+
+    /**
      * 5-bosqich (1-qism): Bo'yoq tomizish
      * Gencian fiolet tomizish va 7 soniya kutish
      */
     dropDye() {
         try {
             if (!this.state.isFixed || this.state.isDyed) return;
+
+            // Check if slide is dried
+            if (!this.isDried) {
+                this.showError(this.t('errNotDried'));
+                soundManager.playErrorBuzz();
+                return;
+            }
 
             // Play drop sound
             try {
@@ -1940,14 +2466,29 @@ Alpine.data('bacterialSmearLab', () => ({
                 this.stainingTimer = null;
             }
 
-            // Calculate washing score based on timing
+            // Validate washing angle
+            const angleValidation = this.validateWashingAngle();
+
+            // Calculate washing score based on timing and angle
             if (this.canWashNow) {
                 // Waited proper time before washing
-                this.setStepScore('washing', 2);
+                let washScore = 1 + angleValidation.score; // Base 1 + angle bonus (0-1)
+                this.setStepScore('washing', washScore);
 
-                try {
-                    soundManager.playSuccessPing();
-                } catch (e) {}
+                // Show angle feedback
+                if (angleValidation.message === 'perfect') {
+                    try {
+                        soundManager.playSuccessPing();
+                    } catch (e) {}
+                } else if (angleValidation.message === 'flat') {
+                    this.addError(this.t('errWashingAngleFlat') || 'Burchak juda past, bo\'yoq to\'liq yuvilmadi!');
+                } else if (angleValidation.message === 'steep') {
+                    this.addError(this.t('errWashingAngleSteep') || 'Burchak juda baland, bo\'yoq to\'liq yuvilmadi!');
+                } else {
+                    try {
+                        soundManager.playSuccessPing();
+                    } catch (e) {}
+                }
             } else {
                 // Washed too early
                 this.setStepScore('washing', 0);
@@ -2064,6 +2605,37 @@ Alpine.data('bacterialSmearLab', () => ({
                 isWashed: false
             };
 
+            // Reset inventory state - all items back to sidebar
+            this.inventoryState = {
+                loop: true,
+                slide: true,
+                dyePipette: true,
+                waterPipette: true
+            };
+
+            // Reset lamp and match states
+            this.lampState = {
+                isLit: false
+            };
+
+            if (this.matchState.burnTimer) {
+                clearInterval(this.matchState.burnTimer);
+            }
+
+            this.matchState = {
+                inInventory: true,
+                isLit: false,
+                isBurned: false,
+                burnTimeLeft: 5,
+                burnTimer: null,
+                hasIgnitedLamp: false
+            };
+
+            // Stop burner hum if active
+            try {
+                soundManager.stopBurnerHum();
+            } catch (e) {}
+
             // Reset progress indicators
             this.sterilizationProgress = 0;
             this.liquidLevel = 60;
@@ -2073,7 +2645,8 @@ Alpine.data('bacterialSmearLab', () => ({
                 loop: { x: 50, y: 100 },
                 slide: { x: 25, y: 395 },
                 dyePipette: { x: 430, y: 248 },
-                waterPipette: { x: 430, y: 336 }
+                waterPipette: { x: 430, y: 336 },
+                match: { x: 200, y: 250 }
             };
 
             // Reset sterilization state
@@ -2084,6 +2657,15 @@ Alpine.data('bacterialSmearLab', () => ({
             // Reset fixation state
             this.fixationPasses = 0;
             this.isFixing = false;
+
+            // Reset drying state
+            if (this.dryingTimer) {
+                clearInterval(this.dryingTimer);
+                this.dryingTimer = null;
+            }
+            this.isDried = false;
+            this.isDrying = false;
+            this.dryingTimeLeft = 4;
 
             // Reset staining state
             this.dyeCoverage = 0;
@@ -2135,6 +2717,15 @@ Alpine.data('bacterialSmearLab', () => ({
             this.dragVelocityY = 0;
             this.showSteam = false;
             this.dyeDropAnimating = false;
+
+            // Reset virtual hand state
+            this.handPosition = { x: 0, y: 0 };
+            this.slideGripValid = true;
+            this.slideGripError = false;
+
+            // Reset slide rotation state
+            this.slideRotation = 0;
+            this.isRotating = false;
 
             // Clear timers
             if (this.sterilizationInterval) {
