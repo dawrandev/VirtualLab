@@ -57,6 +57,7 @@ export function freshLabState(labId = 1): LabState {
       burnTimeLeft: 5,
       hasIgnitedLamp: false,
       frictionDistance: 0,
+      burnProgress: 0,
     },
     lamp: { lit: false },
     sterilization: { holdMs: 0, isSterilized: false },

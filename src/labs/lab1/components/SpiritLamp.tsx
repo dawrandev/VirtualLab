@@ -2,6 +2,7 @@
 
 import { Cylinder } from "@react-three/drei";
 import { FireShader } from "./effects/FireShader";
+import { HeatHaze } from "./effects/HeatHaze";
 import { useLabStore } from "@/stores/labStore";
 
 interface Props {
@@ -9,26 +10,36 @@ interface Props {
 }
 
 /**
- * Spirit lamp: brushed-steel base + glass chimney + procedural flame
- * gated on lamp.lit state.
+ * Spirit lamp: brass base + chimney + volumetric flame.
+ * The brass body is upgraded with clearcoat/anisotropy for realistic
+ * brushed-metal highlights.
  */
 export function SpiritLamp({ position = [0, 0, 0] }: Props) {
   const lit = useLabStore((s) => s.state.lamp.lit);
 
   return (
     <group position={position}>
-      {/* Base */}
+      {/* Base — warm brass with clearcoat */}
       <Cylinder args={[0.06, 0.07, 0.05, 32]} position={[0, 0.025, 0]} castShadow receiveShadow>
-        <meshStandardMaterial color="#666870" metalness={0.85} roughness={0.4} />
+        <meshPhysicalMaterial
+          color="#a08050"
+          metalness={0.85}
+          roughness={0.32}
+          clearcoat={0.4}
+          clearcoatRoughness={0.5}
+          anisotropy={0.3}
+        />
       </Cylinder>
-      {/* Chimney */}
-      <Cylinder
-        args={[0.05, 0.05, 0.07, 24]}
-        position={[0, 0.085, 0]}
-        castShadow
-        receiveShadow
-      >
-        <meshStandardMaterial color="#7d8290" metalness={0.85} roughness={0.35} />
+      {/* Chimney — slightly cooler-toned brass */}
+      <Cylinder args={[0.05, 0.05, 0.07, 24]} position={[0, 0.085, 0]} castShadow receiveShadow>
+        <meshPhysicalMaterial
+          color="#b09060"
+          metalness={0.85}
+          roughness={0.28}
+          clearcoat={0.45}
+          clearcoatRoughness={0.4}
+          anisotropy={0.4}
+        />
       </Cylinder>
       {/* Wick */}
       <Cylinder args={[0.008, 0.008, 0.02, 12]} position={[0, 0.13, 0]} castShadow>
@@ -40,11 +51,16 @@ export function SpiritLamp({ position = [0, 0, 0] }: Props) {
         />
       </Cylinder>
 
-      {/* Flame */}
-      <FireShader active={lit} position={[0, 0.21, 0]} height={0.22} width={0.1} />
+      {/* Volumetric flame */}
+      <FireShader active={lit} position={[0, 0.16, 0]} height={0.22} width={0.1} />
 
-      {/* Light from flame */}
-      {lit && <pointLight position={[0, 0.25, 0]} intensity={0.6} distance={1.2} color="#ff9540" />}
+      {/* Heat haze rising above the flame */}
+      <HeatHaze active={lit} position={[0, 0.5, 0]} width={0.2} height={0.4} />
+
+      {/* Warm point-light source from the flame */}
+      {lit && (
+        <pointLight position={[0, 0.25, 0]} intensity={0.9} distance={1.4} color="#ff9540" />
+      )}
     </group>
   );
 }

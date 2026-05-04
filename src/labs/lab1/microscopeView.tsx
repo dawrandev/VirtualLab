@@ -41,10 +41,14 @@ export default function MicroscopeView() {
   const score = useLabStore((s) => s.state.score);
   const microscopeOpen = useLabStore((s) => s.state.microscopeOpen);
   const patch = useLabStore((s) => s.patch);
+  const resetLab = useLabStore((s) => s.resetLab);
   const closeMicroscope = () =>
     patch((draft) => {
       draft.microscopeOpen = false;
     });
+  const restartLab = () => {
+    resetLab();
+  };
 
   const tier = score.outOfTen >= 8.0 ? "high" : score.outOfTen >= 5.0 ? "medium" : "low";
   const particles = useMemo(() => {
@@ -100,14 +104,22 @@ export default function MicroscopeView() {
           </TransformWrapper>
         </div>
 
-        {/* Score badge */}
-        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 px-6 py-3 shadow-2xl">
-          <p className="text-xs uppercase tracking-wider text-indigo-100">
-            {t("lab1.resultTitle")}
-          </p>
-          <p className="text-3xl font-bold text-white">
-            {t("lab1.scoreOutOf", { score: score.outOfTen.toFixed(1) })}
-          </p>
+        {/* Score + finished badge + restart button */}
+        <div className="absolute -bottom-28 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
+          <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 px-6 py-3 shadow-2xl text-center">
+            <p className="text-xs uppercase tracking-wider text-indigo-100">
+              {t("lab1.resultTitle")} — Lab tugadi!
+            </p>
+            <p className="text-3xl font-bold text-white">
+              {t("lab1.scoreOutOf", { score: score.outOfTen.toFixed(1) })}
+            </p>
+          </div>
+          <button
+            onClick={restartLab}
+            className="rounded-xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 transition px-5 py-2.5 text-sm font-semibold text-white shadow-lg ring-1 ring-emerald-300/40"
+          >
+            Qayta boshlash
+          </button>
         </div>
       </div>
 

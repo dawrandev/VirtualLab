@@ -1,10 +1,16 @@
 "use client";
 
 import { Html } from "@react-three/drei";
-import { useEffect, useRef } from "react";
+import {
+  CuboidCollider,
+  CylinderCollider,
+  RigidBody,
+} from "@react-three/rapier";
+import { useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
 import { Draggable3D } from "@/components/three/Draggable3D";
 import { ZoneRegistryProvider } from "@/components/three/ZoneRegistry";
+import { PHYS_MASKS } from "@/engine/physics/CollisionGroups";
 import { interactionRegistry } from "@/engine/interactionRegistry";
 import type { ZoneId } from "@/engine/types";
 import { useLabStore } from "@/stores/labStore";
@@ -18,6 +24,17 @@ import { Microscope } from "./Microscope";
 import { Pipette } from "./Pipette";
 import { SpiritLamp } from "./SpiritLamp";
 import { Zones } from "./Zones";
+import { SparkParticles } from "./effects/SparkParticles";
+import { SmokeParticles } from "./effects/SmokeParticles";
+import { SteamParticles } from "./effects/SteamParticles";
+import { Droplet } from "./effects/Droplet";
+import {
+  BurnCountdown,
+  DryingCountdown,
+  FrictionRing,
+  StainingChip,
+  SterilizationRing,
+} from "./HudTimers";
 
 const FRICTION_THRESHOLD = 0.05; // metres — total lateral path length
 const STROKES_PER_RADIAN = 2.5; // ~16 strokes per full 2π revolution
@@ -36,22 +53,182 @@ export default function Lab1Scene() {
     return interactionRegistry.registerMany(lab1Interactions);
   }, []);
 
+  // Unified timer ticker (10 Hz). Decrements:
+  //   - match.burnTimeLeft and computes burnProgress
+  //   - fixation.dryingTimeLeft (after 3 passes)
+  //   - dye.timeLeft (replaces the previous setInterval inside StainingTimer)
+  // 10 Hz keeps countdown chips visually smooth while keeping the patch
+  // rate low enough that the score-recompute cost is negligible.
+  const patch = useLabStore((s) => s.patch);
+  useEffect(() => {
+    const dt = 0.1;
+    const interval = setInterval(() => {
+      const s = useLabStore.getState().state;
+      const matchActive = s.match.lit && !s.match.burned;
+      const dryingActive =
+        s.fixation.passes >= 3 && !s.fixation.isDried && s.fixation.dryingTimeLeft > 0;
+      const dyeActive = s.dye.applied && !s.dye.matured && s.dye.timeLeft > 0;
+      if (!matchActive && !dryingActive && !dyeActive) return;
+
+      patch((draft) => {
+        if (matchActive) {
+          draft.match.burnTimeLeft = Math.max(0, draft.match.burnTimeLeft - dt);
+          draft.match.burnProgress = 1 - draft.match.burnTimeLeft / 5;
+          if (draft.match.burnTimeLeft <= 0 && !draft.match.hasIgnitedLamp) {
+            // Match expired before lighting the lamp.
+            draft.match.lit = false;
+            draft.match.burned = true;
+          }
+        }
+        if (dryingActive) {
+          draft.fixation.dryingTimeLeft = Math.max(0, draft.fixation.dryingTimeLeft - dt);
+          if (draft.fixation.dryingTimeLeft <= 0) {
+            draft.fixation.isDried = true;
+            draft.fixation.isDrying = false;
+          }
+        }
+        if (dyeActive) {
+          draft.dye.timeLeft = Math.max(0, draft.dye.timeLeft - dt);
+          if (draft.dye.timeLeft <= 0) {
+            draft.dye.matured = true;
+          }
+        }
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [patch]);
+
+  // Droplet emit triggers: count + last-known dispense position. Bumped from
+  // DraggablePipette's onDrop so the visible droplet falls from where the
+  // user actually released the pipette tip (not from its rest position).
+  const [dyeDrop, setDyeDrop] = useState<{
+    count: number;
+    from: [number, number, number];
+  }>({ count: 0, from: [0.6, 0.84, 0.4] });
+  const [waterDrop, setWaterDrop] = useState<{
+    count: number;
+    from: [number, number, number];
+  }>({ count: 0, from: [0.8, 0.84, 0.4] });
+
+  // Live readouts for particle gating
+  const friction = useLabStore((s) => s.state.match.frictionDistance);
+  const matchLit = useLabStore((s) => s.state.match.lit);
+  const matchBurned = useLabStore((s) => s.state.match.burned);
+  const lampLit = useLabStore((s) => s.state.lamp.lit);
+  const fixationPasses = useLabStore((s) => s.state.fixation.passes);
+  const fixationDryingTimeLeft = useLabStore(
+    (s) => s.state.fixation.dryingTimeLeft,
+  );
+  const isDried = useLabStore((s) => s.state.fixation.isDried);
+  const smearCompleted = useLabStore((s) => s.state.smear.completed);
+  const dyeApplied = useLabStore((s) => s.state.dye.applied);
+
+  // Sparks fire while the user is rubbing (any progress, not yet lit/burned)
+  const sparksActive = friction > 0.001 && !matchLit && !matchBurned;
+
+  // Steam: rises off the slide while it's mid-fixation (passes 1-2) and
+  // continuously while drying after pass 3.
+  const steamActive =
+    smearCompleted &&
+    !dyeApplied &&
+    ((fixationPasses > 0 && fixationPasses < 3) ||
+      (fixationPasses >= 3 && !isDried && fixationDryingTimeLeft > 0));
+
   return (
     <ZoneRegistryProvider>
-      <SpiritLamp position={[0, 0.83, 0.1]} />
-      <Matchbox position={[-0.4, 0.81, 0.2]} />
-      <CultureTube position={[0.5, 0.85, 0]} />
-      <Microscope position={[0.9, 0.81, -0.2]} />
+      {/* Static physics colliders for the lab table top so falling tools land on it. */}
+      <RigidBody type="fixed" colliders={false} collisionGroups={PHYS_MASKS.table}>
+        <CuboidCollider args={[1.3, 0.02, 0.6]} position={[0, 0.78, 0]} />
+      </RigidBody>
+
+      {/* Spirit lamp — body collider blocks tools from clipping into the lamp.
+          The wick + flame remain visual-only sensors via ZoneRegistry. */}
+      <RigidBody
+        type="fixed"
+        colliders={false}
+        position={[0, 0.83, 0.1]}
+        collisionGroups={PHYS_MASKS.staticProp}
+      >
+        <SpiritLamp position={[0, 0, 0]} />
+        <CylinderCollider args={[0.06, 0.07]} position={[0, 0.06, 0]} />
+      </RigidBody>
+
+      {/* Matchbox — match rests ON TOP, can't pass through. */}
+      <RigidBody
+        type="fixed"
+        colliders={false}
+        position={[-0.4, 0.81, 0.2]}
+        collisionGroups={PHYS_MASKS.staticProp}
+      >
+        <Matchbox position={[0, 0, 0]} />
+        <CuboidCollider args={[0.045, 0.012, 0.025]} position={[0, 0.012, 0]} />
+      </RigidBody>
+
+      {/* Culture tube — collider only at the stand level; loop must be able
+          to dip into the open tube from above, so no wall collider on the
+          tube body itself. */}
+      <RigidBody
+        type="fixed"
+        colliders={false}
+        position={[0.5, 0.85, 0]}
+        collisionGroups={PHYS_MASKS.staticProp}
+      >
+        <CultureTube position={[0, 0, 0]} />
+        <CylinderCollider args={[0.005, 0.045]} position={[0, -0.075, 0]} />
+      </RigidBody>
+
+      {/* Microscope — base + arm. Decorative collider; tools rarely
+          interact closely with the microscope. */}
+      <RigidBody
+        type="fixed"
+        colliders={false}
+        position={[0.9, 0.81, -0.2]}
+        collisionGroups={PHYS_MASKS.staticProp}
+      >
+        <Microscope position={[0, 0, 0]} />
+        <CuboidCollider args={[0.09, 0.025, 0.06]} position={[0, 0.025, 0]} />
+        <CuboidCollider args={[0.02, 0.11, 0.02]} position={[0, 0.16, 0]} />
+      </RigidBody>
 
       <Zones />
       <FixationCounter />
-      <StainingTimer />
+
+      {/* Particle systems */}
+      <SparkParticles active={sparksActive} origin={[-0.4, 0.835, 0.2]} rate={18} />
+      <SmokeParticles active={lampLit} position={[0, 1.1, 0.1]} />
+      <SteamParticles active={steamActive} position={[0, 1.05, 0.1]} count={32} />
+
+      {/* Droplets */}
+      <Droplet
+        trigger={dyeDrop.count}
+        from={dyeDrop.from}
+        toY={0.812}
+        color="#b366ff"
+      />
+      <Droplet
+        trigger={waterDrop.count}
+        from={waterDrop.from}
+        toY={0.812}
+        color="#aaccff"
+      />
 
       <DraggableMatch />
       <DraggableLoop />
       <DraggableSlide />
-      <DraggablePipette variant="dye" initialPosition={[0.6, 0.85, 0.4]} />
-      <DraggablePipette variant="water" initialPosition={[0.8, 0.85, 0.4]} />
+      <DraggablePipette
+        variant="dye"
+        initialPosition={[0.4, 0.86, 0.45]}
+        onDispense={(pos) =>
+          setDyeDrop((d) => ({ count: d.count + 1, from: pos }))
+        }
+      />
+      <DraggablePipette
+        variant="water"
+        initialPosition={[1.1, 0.86, 0.45]}
+        onDispense={(pos) =>
+          setWaterDrop((d) => ({ count: d.count + 1, from: pos }))
+        }
+      />
     </ZoneRegistryProvider>
   );
 }
@@ -97,58 +274,6 @@ function FixationCounter() {
 }
 
 // ============================================================================
-// Staining timer — counts down dye.timeLeft from 7 → 0; flips dye.matured = true
-// ============================================================================
-
-function StainingTimer() {
-  const dyeApplied = useLabStore((s) => s.state.dye.applied);
-  const dyeMatured = useLabStore((s) => s.state.dye.matured);
-  const dyeTimeLeft = useLabStore((s) => s.state.dye.timeLeft);
-  const patch = useLabStore((s) => s.patch);
-
-  useEffect(() => {
-    if (!dyeApplied || dyeMatured) return;
-    const interval = setInterval(() => {
-      patch((s) => {
-        const next = s.dye.timeLeft - 1;
-        if (next <= 0) {
-          s.dye.timeLeft = 0;
-          s.dye.matured = true;
-        } else {
-          s.dye.timeLeft = next;
-        }
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [dyeApplied, dyeMatured, patch]);
-
-  // Floating indicator above the slide while the timer is ticking
-  if (!dyeApplied || dyeMatured) return null;
-
-  return (
-    <Html position={[-0.7, 0.95, 0.4]} center distanceFactor={1.4}>
-      <div
-        style={{
-          padding: "6px 14px",
-          borderRadius: 8,
-          background: "rgba(15,23,42,0.85)",
-          border: "1px solid #cc55ff",
-          color: "#e9d5ff",
-          fontSize: 13,
-          fontWeight: 600,
-          fontFamily: "var(--font-inter), sans-serif",
-          pointerEvents: "none",
-          whiteSpace: "nowrap",
-          backdropFilter: "blur(4px)",
-        }}
-      >
-        Bo'yoq ta'sir qiladi… {dyeTimeLeft} sek
-      </div>
-    </Html>
-  );
-}
-
-// ============================================================================
 // Match — Step 0: rub on matchbox-strike to ignite, then drop on lamp-wick
 // ============================================================================
 
@@ -163,9 +288,6 @@ function DraggableMatch() {
   const localFrictionRef = useRef(0);
   const accumDtRef = useRef(0);
 
-  // Once lamp is lit OR match burned, lock the match in place
-  const disabled = lampLit || matchState.burned;
-
   return (
     <Draggable3D
       toolId="match"
@@ -174,8 +296,12 @@ function DraggableMatch() {
       // Match head sits at +0.063 X local, lifted by the 20° group tilt.
       interactionOffset={[0.063, 0.018, 0]}
       acceptedZones={["matchbox-strike", "lamp-wick"]}
+      collider={{ kind: "cuboid", args: [0.06, 0.003, 0.003] }}
+      mass={0.005}
       fallToSurfaceOnRelease
-      disabled={disabled}
+      // Burned match is consumed and visually hidden — there's nothing
+      // to grab anymore.
+      disabled={matchState.burned}
       onZoneTick={(zoneId, payload) => {
         if (zoneId !== "matchbox-strike") return;
         if (matchState.lit || matchState.burned) return;
@@ -225,6 +351,8 @@ function DraggableMatch() {
       }}
     >
       <Match position={[0, 0, 0]} />
+      <FrictionRing />
+      <BurnCountdown />
     </Draggable3D>
   );
 }
@@ -235,14 +363,9 @@ function DraggableMatch() {
 
 function DraggableLoop() {
   const dispatch = useLabStore((s) => s.dispatchAction);
-  const lampLit = useLabStore((s) => s.state.lamp.lit);
   const isSterilized = useLabStore((s) => s.state.sterilization.isSterilized);
   const hasSample = useLabStore((s) => s.state.sampling.hasSample);
   const smearCompleted = useLabStore((s) => s.state.smear.completed);
-
-  // Loop is enabled once lamp is lit, and disabled once smearing is done
-  // (after that the slide is the active tool through step 4+).
-  const disabled = !lampLit || smearCompleted;
 
   // Track angular position around slide centre for smear orbit
   const lastAngleRef = useRef<number | null>(null);
@@ -255,12 +378,14 @@ function DraggableLoop() {
       // Loop ring is at +0.122 X local from the handle (group origin)
       interactionOffset={[0.122, 0, 0]}
       acceptedZones={["flame", "culture-tube", "slide-area"]}
+      collider={{ kind: "cuboid", args: [0.07, 0.008, 0.008] }}
+      mass={0.02}
       restPosition={LOOP_REST}
-      returnToRestOnRelease={(zone) =>
-        zone !== "flame" && zone !== "culture-tube" && zone !== "slide-area"
-      }
+      // The user wants to be able to put the loop down anywhere at any
+      // time — fall onto whatever surface is below instead of springing
+      // back to a fixed rest position.
+      fallToSurfaceOnRelease
       mode={{ kind: "translate", planeY: 0.86 }}
-      disabled={disabled}
       onZoneTick={(zoneId, payload) => {
         if (zoneId === "flame" && !isSterilized) {
           dispatch("sterilizeLoop", { dt: payload.dt });
@@ -294,6 +419,7 @@ function DraggableLoop() {
       }}
     >
       <BacterialLoop position={[0, 0, 0]} />
+      <SterilizationRing />
     </Draggable3D>
   );
 }
@@ -306,12 +432,9 @@ function DraggableSlide() {
   const dispatch = useLabStore((s) => s.dispatchAction);
   const patch = useLabStore((s) => s.patch);
   const smearCompleted = useLabStore((s) => s.state.smear.completed);
-  const isFixed = useLabStore((s) => s.state.fixation.isFixed);
   const dyeApplied = useLabStore((s) => s.state.dye.applied);
   const washCompleted = useLabStore((s) => s.state.wash.completed);
 
-  // Slide is enabled from step 4 onwards.
-  const disabled = !smearCompleted || washCompleted;
   // Switch to rotate mode after dye applied, before wash completed.
   const rotateMode = dyeApplied && !washCompleted;
   const SLIDE_REST: [number, number, number] = [-0.7, 0.81, 0.4];
@@ -322,12 +445,15 @@ function DraggableSlide() {
       initialPosition={SLIDE_REST}
       // Slide is centred on its origin — no interaction offset needed
       acceptedZones={["fixation-flame"]}
+      collider={{ kind: "cuboid", args: [0.0375, 0.0008, 0.0125] }}
+      mass={0.01}
       restPosition={SLIDE_REST}
-      returnToRestOnRelease={(zone) =>
-        // In translate mode, snap back unless dropped on the fixation zone.
-        // In rotate mode, never tween (the slide is being held in mid-air).
-        !rotateMode && zone !== "fixation-flame"
-      }
+      // The slide has fixed interaction zones (slide-dye / slide-water /
+      // fixation-flame) that don't follow the slide if it moves. Always
+      // tween back to rest after release (except in rotate mode where the
+      // user is actively holding the slide tilted for the wash angle) —
+      // otherwise dye/wash drops would miss the slide visually.
+      returnToRestOnRelease={() => !rotateMode}
       mode={
         rotateMode
           ? { kind: "rotate", axis: "z", sensitivity: 4 }
@@ -336,7 +462,6 @@ function DraggableSlide() {
             // lamp so horizontal motion is enough to enter the flame.
             { kind: "translate", planeY: 0.83 }
       }
-      disabled={disabled}
       onZoneEnter={(zoneId: ZoneId) => {
         // Each entry into the flame counts as a fixation pass — including
         // the 2nd and 3rd. The interaction handler caps passes at 5 itself.
@@ -359,6 +484,8 @@ function DraggableSlide() {
       }}
     >
       <GlassSlide position={[0, 0, 0]} />
+      <DryingCountdown />
+      <StainingChip />
     </Draggable3D>
   );
 }
@@ -370,23 +497,16 @@ function DraggableSlide() {
 function DraggablePipette({
   variant,
   initialPosition,
+  onDispense,
 }: {
   variant: "dye" | "water";
   initialPosition: [number, number, number];
+  /** Fired with the world position of the pipette tip when a successful
+   * drop happens — Lab1Scene uses this to spawn a falling droplet. */
+  onDispense?: (worldPos: [number, number, number]) => void;
 }) {
   const dispatch = useLabStore((s) => s.dispatchAction);
   const slideRotation = useLabStore((s) => s.state.slide.rotation);
-  const isFixed = useLabStore((s) => s.state.fixation.isFixed);
-  const isDried = useLabStore((s) => s.state.fixation.isDried);
-  const dyeApplied = useLabStore((s) => s.state.dye.applied);
-  const dyeMatured = useLabStore((s) => s.state.dye.matured);
-  const washCompleted = useLabStore((s) => s.state.wash.completed);
-
-  // Disable pipettes until they're relevant.
-  const disabled =
-    variant === "dye"
-      ? !isFixed || !isDried || dyeApplied
-      : !dyeApplied || !dyeMatured || washCompleted;
 
   const dropZone: ZoneId = variant === "dye" ? "slide-dye" : "slide-water";
   const toolId = variant === "dye" ? "dyePipette" : "waterPipette";
@@ -399,12 +519,22 @@ function DraggablePipette({
       interactionOffset={[0, -0.006, 0]}
       // Each pipette only reacts to its own slide overlay zone
       acceptedZones={variant === "dye" ? ["slide-dye"] : ["slide-water"]}
+      collider={{ kind: "cuboid", args: [0.018, 0.04, 0.018] }}
+      mass={0.015}
       restPosition={initialPosition}
-      returnToRestOnRelease={() => true}
+      // Let the pipette fall onto whatever surface is below when released
+      // outside the slide-dye / slide-water zones. The user can pick it up
+      // again from wherever it lands.
+      fallToSurfaceOnRelease
       mode={{ kind: "translate", planeY: initialPosition[1] }}
-      disabled={disabled}
-      onDrop={(zoneId) => {
+      onDrop={(zoneId, payload) => {
         if (zoneId !== dropZone) return;
+        const tip: [number, number, number] = [
+          payload.worldPos.x,
+          payload.worldPos.y,
+          payload.worldPos.z,
+        ];
+        onDispense?.(tip);
         if (variant === "dye") {
           dispatch("dropDye");
         } else {

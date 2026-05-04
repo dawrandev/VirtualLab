@@ -1,143 +1,106 @@
 "use client";
 
-import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { AdditiveBlending, ShaderMaterial, Color, Vector3 } from "three";
+import { Fire } from "@wolffo/three-fire";
+import { useSpring, animated } from "@react-spring/three";
 
-const fireVert = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
+/**
+ * Build a procedural grayscale fire-mask PNG (data URL) that the wolffo
+ * Fire shader samples to define the flame shape. Brighter near the lower-
+ * middle, fading to transparent near the top — exactly the shape of a
+ * small upright flame.
+ *
+ * The wolffo library calls `useLoader(TextureLoader, ...)` unconditionally
+ * even when a Texture object is passed (1.3.0 bug), so we MUST pass a
+ * string URL. A data URL keeps everything self-contained — no public
+ * texture file to ship.
+ */
+function buildFireMaskDataURL(): string {
+  if (typeof document === "undefined") return "";
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, size, size);
+  const grad = ctx.createRadialGradient(
+    size * 0.5,
+    size * 0.7,
+    0,
+    size * 0.5,
+    size * 0.5,
+    size * 0.55,
+  );
+  grad.addColorStop(0.0, "rgba(255,255,255,1)");
+  grad.addColorStop(0.4, "rgba(220,220,220,0.85)");
+  grad.addColorStop(0.7, "rgba(120,120,120,0.5)");
+  grad.addColorStop(1.0, "rgba(0,0,0,0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  return canvas.toDataURL("image/png");
+}
 
-const fireFrag = /* glsl */ `
-  precision highp float;
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform float uIntensity;
-  uniform vec3 uInnerColor;
-  uniform vec3 uMidColor;
-  uniform vec3 uOuterColor;
-
-  // 2D simplex noise (Ashima Arts, public domain)
-  vec3 mod289(vec3 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
-  vec2 mod289(vec2 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
-  vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}
-  float snoise(vec2 v){
-    const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);
-    vec2 i=floor(v+dot(v,C.yy));
-    vec2 x0=v-i+dot(i,C.xx);
-    vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);
-    vec4 x12=x0.xyxy+C.xxzz;
-    x12.xy-=i1;
-    i=mod289(i);
-    vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));
-    vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);
-    m=m*m;m=m*m;
-    vec3 x=2.0*fract(p*C.www)-1.0;
-    vec3 h=abs(x)-0.5;
-    vec3 ox=floor(x+0.5);
-    vec3 a0=x-ox;
-    m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);
-    vec3 g;
-    g.x=a0.x*x0.x+h.x*x0.y;
-    g.yz=a0.yz*x12.xz+h.yz*x12.yw;
-    return 130.0*dot(m,g);
-  }
-
-  float fbm(vec2 p){
-    float v=0.0;
-    float amp=0.5;
-    for(int i=0;i<5;i++){v+=amp*snoise(p);p*=2.0;amp*=0.5;}
-    return v;
-  }
-
-  void main(){
-    vec2 uv = vUv;
-    // Center distance — flame is wider at base, narrows at top
-    float widthAtY = mix(1.0, 0.25, uv.y);
-    float dx = (uv.x - 0.5) / widthAtY;
-    float radial = abs(dx) * 2.0;
-
-    // Vertical scrolling FBM
-    vec2 noiseUV = vec2(uv.x * 2.0, uv.y * 1.5 - uTime * 1.6);
-    float n = fbm(noiseUV) * 0.5 + 0.5;
-
-    // Flame shape
-    float core = 1.0 - radial;
-    float shape = core * smoothstep(1.0, 0.0, uv.y * 1.05);
-    shape *= mix(0.85, 1.15, n);
-    shape = clamp(shape, 0.0, 1.0);
-
-    // Color gradient by height
-    vec3 col = mix(uInnerColor, uMidColor, smoothstep(0.0, 0.45, uv.y));
-    col = mix(col, uOuterColor, smoothstep(0.45, 1.0, uv.y));
-
-    float alpha = pow(shape, 1.5) * uIntensity;
-    if(alpha < 0.01) discard;
-    gl_FragColor = vec4(col * (0.6 + n * 0.4), alpha);
-  }
-`;
+let cachedMaskUrl: string | null = null;
+function getFireMaskUrl(): string {
+  // Only cache once we have a non-empty URL — protects against SSR where
+  // `document` is undefined and `buildFireMaskDataURL()` returns "".
+  if (cachedMaskUrl) return cachedMaskUrl;
+  const url = buildFireMaskDataURL();
+  if (url) cachedMaskUrl = url;
+  return url;
+}
 
 interface FireShaderProps {
   active: boolean;
   position?: [number, number, number];
+  /** Vertical extent in metres. */
   height?: number;
+  /** Horizontal extent in metres (used for both X and Z). */
   width?: number;
+  /** Override flame tint color. Default = warm orange. */
+  color?: string;
+  /** Magnitude of turbulence — higher = more flickery. */
+  magnitude?: number;
 }
 
 /**
- * Procedural flame: billboarded plane with scrolling FBM noise.
- * Two color zones: inner blue cone, mid yellow, outer orange.
- * Fades in/out over 0.4s when `active` toggles.
+ * Volumetric fire wrapper around @wolffo/three-fire.
+ *
+ * - The flame is a true 3D volume (camera-rotation-safe), not a billboard.
+ * - `active` smoothly fades the scale (and therefore the visible volume)
+ *   over ~0.4s using @react-spring.
+ * - We embed a procedural grayscale fire-mask as a data URL so no extra
+ *   asset needs to ship with the static export.
  */
 export function FireShader({
   active,
   position = [0, 0.05, 0],
   height = 0.18,
   width = 0.08,
+  color = "#ff8a30",
+  magnitude = 1.2,
 }: FireShaderProps) {
-  const matRef = useRef<ShaderMaterial>(null);
-  const intensityRef = useRef(0);
+  const maskUrl = getFireMaskUrl();
 
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-      uIntensity: { value: 0 },
-      uInnerColor: { value: new Color("#3060ff") }, // hot blue
-      uMidColor: { value: new Color("#ffd060") }, // yellow
-      uOuterColor: { value: new Color("#ff6020") }, // orange
-    }),
-    [],
-  );
-
-  useFrame((_, delta) => {
-    if (!matRef.current) return;
-    const target = active ? 1 : 0;
-    const speed = 1 / 0.4;
-    intensityRef.current += (target - intensityRef.current) * Math.min(1, delta * speed);
-    matRef.current.uniforms.uTime.value += delta;
-    matRef.current.uniforms.uIntensity.value = intensityRef.current;
+  const { scale } = useSpring({
+    scale: active ? 1 : 0.001,
+    config: { tension: 180, friction: 24 },
   });
 
+  if (!maskUrl) return null;
+
   return (
-    <mesh position={position} renderOrder={10} frustumCulled={false}>
-      <planeGeometry args={[width, height]} />
-      <shaderMaterial
-        ref={matRef}
-        vertexShader={fireVert}
-        fragmentShader={fireFrag}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        blending={AdditiveBlending}
-        toneMapped={false}
+    <animated.group position={position} scale={scale}>
+      <Fire
+        texture={maskUrl}
+        color={color}
+        magnitude={magnitude}
+        lacunarity={2.3}
+        gain={0.7}
+        scale={[width, height, width]}
+        position={[0, height * 0.5, 0]}
       />
-    </mesh>
+    </animated.group>
   );
 }
-
-// Touch unused for now; reserved for VR later
-void Vector3;

@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { Color, MeshStandardMaterial, RepeatWrapping, TextureLoader } from "three";
+import {
+  Color,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  RepeatWrapping,
+  TextureLoader,
+} from "three";
 import { useLoader } from "@react-three/fiber";
 
 /**
@@ -39,10 +45,14 @@ export function LabRoom() {
   );
   const tableTopMaterial = useMemo(
     () =>
-      new MeshStandardMaterial({
-        color: new Color("#0f1115"),
-        roughness: 0.4,
-        metalness: 0.2,
+      new MeshPhysicalMaterial({
+        color: new Color("#1c1f2a"),
+        roughness: 0.35,
+        metalness: 0.15,
+        // Clearcoat gives the dark stone surface a subtle wet sheen — picks
+        // up the warm key light + cool fluorescent fill nicely.
+        clearcoat: 0.45,
+        clearcoatRoughness: 0.25,
       }),
     [],
   );

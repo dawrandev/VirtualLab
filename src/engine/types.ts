@@ -73,6 +73,9 @@ export interface MatchState {
    * (metres). Once it crosses 0.10, the match ignites. Reset to 0 if the
    * match leaves the strike zone before lighting. */
   frictionDistance: number;
+  /** 0..1, ramps from 0 to 1 over `burnTimeLeft` seconds while lit && !burned.
+   * Drives the visual stick shrink and head char-color animation. */
+  burnProgress: number;
 }
 
 export interface LampState {

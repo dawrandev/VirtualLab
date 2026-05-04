@@ -14,6 +14,7 @@ import { ToneMappingMode } from "postprocessing";
 import { Suspense, type ReactNode } from "react";
 import { Vector2 } from "three";
 import { LabRoom } from "./LabRoom";
+import { PhysicsRoot } from "./PhysicsRoot";
 
 interface LabCanvasProps {
   children?: ReactNode;
@@ -21,9 +22,13 @@ interface LabCanvasProps {
 
 /**
  * Top-level 3D canvas: camera, lights, environment, postprocessing.
- * Children are mounted inside the lit room scene.
+ * Children are mounted inside the lit room scene under a Rapier physics root.
  */
 export function LabCanvas({ children }: LabCanvasProps) {
+  const debugPhysics =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("debugPhysics");
+
   return (
     <Canvas
       shadows
@@ -42,7 +47,6 @@ export function LabCanvas({ children }: LabCanvasProps) {
     >
       <Suspense fallback={null}>
         <Environment preset="warehouse" environmentIntensity={0.5} />
-        <LabRoom />
         {/* Slight key light from window direction */}
         <directionalLight
           position={[3, 4, 2]}
@@ -63,7 +67,10 @@ export function LabCanvas({ children }: LabCanvasProps) {
         <pointLight position={[0, 2.7, 0]} intensity={0.6} color="#dceaff" />
         {/* Warm rim from behind */}
         <pointLight position={[-2, 1.6, -1.5]} intensity={0.4} color="#ffd9a8" />
-        {children}
+        <PhysicsRoot debug={debugPhysics}>
+          <LabRoom />
+          {children}
+        </PhysicsRoot>
       </Suspense>
 
       <CameraControls />
