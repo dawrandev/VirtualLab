@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DraggableItem } from "@/components/lab2d/DraggableItem";
 import { Zone } from "@/components/lab2d/ZoneRegistry";
 import { useInteractionContext } from "@/components/lab2d/interactionContext";
+import { useZoomController, type ZoomViewId } from "@/components/lab2d/ZoomController";
 import type { StainId } from "@/engine2d/types";
 import { useLab2DStore } from "@/stores/labStore2d";
 import { ZONES } from "../content/zones";
@@ -60,6 +61,14 @@ export function Lab1Scene2D() {
   const pushError = useLab2DStore((s) => s.pushError);
   const setMicroscopeOpen = useLab2DStore((s) => s.setMicroscopeOpen);
   const interaction = useInteractionContext();
+  const zoom = useZoomController();
+
+  /** Dispatches a step and (optionally) plays a zoom cutscene. The cutscene
+   *  is purely cosmetic — it never blocks state from advancing. */
+  function fireStep(id: string, zoomId?: ZoomViewId) {
+    dispatchStep(id);
+    if (zoomId) zoom.play(zoomId);
+  }
 
   const [naclDropTrigger, setNaclDropTrigger] = useState(0);
   const [stainDropTrigger, setStainDropTrigger] = useState(0);
@@ -134,7 +143,7 @@ export function Lab1Scene2D() {
     }
 
     if (s.match.lit && overLamp && !s.lamp.lit) {
-      dispatchStep("light-lamp");
+      fireStep("light-lamp", "lamp-ignite");
       return;
     }
 
@@ -147,7 +156,7 @@ export function Lab1Scene2D() {
   function onLoopDrop(zone: string | null) {
     if (isStage(2)) {
       if (zone === "lamp-flame" && state.lamp.lit && state.loop.sterilizePasses < 3) {
-        dispatchStep("sterilize-loop");
+        fireStep("sterilize-loop", "flame-pass");
         return;
       }
       if (
@@ -155,7 +164,7 @@ export function Lab1Scene2D() {
         state.loop.sterilizePasses >= 3 &&
         !state.loop.carriesSample
       ) {
-        dispatchStep("take-sample");
+        fireStep("take-sample", "culture-sample");
         return;
       }
       if (
@@ -164,7 +173,7 @@ export function Lab1Scene2D() {
         state.slide.onRack &&
         state.slide.naclApplied
       ) {
-        dispatchStep("smear-sample");
+        fireStep("smear-sample", "smear");
         return;
       }
     }
@@ -184,14 +193,14 @@ export function Lab1Scene2D() {
       !state.slide.naclApplied
     ) {
       setNaclDropTrigger((k) => k + 1);
-      window.setTimeout(() => dispatchStep("add-nacl"), 350);
+      window.setTimeout(() => fireStep("add-nacl", "nacl-drop"), 350);
     }
   }
 
   function onSlideDrop(zone: string | null) {
     if (!isStage(3)) return;
     if (zone === "lamp-flame" && state.slide.fixPasses < 3) {
-      dispatchStep("flame-fix");
+      fireStep("flame-fix", "flame-fix");
     }
   }
 
@@ -202,19 +211,19 @@ export function Lab1Scene2D() {
     if (variant === "cv" && !state.slide.stains.cv.applied) {
       setActiveStainColor(c);
       setStainDropTrigger((k) => k + 1);
-      window.setTimeout(() => dispatchStep("stain-cv"), 250);
+      window.setTimeout(() => fireStep("stain-cv", "stain-cv"), 250);
     } else if (variant === "lugol" && state.slide.stains.cv.washed && !state.slide.stains.lugol.applied) {
       setActiveStainColor(c);
       setStainDropTrigger((k) => k + 1);
-      window.setTimeout(() => dispatchStep("stain-lugol"), 250);
+      window.setTimeout(() => fireStep("stain-lugol", "stain-lugol"), 250);
     } else if (variant === "decolor" && state.slide.stains.lugol.washed && !state.slide.stains.decolor.applied) {
       setActiveStainColor(c);
       setStainDropTrigger((k) => k + 1);
-      window.setTimeout(() => dispatchStep("stain-decolor"), 250);
+      window.setTimeout(() => fireStep("stain-decolor", "stain-decolor"), 250);
     } else if (variant === "safranin" && state.slide.stains.decolor.applied && !state.slide.stains.safranin.applied) {
       setActiveStainColor(c);
       setStainDropTrigger((k) => k + 1);
-      window.setTimeout(() => dispatchStep("stain-safranin"), 250);
+      window.setTimeout(() => fireStep("stain-safranin", "stain-safranin"), 250);
     } else {
       pushError("lab1.error.gramOrder");
     }
@@ -224,15 +233,15 @@ export function Lab1Scene2D() {
     if (!isStage(4)) return;
     if (zone !== "rack-slide" && zone !== "slide-on-rack") return;
     if (state.slide.stains.cv.applied && !state.slide.stains.cv.washed) {
-      dispatchStep("wash-cv");
+      fireStep("wash-cv", "wash");
       return;
     }
     if (state.slide.stains.lugol.applied && !state.slide.stains.lugol.washed) {
-      dispatchStep("wash-lugol");
+      fireStep("wash-lugol", "wash");
       return;
     }
     if (state.slide.stains.safranin.applied && !state.slide.stains.safranin.washed) {
-      dispatchStep("wash-safranin");
+      fireStep("wash-safranin", "wash");
     }
   }
 

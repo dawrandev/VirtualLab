@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useLab2DStore } from "@/stores/labStore2d";
+import { useZoomController } from "./ZoomController";
 
 /**
  * Left sidebar with reference-style controls (frame 46):
@@ -16,7 +17,12 @@ import { useLab2DStore } from "@/stores/labStore2d";
  */
 export function Sidebar() {
   const router = useRouter();
-  const resetLab = useLab2DStore((s) => s.resetLab);
+  const resetLabAction = useLab2DStore((s) => s.resetLab);
+  const zoom = useZoomController();
+  const resetLab = () => {
+    zoom.clear();
+    resetLabAction();
+  };
   const checkStage = useLab2DStore((s) => s.checkStage);
   const advanceStage = useLab2DStore((s) => s.advanceStage);
   const currentStageId = useLab2DStore((s) => s.state.currentStageId);

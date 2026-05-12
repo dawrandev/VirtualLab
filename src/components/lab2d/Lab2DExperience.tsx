@@ -11,6 +11,8 @@ import { HandCursor } from "./HandCursor";
 import { InteractionProvider } from "./interactionContext";
 import { StageBadge } from "./StageBadge";
 import { ZoneRegistryProvider } from "./ZoneRegistry";
+import { ZoomControllerProvider } from "./ZoomController";
+import { ZoomLens } from "./ZoomLens";
 
 interface Props {
   labId: number;
@@ -50,27 +52,30 @@ export function Lab2DExperience({ labId }: Props) {
   return (
     <InteractionProvider>
       <ZoneRegistryProvider>
-      <div
-        className="relative w-screen h-screen overflow-hidden select-none"
-        style={{
-          cursor: "none",
-          background:
-            "linear-gradient(180deg, #ececec 0%, #ececec 55%, #7a7a7a 55%, #7e7e7e 100%)",
-        }}
-      >
-        <TopBar />
-        <Sidebar />
-        <LabStage>
-          <Suspense fallback={null}>
-            <Scene />
-          </Suspense>
-        </LabStage>
-        <StageBadge />
-        <Suspense fallback={null}>
-          <ResultModal />
-        </Suspense>
-        <HandCursor />
-      </div>
+        <ZoomControllerProvider>
+          <div
+            className="relative w-screen h-screen overflow-hidden select-none"
+            style={{
+              cursor: "none",
+              background:
+                "linear-gradient(180deg, #ececec 0%, #ececec 55%, #7a7a7a 55%, #7e7e7e 100%)",
+            }}
+          >
+            <TopBar />
+            <Sidebar />
+            <LabStage>
+              <Suspense fallback={null}>
+                <Scene />
+              </Suspense>
+            </LabStage>
+            <StageBadge />
+            <Suspense fallback={null}>
+              <ResultModal />
+            </Suspense>
+            <ZoomLens />
+            <HandCursor />
+          </div>
+        </ZoomControllerProvider>
       </ZoneRegistryProvider>
     </InteractionProvider>
   );

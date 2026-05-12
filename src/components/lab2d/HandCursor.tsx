@@ -4,6 +4,7 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CounterChip } from "@/labs/lab1/components2d/animations/CounterChip";
 import { useInteractionContext } from "./interactionContext";
+import { useZoomController } from "./ZoomController";
 
 /**
  * Custom hand cursor (reference seg2_18). White-gloved pointing index
@@ -18,6 +19,7 @@ export function HandCursor() {
   const sy = useSpring(y, { stiffness: 700, damping: 32, mass: 0.4 });
   const [touch, setTouch] = useState(false);
   const ctx = useInteractionContext();
+  const zoom = useZoomController();
 
   useEffect(() => {
     function onMove(e: PointerEvent) {
@@ -32,7 +34,11 @@ export function HandCursor() {
   if (touch) return null;
 
   const dragging = !!ctx.draggedItem;
-  const showCounter = ctx.counterValue !== null && ctx.counterValue !== undefined;
+  // Suppress hint/counter while a zoom cutscene is playing — the cutscene
+  // already explains what's happening.
+  const zoomActive = zoom.active !== null;
+  const showCounter =
+    !zoomActive && ctx.counterValue !== null && ctx.counterValue !== undefined;
 
   return (
     <motion.div
@@ -68,7 +74,7 @@ export function HandCursor() {
           label={ctx.tooltipKey ?? ""}
         />
       ) : (
-        ctx.tooltipKey && (
+        !zoomActive && ctx.tooltipKey && (
           <motion.div
             initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
