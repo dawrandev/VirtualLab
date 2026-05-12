@@ -12,9 +12,9 @@ interface Props {
  * lid leaning behind, slight ground shadow. When sampled, a small streak
  * remains where the loop touched.
  */
-export function CultureDish({ sampled, width = 280 }: Props) {
+export function CultureDish({ sampled, width = 180 }: Props) {
   const w = width;
-  const h = w * 0.42;
+  const h = w * 0.4;
   return (
     <div style={{ position: "relative", width: w, height: h + 14 }}>
       <svg width={w} height={h + 14} viewBox={`0 0 ${w} ${h + 14}`}>

@@ -24,12 +24,12 @@ export function Match({ burnProgress, lit, burned }: Props) {
     <div style={{ position: "relative", width: 100, height: 32 }}>
       <svg width="100" height="32" viewBox="0 0 100 32" style={{ position: "absolute", left: 0, top: 0 }}>
         {/* Stick (right edge fixed: user holds it from the right tail) */}
-        <rect x={92 - stickLen} y="14" width={stickLen} height="4" rx="2" fill={charColor} />
-        <rect x={92 - stickLen} y="14" width={stickLen} height="2" rx="1" fill="#ffffff" opacity="0.18" />
+        <rect x={92 - stickLen} y="13" width={stickLen} height="8" rx="2" fill={charColor} stroke="#5c3e10" strokeWidth="0.6" />
+        <rect x={92 - stickLen} y="13" width={stickLen} height="2" rx="1" fill="#ffffff" opacity="0.3" />
 
         {/* Head (left tip) */}
         {!burned && (
-          <ellipse cx={92 - stickLen - 2} cy="16" rx="5" ry="4" fill={lit ? "#36281b" : "#c83e28"} />
+          <ellipse cx={92 - stickLen - 2} cy="17" rx="7" ry="6" fill={lit ? "#36281b" : "#c83e28"} stroke="#7a1f0f" strokeWidth="0.6" />
         )}
       </svg>
 

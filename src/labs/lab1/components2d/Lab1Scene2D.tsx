@@ -31,18 +31,18 @@ const DEBUG = typeof window !== "undefined" && window.location.search.includes("
 const HOMES = {
   // Furniture
   rack: { x: 620, y: 70 }, // wraps both tiers
-  cultureDish: { x: 50, y: 320 },
-  matchbox: { x: 340, y: 470 },
-  lamp: { x: 200, y: 200 },
+  cultureDish: { x: 40, y: 410 }, // bottom-left, below lamp
+  matchbox: { x: 340, y: 480 },
+  lamp: { x: 210, y: 220 },
   // Items
-  match: { x: 350, y: 488 }, // tip lives inside the matchbox-strike zone
+  match: { x: 350, y: 498 }, // tip lives inside the matchbox-strike zone
   loop: { x: 720, y: 100 }, // resting on top tier of the rack
-  bin: { x: 50, y: 530 },
-  slideStack: { x: 590, y: 470 },
+  bin: { x: 250, y: 540 },
+  slideStack: { x: 480, y: 540 },
   filter: { x: 800, y: 480 },
   nacl: { x: 920, y: 80 },
   microscope: { x: 950, y: 240 },
-  glassMarker: { x: 800, y: 590 },
+  glassMarker: { x: 800, y: 600 },
   slideOnRack: { x: 690, y: 188 },
   // Stage 4 reagents
   dyeCv: { x: 30, y: 90 },
@@ -80,22 +80,44 @@ export function Lab1Scene2D() {
     return () => window.clearInterval(t);
   }, [state.loop.heatLevel, patchState]);
 
-  // Match auto-burnout (~3s). Once burned, hide from scene so the bench
-  // stays clean even if the user forgot to discard.
+  // Match burn progress — slow visual char/shrink while held. Caps at 0.7
+  // so the match never burns out in the user's hand; it's only consumed
+  // when explicitly discarded (or after the lamp is lit, with extra time).
   useEffect(() => {
     if (!state.match.lit || state.match.burned) return;
+    const ramp = state.lamp.lit ? 0.018 : 0.008; // faster after lamp lit
+    const cap = state.lamp.lit ? 1.0 : 0.7; // keep alive while user is still working
     const t = window.setInterval(() => {
       patchState((d) => {
-        d.match.burnProgress = Math.min(1, d.match.burnProgress + 0.035);
+        d.match.burnProgress = Math.min(cap, d.match.burnProgress + ramp);
         if (d.match.burnProgress >= 1) {
           d.match.lit = false;
           d.match.burned = true;
           d.trash.match = true;
         }
       });
-    }, 100);
+    }, 200);
     return () => window.clearInterval(t);
-  }, [state.match.lit, state.match.burned, patchState]);
+  }, [state.match.lit, state.match.burned, state.lamp.lit, patchState]);
+
+  // If the match was discarded/burned before Stage 1 completed, spawn a
+  // fresh match so the user can retry without hitting "Заново".
+  useEffect(() => {
+    if (!isStage(1)) return;
+    if (!state.trash.match) return;
+    if (state.lamp.lit) return;
+    const t = window.setTimeout(() => {
+      patchState((d) => {
+        d.trash.match = false;
+        d.match.struck = false;
+        d.match.lit = false;
+        d.match.burned = false;
+        d.match.burnProgress = 0;
+      });
+    }, 600);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.trash.match, state.lamp.lit, stage]);
 
   function handleMatch(zone: string | null) {
     if (!isStage(1)) return;

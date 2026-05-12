@@ -7,17 +7,17 @@ import type { AABB, ZoneId } from "@/engine2d/types";
  */
 export const ZONES: Record<ZoneId, AABB> = {
   // Stage 1 — bottom-left workspace
-  matchbox: { x: 340, y: 460, w: 170, h: 100 },
-  "matchbox-strike": { x: 340, y: 460, w: 170, h: 100 },
-  "lamp-body": { x: 180, y: 200, w: 220, h: 240 },
-  "lamp-cap": { x: 220, y: 200, w: 140, h: 140 },
-  "lamp-wick": { x: 220, y: 200, w: 140, h: 160 },
-  "lamp-flame": { x: 180, y: 160, w: 220, h: 200 },
-  bin: { x: 40, y: 520, w: 130, h: 130 },
+  matchbox: { x: 330, y: 470, w: 180, h: 110 },
+  "matchbox-strike": { x: 330, y: 470, w: 180, h: 110 },
+  "lamp-body": { x: 190, y: 220, w: 220, h: 240 },
+  "lamp-cap": { x: 230, y: 220, w: 140, h: 140 },
+  "lamp-wick": { x: 230, y: 220, w: 140, h: 160 },
+  "lamp-flame": { x: 190, y: 180, w: 220, h: 200 },
+  bin: { x: 240, y: 530, w: 140, h: 140 },
 
   // Stage 2 — center/left workspace
-  "culture-dish": { x: 50, y: 320, w: 320, h: 180 },
-  "slide-stack": { x: 590, y: 460, w: 180, h: 110 },
+  "culture-dish": { x: 30, y: 400, w: 220, h: 130 },
+  "slide-stack": { x: 470, y: 530, w: 190, h: 130 },
 
   // Drying rack (two tiers) — geometry mirrors `DryingRack.tsx`.
   // Top tier (loop rest) is the top open rectangle.
