@@ -2,13 +2,19 @@
 
 import type { ZoomViewProps } from "@/components/lab2d/ZoomLens";
 import { motion } from "framer-motion";
+import { useLab2DStore } from "@/stores/labStore2d";
 import { Flame } from "../animations/Flame";
 import { TopDownSlide } from "./_TopDownSlide";
 import { useAutoDone } from "./_useAutoDone";
+import { usePhase } from "./_usePhase";
 
-/** Slide passes left→right over the flame (heat fixation). */
+/** Slide passes left → right over the flame for fixation. Pre-phase
+ *  renders the slide with one fewer pass than the live state so the
+ *  warm tint only fully builds up after the sweep. */
 export default function FlameFixZoom({ onDone }: ZoomViewProps) {
   useAutoDone(onDone, 1200);
+  const phase = usePhase(900);
+  const liveFix = useLab2DStore((s) => s.state.slide.fixPasses);
   return (
     <div className="absolute inset-0 grid place-items-center">
       <div className="absolute -translate-x-1/2" style={{ left: "50%", top: "62%" }}>
@@ -21,8 +27,9 @@ export default function FlameFixZoom({ onDone }: ZoomViewProps) {
         animate={{ x: 260 }}
         transition={{ duration: 1.0, ease: "easeInOut" }}
       >
-        <TopDownSlide />
-        {/* Warm overlay during flame pass */}
+        <TopDownSlide
+          override={phase === "pre" ? { fixPasses: Math.max(0, liveFix - 1) } : undefined}
+        />
         <motion.div
           className="absolute inset-0 rounded-md"
           initial={{ opacity: 0 }}

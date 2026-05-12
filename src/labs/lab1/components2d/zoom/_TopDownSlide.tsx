@@ -5,32 +5,47 @@ import { useLab2DStore } from "@/stores/labStore2d";
 import { RealisticSlide } from "../items/RealisticSlide";
 
 interface Props {
-  /** Optionally override stains so a stain-zoom can preview the *next*
-   *  color flooding the slide independent of the live store state. */
-  overrideActiveStain?: StainId;
+  /** When provided, masks any of these fields as the BEFORE state — so a
+   *  cutscene can render the slide pre-action even after the store has
+   *  already advanced past it. */
+  override?: Partial<{
+    naclApplied: boolean;
+    smeared: boolean;
+    fixPasses: number;
+    stainApplied: { id: StainId; applied: boolean; washed?: boolean };
+  }>;
   width?: number;
 }
 
 /**
- * Wraps `RealisticSlide` and reads the current slide state from the store.
- * Used by every slide-related zoom cutscene so they all stay visually
- * consistent with the lateral scene.
+ * Big top-down slide used inside zoom cutscenes. By default mirrors the
+ * live store state. Pass `override` to force a "before-the-action" render
+ * (e.g., no NaCl drop while the falling-drop animation plays).
  */
-export function TopDownSlide({ overrideActiveStain, width = 520 }: Props) {
-  const state = useLab2DStore((s) => s.state.slide);
-  const stains = overrideActiveStain
-    ? {
-        ...state.stains,
-        [overrideActiveStain]: { ...state.stains[overrideActiveStain], applied: true, washed: false },
-      }
-    : state.stains;
+export function TopDownSlide({ override, width = 520 }: Props) {
+  const live = useLab2DStore((s) => s.state.slide);
+  const naclApplied = override?.naclApplied ?? live.naclApplied;
+  const smeared = override?.smeared ?? live.smeared;
+  const fixPasses = override?.fixPasses ?? live.fixPasses;
+  let stains = live.stains;
+  if (override?.stainApplied) {
+    const o = override.stainApplied;
+    stains = {
+      ...stains,
+      [o.id]: {
+        ...stains[o.id],
+        applied: o.applied,
+        washed: o.washed ?? stains[o.id].washed,
+      },
+    };
+  }
   return (
     <RealisticSlide
       variant="topdown"
       width={width}
-      naclApplied={state.naclApplied}
-      smeared={state.smeared}
-      fixPasses={state.fixPasses}
+      naclApplied={naclApplied}
+      smeared={smeared}
+      fixPasses={fixPasses}
       stains={stains}
     />
   );
