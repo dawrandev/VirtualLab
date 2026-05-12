@@ -70,9 +70,6 @@ export interface Lab2DState {
     onRack: boolean;
     naclApplied: boolean;
     smeared: boolean;
-    smearAngle: number;
-    smearRotations: number;
-    dried: boolean;
     fixPasses: number;
     activeStain: StainId | null;
     stains: Record<StainId, { applied: boolean; appliedMs: number; washed: boolean }>;

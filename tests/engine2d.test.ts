@@ -51,9 +51,6 @@ describe("engine2d — scoring", () => {
         onRack: true,
         naclApplied: true,
         smeared: true,
-        smearAngle: 0,
-        smearRotations: 3,
-        dried: true,
         fixPasses: 3,
         activeStain: null,
         stains: {
@@ -70,28 +67,48 @@ describe("engine2d — scoring", () => {
 });
 
 describe("engine2d — stage check predicates", () => {
-  it("stage 1 fails before lamp lit", () => {
+  it("stage 1 fails before lamp is lit", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
     const result = lab1Config.stages[0].check(state);
     expect(result.ok).toBe(false);
   });
 
-  it("stage 1 passes after lamp lit + 3 sterilizations", () => {
+  it("stage 1 passes when lamp lit and match discarded", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
     state.lamp = { uncapped: true, lit: true };
-    state.loop.sterilizePasses = 3;
+    state.trash.match = true;
     const result = lab1Config.stages[0].check(state);
     expect(result.ok).toBe(true);
   });
 
-  it("stage 2 fails on weak smear", () => {
+  it("stage 2 fails when smear is missing", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
+    state.loop.sterilizePasses = 3;
+    state.loop.carriesSample = true;
+    state.slide.onRack = true;
+    state.slide.naclApplied = true;
+    state.slide.smeared = false;
+    const result = lab1Config.stages[1].check(state);
+    expect(result.ok).toBe(false);
+  });
+
+  it("stage 2 passes with full smear preparation", () => {
+    const state = bootstrapStages(lab1Config, lab1Config.initialState());
+    state.loop.sterilizePasses = 3;
+    state.loop.carriesSample = true;
     state.slide.onRack = true;
     state.slide.naclApplied = true;
     state.slide.smeared = true;
-    state.slide.smearRotations = 1;
     const result = lab1Config.stages[1].check(state);
-    expect(result.ok).toBe(false);
+    expect(result.ok).toBe(true);
+  });
+
+  it("stage 3 fails until 3 fixation passes", () => {
+    const state = bootstrapStages(lab1Config, lab1Config.initialState());
+    state.slide.fixPasses = 2;
+    expect(lab1Config.stages[2].check(state).ok).toBe(false);
+    state.slide.fixPasses = 3;
+    expect(lab1Config.stages[2].check(state).ok).toBe(true);
   });
 
   it("stage 4 requires full Gram sequence", () => {

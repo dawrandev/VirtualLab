@@ -12,9 +12,6 @@ export function freshLab2DState(): Lab2DState {
       onRack: false,
       naclApplied: false,
       smeared: false,
-      smearAngle: 0,
-      smearRotations: 0,
-      dried: false,
       fixPasses: 0,
       activeStain: null,
       stains: {

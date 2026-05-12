@@ -1,8 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Flame } from "../animations/Flame";
-import { Smoke } from "../animations/Smoke";
 
 interface Props {
   uncapped: boolean;
@@ -10,32 +9,39 @@ interface Props {
 }
 
 /**
- * Bulbous spirit lamp with detachable silver cap. Matches reference frame
- * 22-28: light-tinted glass bulb body, golden lamp oil pool, brown wick,
- * silver cylindrical cap with rounded dome. When `uncapped`, the cap
- * animates aside; when `lit`, an animated flame rises from the wick plus
- * a continuous wisp of smoke above.
+ * Bulbous spirit lamp with detachable silver cap — reference seg1_07-08
+ * and seg2_06. No smoke trail (reference shows none). Cap slides aside
+ * with a quick 200ms spring. Flame fades in with a brief scale-up on
+ * ignition so it doesn't pop into view.
  */
 export function SpiritLamp({ uncapped, lit }: Props) {
   return (
     <div style={{ position: "relative", width: 160, height: 200 }}>
-      {/* Smoke trail */}
-      <div style={{ position: "absolute", left: 80, top: -10 }}>
-        <Smoke active={lit} color="#cfcfcf" size={12} count={5} height={120} width={36} />
-      </div>
-
       {/* Flame */}
       <div
         style={{
           position: "absolute",
-          left: 80 - 28,
-          top: 6,
-          width: 56,
-          height: 90,
+          left: 80 - 18,
+          top: 16,
+          width: 36,
+          height: 70,
           pointerEvents: "none",
         }}
       >
-        <Flame width={56} height={90} intensity={lit ? 1 : 0} preset="lamp" />
+        <AnimatePresence>
+          {lit && (
+            <motion.div
+              key="lamp-flame"
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.4, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              style={{ originY: 1 }}
+            >
+              <Flame width={36} height={70} intensity={1} preset="lamp" />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Glass body (large bulb) + collar + neck */}
@@ -93,10 +99,10 @@ export function SpiritLamp({ uncapped, lit }: Props) {
       <motion.div
         animate={
           uncapped
-            ? { x: 90, y: 80, rotate: 28 }
+            ? { x: 64, y: 60, rotate: 18 }
             : { x: 0, y: 0, rotate: 0 }
         }
-        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+        transition={{ type: "spring", stiffness: 420, damping: 26 }}
         style={{ position: "absolute", left: 56, top: 8, width: 48, height: 84 }}
       >
         <svg width="48" height="84" viewBox="0 0 48 84">

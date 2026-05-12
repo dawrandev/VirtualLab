@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DraggableItem } from "@/components/lab2d/DraggableItem";
 import { Zone } from "@/components/lab2d/ZoneRegistry";
@@ -11,6 +10,7 @@ import { ZONES } from "../content/zones";
 
 import { BacterialLoop } from "./items/BacterialLoop";
 import { BiohazardBin } from "./items/BiohazardBin";
+import { CultureDish } from "./items/CultureDish";
 import { DryingRack } from "./items/DryingRack";
 import { DyeBottle } from "./items/DyeBottle";
 import { FilterPaperStack } from "./items/FilterPaperStack";
@@ -20,40 +20,36 @@ import { Match } from "./items/Match";
 import { Matchbox } from "./items/Matchbox";
 import { MicroscopeIcon } from "./items/MicroscopeIcon";
 import { NaClBottle } from "./items/NaClBottle";
-import { PetriDish } from "./items/PetriDish";
 import { SlideStack } from "./items/SlideStack";
 import { SpiritLamp } from "./items/SpiritLamp";
 import { WashBottle } from "./items/WashBottle";
 import { Drop } from "./animations/Drop";
-import { Steam } from "./animations/Steam";
-import { Flame } from "./animations/Flame";
 
 const DEBUG = typeof window !== "undefined" && window.location.search.includes("debugZones");
 
-/** Home positions for draggable items (relative to inner-stage origin). */
+/** Reference-aligned home positions inside the inner stage. */
 const HOMES = {
+  // Furniture
+  rack: { x: 620, y: 70 }, // wraps both tiers
+  cultureDish: { x: 50, y: 320 },
   matchbox: { x: 340, y: 470 },
-  // Match sits lying on the matchbox; head over the strike strip so a
-  // simple tap or short drag already overlaps the strike zone.
-  match: { x: 350, y: 488 },
   lamp: { x: 200, y: 200 },
-  loop: { x: 770, y: 380 },
-  bin: { x: 60, y: 410 },
-  petri: { x: 530, y: 200 },
-  slideStack: { x: 620, y: 470 },
+  // Items
+  match: { x: 350, y: 488 }, // tip lives inside the matchbox-strike zone
+  loop: { x: 720, y: 100 }, // resting on top tier of the rack
+  bin: { x: 50, y: 530 },
+  slideStack: { x: 590, y: 470 },
   filter: { x: 800, y: 480 },
-  nacl: { x: 920, y: 70 },
+  nacl: { x: 920, y: 80 },
   microscope: { x: 950, y: 240 },
   glassMarker: { x: 800, y: 590 },
-  rack: { x: 640, y: 70 },
-  // Stage 4 reagents column (left strip)
+  slideOnRack: { x: 690, y: 188 },
+  // Stage 4 reagents
   dyeCv: { x: 30, y: 90 },
   dyeLugol: { x: 30, y: 210 },
   dyeDecolor: { x: 30, y: 330 },
   dyeSafranin: { x: 30, y: 450 },
   wash: { x: 920, y: 200 },
-  // Slide on rack (rest position once picked up)
-  slideOnRack: { x: 690, y: 100 },
 };
 
 export function Lab1Scene2D() {
@@ -69,12 +65,11 @@ export function Lab1Scene2D() {
   const [stainDropTrigger, setStainDropTrigger] = useState(0);
   const [activeStainColor, setActiveStainColor] = useState<string>("#5b2e8c");
   const [binBump, setBinBump] = useState(0);
-  const [airDryTimer, setAirDryTimer] = useState<number | null>(null);
 
   const stage = config?.stages.findIndex((s) => s.id === state.currentStageId) ?? 0;
   const isStage = (n: number) => stage === n - 1;
 
-  // Cool down loop wire after sterilization passes
+  // Loop wire cools after sterilization.
   useEffect(() => {
     if (state.loop.heatLevel <= 0) return;
     const t = window.setInterval(() => {
@@ -85,20 +80,16 @@ export function Lab1Scene2D() {
     return () => window.clearInterval(t);
   }, [state.loop.heatLevel, patchState]);
 
-  // Match burn-down: once lit, the stick shrinks and chars over ~8s. Beyond
-  // that the match auto-extinguishes (burned=true) and visually disappears
-  // on the next dispatch — keeping the workbench clean if the user forgets
-  // to discard it.
+  // Match auto-burnout (~3s). Once burned, hide from scene so the bench
+  // stays clean even if the user forgot to discard.
   useEffect(() => {
     if (!state.match.lit || state.match.burned) return;
     const t = window.setInterval(() => {
       patchState((d) => {
-        d.match.burnProgress = Math.min(1, d.match.burnProgress + 0.012);
+        d.match.burnProgress = Math.min(1, d.match.burnProgress + 0.035);
         if (d.match.burnProgress >= 1) {
           d.match.lit = false;
           d.match.burned = true;
-          // Auto-trash so it disappears once it stops burning, preventing
-          // a "burnt stick clutter" UX.
           d.trash.match = true;
         }
       });
@@ -106,33 +97,6 @@ export function Lab1Scene2D() {
     return () => window.clearInterval(t);
   }, [state.match.lit, state.match.burned, patchState]);
 
-  // Air-dry countdown — once slide is smeared + onRack + not yet dried.
-  useEffect(() => {
-    if (!isStage(3)) return;
-    if (state.slide.dried) {
-      setAirDryTimer(null);
-      return;
-    }
-    if (!state.slide.smeared || !state.slide.onRack) return;
-    if (airDryTimer === null) setAirDryTimer(5);
-    const t = window.setInterval(() => {
-      setAirDryTimer((v) => {
-        if (v === null) return null;
-        if (v <= 1) {
-          window.clearInterval(t);
-          dispatchStep("air-dry");
-          return 0;
-        }
-        return v - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.slide.smeared, state.slide.onRack, state.slide.dried, stage]);
-
-  /** Match drop/tap unified handler. Reads fresh state between dispatches so
-   *  one user gesture can advance several steps in a row (e.g., strike +
-   *  light in one drag onto the lamp). */
   function handleMatch(zone: string | null) {
     if (!isStage(1)) return;
     const fresh = () => useLab2DStore.getState().state;
@@ -144,14 +108,10 @@ export function Lab1Scene2D() {
     if (!s.match.struck) {
       dispatchStep("strike-match");
       s = fresh();
-      if (!overLamp && !overBin) return; // user tapped at home — done.
+      if (!overLamp && !overBin) return;
     }
 
     if (s.match.lit && overLamp && !s.lamp.lit) {
-      if (!s.lamp.uncapped) {
-        dispatchStep("open-lamp");
-        s = fresh();
-      }
       dispatchStep("light-lamp");
       return;
     }
@@ -162,30 +122,29 @@ export function Lab1Scene2D() {
     }
   }
 
-  const onMatchDrop = handleMatch;
-  const onMatchTap = handleMatch;
-
-  function onLampTap() {
-    if (!isStage(1)) return;
-    if (!state.lamp.uncapped) {
-      dispatchStep("open-lamp");
-    }
-  }
-
   function onLoopDrop(zone: string | null) {
-    if (isStage(1)) {
-      if (zone === "lamp-flame" && state.lamp.lit) {
-        dispatchStep("sterilize-loop");
-      }
-      return;
-    }
     if (isStage(2)) {
-      if (zone === "petri-source" && state.loop.sterilizePasses >= 3 && !state.loop.carriesSample) {
-        dispatchStep("take-sample");
-      } else if ((zone === "rack-top" || zone === "slide-on-rack") && state.loop.carriesSample) {
-        dispatchStep("smear-sample");
+      if (zone === "lamp-flame" && state.lamp.lit && state.loop.sterilizePasses < 3) {
+        dispatchStep("sterilize-loop");
+        return;
       }
-      return;
+      if (
+        zone === "culture-dish" &&
+        state.loop.sterilizePasses >= 3 &&
+        !state.loop.carriesSample
+      ) {
+        dispatchStep("take-sample");
+        return;
+      }
+      if (
+        (zone === "rack-slide" || zone === "slide-on-rack") &&
+        state.loop.carriesSample &&
+        state.slide.onRack &&
+        state.slide.naclApplied
+      ) {
+        dispatchStep("smear-sample");
+        return;
+      }
     }
   }
 
@@ -197,7 +156,11 @@ export function Lab1Scene2D() {
 
   function onNaClDrop(zone: string | null) {
     if (!isStage(2)) return;
-    if ((zone === "rack-top" || zone === "slide-on-rack") && state.slide.onRack && !state.slide.naclApplied) {
+    if (
+      (zone === "rack-slide" || zone === "slide-on-rack") &&
+      state.slide.onRack &&
+      !state.slide.naclApplied
+    ) {
       setNaclDropTrigger((k) => k + 1);
       window.setTimeout(() => dispatchStep("add-nacl"), 350);
     }
@@ -205,7 +168,6 @@ export function Lab1Scene2D() {
 
   function onSlideDrop(zone: string | null) {
     if (!isStage(3)) return;
-    if (!state.slide.dried) return;
     if (zone === "lamp-flame" && state.slide.fixPasses < 3) {
       dispatchStep("flame-fix");
     }
@@ -213,7 +175,7 @@ export function Lab1Scene2D() {
 
   function onDyeDrop(variant: StainId, zone: string | null) {
     if (!isStage(4)) return;
-    if (zone !== "rack-top" && zone !== "slide-on-rack") return;
+    if (zone !== "rack-slide" && zone !== "slide-on-rack") return;
     const c = colorForStain(variant);
     if (variant === "cv" && !state.slide.stains.cv.applied) {
       setActiveStainColor(c);
@@ -238,7 +200,7 @@ export function Lab1Scene2D() {
 
   function onWashDrop(zone: string | null) {
     if (!isStage(4)) return;
-    if (zone !== "rack-top" && zone !== "slide-on-rack") return;
+    if (zone !== "rack-slide" && zone !== "slide-on-rack") return;
     if (state.slide.stains.cv.applied && !state.slide.stains.cv.washed) {
       dispatchStep("wash-cv");
       return;
@@ -249,7 +211,6 @@ export function Lab1Scene2D() {
     }
     if (state.slide.stains.safranin.applied && !state.slide.stains.safranin.washed) {
       dispatchStep("wash-safranin");
-      return;
     }
   }
 
@@ -265,33 +226,22 @@ export function Lab1Scene2D() {
 
   return (
     <div style={{ position: "absolute", inset: 0 }}>
-      {/* Optional debug overlay for zones */}
-      {DEBUG &&
-        (Object.keys(ZONES) as Array<keyof typeof ZONES>).map((id) => (
-          <Zone key={id} id={id} rect={ZONES[id]} debug />
-        ))}
+      {/* Zones — always registered; debug overlay when ?debugZones */}
+      {(Object.keys(ZONES) as Array<keyof typeof ZONES>).map((id) => (
+        <Zone key={id} id={id} rect={ZONES[id]} debug={DEBUG} />
+      ))}
 
-      {/* Register zones (no debug) */}
-      {!DEBUG &&
-        (Object.keys(ZONES) as Array<keyof typeof ZONES>).map((id) => (
-          <Zone key={id} id={id} rect={ZONES[id]} />
-        ))}
-
-      {/* === Static, non-draggable furniture === */}
-      {/* Drying rack */}
+      {/* Two-tier drying rack (static furniture) */}
       <div style={{ position: "absolute", left: HOMES.rack.x, top: HOMES.rack.y }}>
         <DryingRack />
       </div>
 
-      {/* Petri-source dish (decorative, used as zone for sample pick-up) */}
-      <div style={{ position: "absolute", left: HOMES.petri.x, top: HOMES.petri.y }}>
-        <PetriDish
-          sampled={state.loop.carriesSample || isStage(3) || isStage(4)}
-          label="Kultura"
-        />
+      {/* Culture dish (bottom-left, replaces previous Kultura petri) */}
+      <div style={{ position: "absolute", left: HOMES.cultureDish.x, top: HOMES.cultureDish.y }}>
+        <CultureDish sampled={state.loop.carriesSample || state.slide.smeared} />
       </div>
 
-      {/* Slide stack (tap to pick) */}
+      {/* Slide stack — tap to pick first slide */}
       {!state.slide.onRack && (
         <button
           aria-label="slide-stack"
@@ -307,7 +257,7 @@ export function Lab1Scene2D() {
           onPointerEnter={() => interaction.setTooltip("Slaydni ol")}
           onPointerLeave={() => interaction.setTooltip(null)}
         >
-          <SlideStack remaining={state.slide.onRack ? 4 : 5} />
+          <SlideStack remaining={3} />
         </button>
       )}
 
@@ -316,38 +266,25 @@ export function Lab1Scene2D() {
         <FilterPaperStack />
       </div>
 
-      {/* Glass marker (decorative label) */}
+      {/* Glass marker (decoration) */}
       <div style={{ position: "absolute", left: HOMES.glassMarker.x, top: HOMES.glassMarker.y }}>
         <GlassMarker />
       </div>
 
-      {/* === Lamp (tap to open cap; the rest is a static landmark) === */}
-      <button
+      {/* Spirit lamp (decorative, click-free now — light-lamp folds into match drag) */}
+      <div
+        style={{ position: "absolute", left: HOMES.lamp.x, top: HOMES.lamp.y }}
         aria-label="lamp"
-        onClick={onLampTap}
-        style={{
-          position: "absolute",
-          left: HOMES.lamp.x,
-          top: HOMES.lamp.y,
-          border: "none",
-          background: "transparent",
-          cursor: "inherit",
-        }}
-        onPointerEnter={() => {
-          if (isStage(1) && !state.lamp.uncapped) interaction.setTooltip("Qopqoqni och");
-        }}
-        onPointerLeave={() => interaction.setTooltip(null)}
       >
         <SpiritLamp uncapped={state.lamp.uncapped} lit={state.lamp.lit} />
-      </button>
+      </div>
 
-      {/* === Matchbox (decorative; opens when match is taken) === */}
+      {/* Matchbox (decorative, drawer always open during stage 1) */}
       <div style={{ position: "absolute", left: HOMES.matchbox.x, top: HOMES.matchbox.y }}>
         <Matchbox open={isStage(1)} />
       </div>
 
-      {/* === Match (draggable for stage 1) ===
-          tipX/tipY = the burning head (left edge of the stick). */}
+      {/* Match (draggable) */}
       {!state.trash.match && (
         <DraggableItem
           id="match"
@@ -361,14 +298,12 @@ export function Lab1Scene2D() {
           tooltipKey={
             !state.match.struck
               ? "Gugurtni qutiga ishqala"
-              : !state.lamp.uncapped
-              ? "Avval lampa qopqog'ini och"
               : !state.lamp.lit
-              ? "Piltaga olib bor"
+              ? "Lampaga olib bor"
               : "Biohazardga tashla"
           }
-          onDrop={onMatchDrop}
-          onTap={onMatchTap}
+          onDrop={handleMatch}
+          onTap={handleMatch}
         >
           <Match
             burnProgress={state.match.burnProgress}
@@ -378,8 +313,7 @@ export function Lab1Scene2D() {
         </DraggableItem>
       )}
 
-      {/* === Bacterial loop ===
-          tip = wire ring at the left edge of the SVG. */}
+      {/* Bacterial loop */}
       <DraggableItem
         id="loop"
         homeX={HOMES.loop.x}
@@ -388,31 +322,30 @@ export function Lab1Scene2D() {
         height={22}
         tipX={10}
         tipY={11}
-        disabled={isStage(4)}
+        disabled={!isStage(2)}
         tooltipKey={
-          isStage(1)
+          isStage(2)
             ? state.loop.sterilizePasses < 3
-              ? "Olovdan o'tkaz"
-              : "Sterilizatsiya tugadi"
-            : isStage(2)
-            ? !state.loop.carriesSample
-              ? "Kultura ol"
-              : "Slaydga surt"
+              ? "Olov ustidan o'tkaz"
+              : !state.loop.carriesSample
+              ? "Kultura idishidan namuna ol"
+              : "Slaydga surtma qil"
             : null
         }
-        counterValue={isStage(1) ? state.loop.sterilizePasses : null}
+        counterValue={
+          isStage(2) && state.loop.sterilizePasses < 3 ? state.loop.sterilizePasses : null
+        }
         onDrop={onLoopDrop}
       >
         <BacterialLoop heatLevel={state.loop.heatLevel} />
       </DraggableItem>
 
-      {/* === Biohazard bin === */}
+      {/* Biohazard bin */}
       <div style={{ position: "absolute", left: HOMES.bin.x, top: HOMES.bin.y }}>
         <BiohazardBin bumpKey={binBump} />
       </div>
 
-      {/* === NaCl bottle (drag onto slide on rack) ===
-          tip = dropper bulb at the top of the bottle. */}
+      {/* NaCl spray bottle */}
       <DraggableItem
         id="nacl"
         homeX={HOMES.nacl.x}
@@ -420,15 +353,19 @@ export function Lab1Scene2D() {
         width={50}
         height={100}
         tipX={25}
-        tipY={22}
-        disabled={!isStage(2)}
-        tooltipKey={isStage(2) && !state.slide.naclApplied ? "Slaydga tomchi tashla" : null}
+        tipY={20}
+        disabled={!isStage(2) || !state.slide.onRack || state.slide.naclApplied}
+        tooltipKey={
+          isStage(2) && state.slide.onRack && !state.slide.naclApplied
+            ? "Slaydga purkash"
+            : null
+        }
         onDrop={onNaClDrop}
       >
         <NaClBottle />
       </DraggableItem>
 
-      {/* === Glass slide (only visible once on rack) === */}
+      {/* Glass slide — visible once picked up */}
       {state.slide.onRack && (
         <DraggableItem
           id="slide"
@@ -436,47 +373,38 @@ export function Lab1Scene2D() {
           homeY={HOMES.slideOnRack.y}
           width={110}
           height={36}
+          tipX={55}
+          tipY={18}
           disabled={!isStage(3)}
-          tooltipKey={
-            isStage(3) && state.slide.dried && state.slide.fixPasses < 3 ? "Olov ustidan o'tkaz" : null
-          }
-          counterValue={isStage(3) && state.slide.dried ? state.slide.fixPasses : null}
+          tooltipKey={isStage(3) && state.slide.fixPasses < 3 ? "Olov ustidan o'tkaz" : null}
+          counterValue={isStage(3) && state.slide.fixPasses < 3 ? state.slide.fixPasses : null}
           onDrop={onSlideDrop}
-          returnHome
         >
           <GlassSlide
             naclApplied={state.slide.naclApplied}
             smeared={state.slide.smeared}
-            smearRotations={state.slide.smearRotations}
-            dried={state.slide.dried}
+            smearRotations={state.slide.smeared ? 3 : 0}
+            dried={true}
             fixPasses={state.slide.fixPasses}
             stains={state.slide.stains}
           />
         </DraggableItem>
       )}
 
-      {/* Drop animations layered above the slide */}
-      <div style={{ position: "absolute", left: HOMES.slideOnRack.x + 40, top: HOMES.slideOnRack.y - 60, pointerEvents: "none" }}>
+      {/* Drop animations */}
+      <div
+        style={{
+          position: "absolute",
+          left: HOMES.slideOnRack.x + 40,
+          top: HOMES.slideOnRack.y - 60,
+          pointerEvents: "none",
+        }}
+      >
         <Drop trigger={naclDropTrigger} color="#88c5d8" />
         <Drop trigger={stainDropTrigger} color={activeStainColor} fallHeight={60} />
       </div>
 
-      {/* Steam over slide while drying */}
-      {airDryTimer !== null && airDryTimer > 0 && (
-        <div style={{ position: "absolute", left: HOMES.slideOnRack.x + 55, top: HOMES.slideOnRack.y - 80, pointerEvents: "none" }}>
-          <Steam active />
-        </div>
-      )}
-      {airDryTimer !== null && airDryTimer > 0 && (
-        <div
-          className="absolute rounded-full bg-amber-300 text-xs font-bold text-slate-900 grid place-items-center shadow"
-          style={{ left: HOMES.slideOnRack.x + 110, top: HOMES.slideOnRack.y - 38, width: 32, height: 32 }}
-        >
-          {airDryTimer}s
-        </div>
-      )}
-
-      {/* === Stage 4 dye bottles + wash bottle === */}
+      {/* Stage 4 reagents */}
       {isStage(4) && (
         <>
           <DraggableItem
@@ -485,7 +413,9 @@ export function Lab1Scene2D() {
             homeY={HOMES.dyeCv.y}
             width={44}
             height={92}
-            tooltipKey="1: Genzian-binafsha"
+            tipX={22}
+            tipY={20}
+            tooltipKey="1) Gentsian"
             onDrop={(z) => onDyeDrop("cv", z)}
           >
             <DyeBottle variant="cv" />
@@ -496,7 +426,9 @@ export function Lab1Scene2D() {
             homeY={HOMES.dyeLugol.y}
             width={44}
             height={92}
-            tooltipKey="2: Lyugol"
+            tipX={22}
+            tipY={20}
+            tooltipKey="2) Lyugol"
             onDrop={(z) => onDyeDrop("lugol", z)}
           >
             <DyeBottle variant="lugol" />
@@ -507,7 +439,9 @@ export function Lab1Scene2D() {
             homeY={HOMES.dyeDecolor.y}
             width={44}
             height={92}
-            tooltipKey="3: 96% etanol"
+            tipX={22}
+            tipY={20}
+            tooltipKey="3) Etanol"
             onDrop={(z) => onDyeDrop("decolor", z)}
           >
             <DyeBottle variant="decolor" />
@@ -518,7 +452,9 @@ export function Lab1Scene2D() {
             homeY={HOMES.dyeSafranin.y}
             width={44}
             height={92}
-            tooltipKey="4: Safranin"
+            tipX={22}
+            tipY={20}
+            tooltipKey="4) Safranin"
             onDrop={(z) => onDyeDrop("safranin", z)}
           >
             <DyeBottle variant="safranin" />
@@ -529,6 +465,8 @@ export function Lab1Scene2D() {
             homeY={HOMES.wash.y}
             width={56}
             height={100}
+            tipX={28}
+            tipY={20}
             tooltipKey="Yuvish"
             onDrop={onWashDrop}
           >
@@ -537,7 +475,7 @@ export function Lab1Scene2D() {
         </>
       )}
 
-      {/* Microscope icon (always rendered; only enabled in stage 4 after wash) */}
+      {/* Microscope */}
       <button
         aria-label="microscope"
         onClick={onMicroscopeTap}
@@ -556,18 +494,6 @@ export function Lab1Scene2D() {
       >
         <MicroscopeIcon enabled={isStage(4) && state.slide.stains.safranin.washed} />
       </button>
-
-      {/* "Far" flame attached to lamp wick — for visual reference of where to drag */}
-      <AnimatePresence>
-        {state.lamp.lit && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ position: "absolute", left: 0, top: 0, pointerEvents: "none" }}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

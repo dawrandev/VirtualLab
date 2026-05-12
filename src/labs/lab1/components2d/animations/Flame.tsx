@@ -5,76 +5,60 @@ import { motion } from "framer-motion";
 interface Props {
   width?: number;
   height?: number;
-  /** 0..1 intensity. 0 = invisible, 1 = full lamp. 0.4 = match tip. */
+  /** 0..1 intensity. 0 = invisible. */
   intensity?: number;
-  /** Color preset. Match tip = warmer, lamp = balanced. */
+  /** Color preset. */
   preset?: "lamp" | "match" | "fix";
 }
 
 /**
- * Cartoon teardrop flame (3 concentric layers) with subtle flicker.
- * Inspired by reference frames 28, 32 — slight elongation, asymmetric tip,
- * darker base. Layers use additive-like blending via `mix-blend-mode: screen`.
+ * Cartoon teardrop flame — reference seg2_06/seg2_11/seg2_18. A single
+ * tall path with a soft yellow-to-orange gradient, gentle vertical scale
+ * flicker (no rotation, no drop-shadow halo, no smoke trail). The lamp
+ * variant of this is what sits above the wick; the match variant is
+ * smaller and warmer.
  */
-export function Flame({ width = 64, height = 110, intensity = 1, preset = "lamp" }: Props) {
+export function Flame({ width = 36, height = 70, intensity = 1, preset = "lamp" }: Props) {
   if (intensity <= 0) return null;
 
   const palette =
     preset === "match"
-      ? { outer: "#ff6a1a", mid: "#ffb030", core: "#fff2b0" }
-      : preset === "fix"
-      ? { outer: "#ff8a3a", mid: "#ffd060", core: "#fff8d0" }
-      : { outer: "#ff7a1a", mid: "#ffcc33", core: "#fff6b8" };
-
-  const baseScale = 0.4 + 0.6 * intensity;
+      ? { tip: "#fff2b0", core: "#ffb030", edge: "#ff7a1a", base: "#cc4a00" }
+      : { tip: "#fff6c4", core: "#ffd040", edge: "#ff8a1a", base: "#cf4d00" };
 
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 64 110"
-      style={{ overflow: "visible", filter: "drop-shadow(0 0 12px rgba(255,150,50,0.65))" }}
-    >
+    <svg width={width} height={height} viewBox="0 0 36 70" style={{ overflow: "visible" }}>
       <defs>
-        <radialGradient id="flame-outer" cx="50%" cy="80%" r="60%">
-          <stop offset="0%" stopColor={palette.outer} stopOpacity="0.95" />
-          <stop offset="100%" stopColor={palette.outer} stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id="flame-mid" cx="50%" cy="75%" r="55%">
-          <stop offset="0%" stopColor={palette.mid} stopOpacity="1" />
-          <stop offset="100%" stopColor={palette.mid} stopOpacity="0" />
-        </radialGradient>
+        <linearGradient id={`flame-${preset}`} x1="50%" y1="100%" x2="50%" y2="0%">
+          <stop offset="0%" stopColor={palette.base} />
+          <stop offset="40%" stopColor={palette.edge} />
+          <stop offset="75%" stopColor={palette.core} />
+          <stop offset="100%" stopColor={palette.tip} />
+        </linearGradient>
       </defs>
-
+      {/* Outer body — teardrop */}
       <motion.path
-        d="M32 100 C12 95 6 65 22 35 C28 22 34 12 32 0 C30 12 38 22 42 35 C58 65 52 95 32 100 Z"
-        fill="url(#flame-outer)"
+        d="M18 70 C 6 64 4 44 14 24 C 16 18 20 12 18 0 C 16 12 22 18 22 24 C 32 44 30 64 18 70 Z"
+        fill={`url(#flame-${preset})`}
         animate={{
-          scale: [baseScale, baseScale * 1.06, baseScale * 0.97, baseScale * 1.04, baseScale],
-          rotate: [-1.5, 1, -0.6, 1.2, -1.5],
+          scaleY: [1, 1.05, 0.97, 1.03, 1],
+          scaleX: [1, 0.97, 1.03, 0.98, 1],
         }}
-        style={{ transformOrigin: "32px 100px" }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformOrigin: "18px 70px" }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        opacity={intensity}
       />
-      <motion.path
-        d="M32 98 C19 92 18 70 28 45 C30 38 34 30 32 18 C30 30 36 38 38 45 C48 70 47 92 32 98 Z"
-        fill="url(#flame-mid)"
-        animate={{
-          scale: [baseScale * 0.95, baseScale * 1.05, baseScale * 0.95],
-          rotate: [1, -1.5, 0.6, -1, 1],
-        }}
-        style={{ transformOrigin: "32px 98px" }}
+      {/* Inner glow — small bright sliver */}
+      <motion.ellipse
+        cx="18"
+        cy="42"
+        rx="3.5"
+        ry="14"
+        fill={palette.tip}
+        opacity={0.85 * intensity}
+        animate={{ scaleY: [1, 1.08, 0.95, 1] }}
+        style={{ transformOrigin: "18px 56px" }}
         transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.path
-        d="M32 95 C26 90 28 75 30 60 C31 52 33 50 32 38 C31 50 33 52 34 60 C36 75 38 90 32 95 Z"
-        fill={palette.core}
-        opacity={0.85}
-        animate={{
-          scale: [baseScale * 0.9, baseScale * 1.0, baseScale * 0.9],
-        }}
-        style={{ transformOrigin: "32px 95px" }}
-        transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
       />
     </svg>
   );

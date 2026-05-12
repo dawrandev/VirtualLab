@@ -16,7 +16,8 @@ interface Props {
  * Reference frames 03-08.
  */
 export function Match({ burnProgress, lit, burned }: Props) {
-  const stickLen = 70 - burnProgress * 30; // 70 → 40 over the burn
+  // Shorter shrink range now that burn auto-completes in 3s rather than 8s.
+  const stickLen = 70 - burnProgress * 24; // 70 → 46 over the burn
   const charColor = burned ? "#1f1f1f" : lit ? blendChar(burnProgress) : "#a16207";
 
   return (

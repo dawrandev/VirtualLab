@@ -5,8 +5,10 @@ import type { StainId } from "@/engine2d/types";
 interface Props {
   naclApplied: boolean;
   smeared: boolean;
-  smearRotations: number;
-  dried: boolean;
+  /** Kept for backward compat. Treat any non-zero as "smeared". */
+  smearRotations?: number;
+  /** Kept for backward compat. Treated as always-true once smeared in current flow. */
+  dried?: boolean;
   fixPasses: number;
   stains: Record<StainId, { applied: boolean; appliedMs: number; washed: boolean }>;
   width?: number;
@@ -24,8 +26,8 @@ interface Props {
 export function GlassSlide({
   naclApplied,
   smeared,
-  smearRotations,
-  dried,
+  smearRotations = 0,
+  dried = true,
   fixPasses,
   stains,
   width = 110,

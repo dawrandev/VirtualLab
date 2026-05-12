@@ -6,7 +6,8 @@ export function microscopeResult(state: Lab2DState): MicroscopeResult {
   const safranin = state.slide.stains.safranin;
   const fixed = state.slide.fixPasses >= 3;
   const smeared = state.slide.smeared;
-
+  // Decolorizer step is what differentiates Gram+ vs Gram-; track it
+  // independently of the legacy "smearRotations" field which no longer exists.
   if (!smeared || !fixed) {
     return {
       gramOutcome: "ambiguous",

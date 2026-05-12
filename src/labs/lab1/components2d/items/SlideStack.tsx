@@ -5,7 +5,7 @@
  * frame 46 lower-middle). Visually a glass dish with fanned overlapping
  * slides.
  */
-export function SlideStack({ remaining = 5 }: { remaining?: number }) {
+export function SlideStack({ remaining = 3 }: { remaining?: number }) {
   return (
     <svg width="170" height="100" viewBox="0 0 170 100">
       <defs>
