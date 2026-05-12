@@ -12,16 +12,59 @@
     "back": "Orqaga",
     "understand": "Tushundim, boshlang"
   },
+  "lab2d": {
+    "check": "Tekshirish",
+    "next": "Davom etish",
+    "retryCheck": "Qaytadan tekshir",
+    "error": {
+      "stageIncomplete": "Bosqich to'liq bajarilmadi"
+    }
+  },
   "lab1": {
     "title": "Bakterial surtma tayyorlash",
     "subtitle": "Virtual mikrobiologiya laboratoriyasi — Lab 1",
+    "stage1": { "title": "1-bosqich · Lampa va loop" },
+    "stage2": { "title": "2-bosqich · Slayd va surtma" },
+    "stage3": { "title": "3-bosqich · Quritish va fiksatsiya" },
+    "stage4": { "title": "4-bosqich · Bo'yash va mikroskop" },
+    "hint": {
+      "strikeMatch": "Gugurtni qutiga ishqala",
+      "openLamp": "Lampa qopqog'ini och",
+      "lightLamp": "Gugurtni piltaga olib bor",
+      "discardMatch": "Biohazardga tashla",
+      "sterilizeLoop": "Olovdan o'tkaz",
+      "pickSlide": "Slaydni quritish ramkasiga qo'y",
+      "addNacl": "Slaydga NaCl tomchisi tushir",
+      "takeSample": "Kultura petrisidan namuna ol",
+      "smearSample": "Slaydga aylanma surtma qil",
+      "airDry": "Havoda quritish — 5s",
+      "flameFix": "Slaydni olov ustidan o'tkaz",
+      "stainCv": "Gentsian-binafsha bo'yoq qo'y",
+      "stainLugol": "Lugol qo'y",
+      "stainDecolor": "96% etanol bilan rangsizlantir",
+      "stainSafranin": "Safranin bilan qarshi bo'yash",
+      "wash": "Distillangan suv bilan yuv",
+      "microscope": "Mikroskopga ko'r"
+    },
+    "error": {
+      "lampNotOpen": "Lampa qopqog'i ochiq emas",
+      "lampNotLit": "Lampa hali yonmagan",
+      "loopNotSterile": "Loop yetarli sterillanmadi (3 marta kerak)",
+      "slideMissing": "Slayd quritish ramkasida emas",
+      "noNacl": "Slaydga NaCl tushirilmadi",
+      "smearWeak": "Surtma yetarli aylanmadi",
+      "notDried": "Slayd hali quritilmadi",
+      "notFixed": "Fiksatsiya tugamadi (3 marta kerak)",
+      "gramSequenceIncomplete": "Bo'yash bosqichlari to'liq emas",
+      "gramOrder": "Bo'yoqlarni to'g'ri tartibda qo'llang",
+      "notStained": "Avval Gram bo'yash bosqichini tugating"
+    },
     "progress": "Jarayon",
     "toolsTitle": "Asboblar",
     "dragHint": "Asboblarni ish stoliga sudrab olib boring",
     "stepsTitle": "Bosqichlar",
     "scoreTitle": "Ball",
     "totalScore": "Umumiy ball",
-
     "toolLoop": "Bakterial halqa",
     "toolSlide": "Buyum oynasi",
     "toolDyePipette": "Bo'yoq pipetkasi",
@@ -31,14 +74,12 @@
     "toolSpiritLamp": "Spirt chiroq",
     "toolCultureTube": "Kultura probirkasi",
     "toolMicroscope": "Mikroskop",
-
     "statusSterilized": "Sterillandi",
     "statusSampleTaken": "Namuna olindi",
     "statusSmearReady": "Surtma tayyor",
     "statusFixed": "Fiksatsiya qilindi",
     "statusDyed": "Bo'yaldi",
     "statusWashed": "Yuvildi",
-
     "step0Title": "Ishni boshlashdan oldin",
     "step0Desc": "Gugurtni qutidan oling va uni yon devorga ishqalab yoqing. So'ngra spirtli gorelka piltasiga olib boring.",
     "step1Title": "Halqani sterillash",
@@ -53,7 +94,6 @@
     "step5Desc": "Surtmaga Gencian fioletni quying va 7 sekund kuting. So'ngra slaydni 40-50° burchak ostida ushlab, suv bilan yuvib tushiring.",
     "step6Title": "Mikroskopda kuzatish",
     "step6Desc": "Tayyor preparatni mikroskop ostida ko'ring. Bakteriyalarning shakli va joylashishini baholang.",
-
     "errStepIncomplete": "Keyingi bosqichga o'tishdan oldin ushbu bosqichni bajaring.",
     "errSterilizationTooShort": "Halqa yetarli darajada sterillanmadi. Uzoqroq ushlang.",
     "errFixationCount": "Fiksatsiya yetarli marta bajarilmadi (kerak: 3 marta).",
@@ -62,14 +102,12 @@
     "errWashTooEarly": "Bo'yoq hali to'liq ta'sir qilmadi, birozdan keyin yuving.",
     "errSlideGripWrong": "Slaydni faqat matlangan chetidan ushlang.",
     "errMatchUsed": "Gugurt yonib bo'ldi. Yangi gugurt oling.",
-
     "resultTitle": "Natija",
     "categoryFull": "To'liq javob",
     "categoryPartial": "Qisman javob",
     "categoryNone": "Javob yetarli emas",
     "viewMicroscope": "Mikroskopga o'tish",
     "scoreOutOf": "{score} / 10",
-
     "criterion": {
       "lighting": "Yoqish",
       "sterilization": "Sterillash",
