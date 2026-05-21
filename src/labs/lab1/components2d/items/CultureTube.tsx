@@ -18,7 +18,7 @@ export function CultureTube({ sampled, plugOff, width = 70 }: Props) {
   const w = width;
   const h = w * 3.3;
   return (
-    <div style={{ position: "relative", width: w, height: h }}>
+    <div style={{ position: "relative", width: w, height: h, filter: "drop-shadow(0 5px 6px rgba(0,0,0,0.2))" }}>
       <svg width={w} height={h} viewBox="0 0 70 231">
         <defs>
           <linearGradient id="ctGlass" x1="0%" y1="0%" x2="100%" y2="0%">

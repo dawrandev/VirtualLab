@@ -14,7 +14,7 @@ interface Props {
 export function MicroscopeIcon({ enabled, scale = 1 }: Props) {
   const tint = enabled ? "#1f3b6b" : "#a3afb8";
   return (
-    <svg width={90 * scale} height={120 * scale} viewBox="0 0 90 120">
+    <svg width={90 * scale} height={120 * scale} viewBox="0 0 90 120" style={{ overflow: "visible", filter: "drop-shadow(0 5px 6px rgba(0,0,0,0.25))" }}>
       <defs>
         <linearGradient id="msBody" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor={enabled ? "#ffffff" : "#dfe4e8"} />

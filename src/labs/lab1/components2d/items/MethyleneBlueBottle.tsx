@@ -8,7 +8,7 @@
  */
 export function MethyleneBlueBottle() {
   return (
-    <svg width="58" height="132" viewBox="0 0 58 132">
+    <svg width="58" height="132" viewBox="0 0 58 132" style={{ overflow: "visible", filter: "drop-shadow(0 4px 5px rgba(0,0,0,0.25))" }}>
       <defs>
         <linearGradient id="mbAmber" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#5a3310" />
@@ -62,8 +62,12 @@ export function MethyleneBlueBottle() {
         125 ml
       </text>
 
-      {/* Glass specular highlight */}
-      <rect x="17" y="48" width="3" height="64" rx="1.5" fill="#ffffff" opacity="0.32" />
+      {/* Glass specular highlights — glossy 3D */}
+      <rect x="16.5" y="46" width="4" height="64" rx="2" fill="#ffffff" opacity="0.42" />
+      <rect x="21.5" y="48" width="1.5" height="56" rx="0.8" fill="#ffffff" opacity="0.24" />
+      <ellipse cx="21" cy="48" rx="6.5" ry="3.2" fill="#ffffff" opacity="0.38" />
+      {/* Right-edge soft shade for round volume */}
+      <path d="M41 46 L41 110 Q41 116 35 116 L33 116 Q39 114 39 108 L39 48 Z" fill="#2a1606" opacity="0.16" />
     </svg>
   );
 }

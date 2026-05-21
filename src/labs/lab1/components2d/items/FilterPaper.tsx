@@ -3,6 +3,7 @@
 interface Props {
   /** Darkens the corner that has absorbed liquid after blotting. */
   wet?: boolean;
+  width?: number;
 }
 
 /**
@@ -10,9 +11,9 @@ interface Props {
  * fibrous grid texture and slightly irregular, dog-eared corner. When `wet`
  * a damp patch darkens where it touched the slide.
  */
-export function FilterPaper({ wet }: Props) {
+export function FilterPaper({ wet, width = 84 }: Props) {
   return (
-    <svg width="84" height="100" viewBox="0 0 84 100">
+    <svg width={width} height={(width / 84) * 100} viewBox="0 0 84 100">
       <defs>
         <linearGradient id="fpBody" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#ffffff" />

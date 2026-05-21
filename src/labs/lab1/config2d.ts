@@ -163,12 +163,12 @@ const STAGES: Stage2D[] = [
         precondition: (s) => s.slide.smeared,
       },
       {
-        // Completed by HOLDING the slide over the flame (hold timer in the
-        // workbench); one completion fixes the smear.
+        // Heat fixation: the slide is passed THROUGH the flame 3 times (each
+        // drag-over the lamp = one pass). Fixed after 3 passes.
         id: "flame-fix",
         hintKey: "lab1.hint.flameFix",
         effect: (d) => {
-          d.slide.fixPasses = 3;
+          d.slide.fixPasses = Math.min(3, d.slide.fixPasses + 1);
         },
         precondition: (s) => s.slide.airDried,
       },

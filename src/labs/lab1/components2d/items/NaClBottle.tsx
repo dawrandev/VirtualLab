@@ -1,64 +1,66 @@
 "use client";
 
 interface Props {
-  /** Optional spray-trigger animation flag. */
+  /** Optional drip-trigger flag (kept for API compatibility). */
   pressed?: boolean;
 }
 
 /**
- * NaCl 0.9% spray bottle — reference seg2_14/18: white nozzle top, clear
- * blue body, "NaCL 0.9%" label. Drop-in replacement for the old dropper
- * design so positions/zones don't need to change.
+ * NaCl 0.9% dropper bottle — modelled on the KazNMU virtual-lab reference:
+ * a clear glass bottle with a white dropper cap + glass pipette, pale-blue
+ * saline inside, a white "NaCL 0.9%" label, glossy glass highlights and a
+ * soft ground shadow for a 3D feel.
  */
 export function NaClBottle({ pressed }: Props) {
   return (
-    <svg width="50" height="100" viewBox="0 0 50 100">
+    <svg width="54" height="104" viewBox="0 0 54 104" style={{ overflow: "visible", filter: "drop-shadow(0 4px 5px rgba(0,0,0,0.22))" }}>
       <defs>
-        <linearGradient id="naclLiquid2" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#e0eff5" />
-          <stop offset="100%" stopColor="#86c4d7" />
+        <linearGradient id="naclGlass" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#cfe6ee" stopOpacity="0.85" />
+          <stop offset="30%" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="60%" stopColor="#dcecf2" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#a9c9d4" stopOpacity="0.85" />
         </linearGradient>
-        <linearGradient id="naclNozzle" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#dadcde" />
-          <stop offset="55%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#aab1b5" />
+        <linearGradient id="naclLiquid3" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#d6eef6" />
+          <stop offset="100%" stopColor="#8fcbe0" />
+        </linearGradient>
+        <linearGradient id="naclCap" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#c7ccd0" />
+          <stop offset="45%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#b3b9be" />
         </linearGradient>
       </defs>
 
-      {/* Nozzle base (white trigger ring) */}
-      <rect x="14" y="8" width="22" height="10" rx="2" fill="url(#naclNozzle)" stroke="#5b6770" strokeWidth="0.8" />
-      {/* Spray cap top */}
-      <path d="M16 8 Q25 0 34 8 Z" fill="#e8ebed" stroke="#5b6770" strokeWidth="0.8" />
-      {/* Trigger lever */}
-      <path d="M14 14 L8 12 L8 18 L14 16 Z" fill="#cdd3d8" stroke="#5b6770" strokeWidth="0.6" />
-      {/* Spray dust (when pressed) */}
-      {pressed && (
-        <>
-          <circle cx="40" cy="6" r="1" fill="#b8d6e2" />
-          <circle cx="44" cy="9" r="0.8" fill="#b8d6e2" />
-          <circle cx="42" cy="12" r="0.6" fill="#b8d6e2" />
-        </>
-      )}
+      {/* White dropper cap */}
+      <rect x="18" y="6" width="18" height="14" rx="2.5" fill="url(#naclCap)" stroke="#9aa3a9" strokeWidth="0.8" />
+      <rect x="23" y="2" width="8" height="6" rx="2" fill="#e9edf0" stroke="#9aa3a9" strokeWidth="0.6" />
+      {/* Glass pipette stem dipping into the liquid */}
+      <rect x="25.5" y="20" width="3" height="16" rx="1.4" fill="#bfe0ec" opacity="0.85" />
 
-      {/* Bottle neck */}
-      <rect x="19" y="18" width="12" height="6" fill="#a8d4e0" stroke="#5a8c9a" strokeWidth="0.8" />
+      {/* Neck */}
+      <rect x="20" y="20" width="14" height="8" rx="1.5" fill="url(#naclGlass)" stroke="#7ba0ac" strokeWidth="0.8" />
+
       {/* Bottle body */}
       <path
-        d="M8 30 Q8 24 12 24 L38 24 Q42 24 42 30 L42 88 Q42 94 38 94 L12 94 Q8 94 8 88 Z"
-        fill="url(#naclLiquid2)"
-        stroke="#5a8c9a"
-        strokeWidth="1"
+        d="M11 38 Q11 30 17 30 L37 30 Q43 30 43 38 L43 92 Q43 98 37 98 L17 98 Q11 98 11 92 Z"
+        fill="url(#naclGlass)"
+        stroke="#7ba0ac"
+        strokeWidth="1.1"
       />
+      {/* Saline level */}
+      <path d="M13 56 L41 56 L41 91 Q41 96 37 96 L17 96 Q13 96 13 91 Z" fill="url(#naclLiquid3)" opacity="0.85" />
+
       {/* Label */}
-      <rect x="13" y="42" width="24" height="26" rx="1.5" fill="#ffffff" stroke="#5a8c9a" strokeWidth="0.7" />
-      <text x="25" y="54" textAnchor="middle" fontFamily="sans-serif" fontSize="7" fontWeight="bold" fill="#1f3a4a">
-        NaCl
-      </text>
-      <text x="25" y="63" textAnchor="middle" fontFamily="sans-serif" fontSize="5" fill="#4a5a64">
-        0.9%
-      </text>
-      {/* Liquid highlight */}
-      <rect x="11" y="32" width="3" height="56" rx="1" fill="#ffffff" opacity="0.55" />
+      <rect x="15" y="60" width="24" height="26" rx="2" fill="#ffffff" stroke="#9bb6bf" strokeWidth="0.6" opacity="0.96" />
+      <text x="27" y="72" textAnchor="middle" fontFamily="sans-serif" fontSize="8" fontWeight="bold" fill="#1f5066">NaCL</text>
+      <text x="27" y="81" textAnchor="middle" fontFamily="sans-serif" fontSize="6" fill="#3f7186">0.9%</text>
+
+      {/* Glass specular highlights */}
+      <rect x="14" y="40" width="3.5" height="52" rx="1.6" fill="#ffffff" opacity="0.6" />
+      <rect x="37" y="44" width="2" height="40" rx="1" fill="#ffffff" opacity="0.3" />
+
+      {pressed && <circle cx="27" cy="100" r="2.4" fill="#8fcbe0" />}
     </svg>
   );
 }

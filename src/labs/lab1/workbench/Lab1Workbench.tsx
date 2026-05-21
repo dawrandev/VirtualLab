@@ -21,7 +21,7 @@ const AIRDRY_DUR = 12000; // hold slide in the air
 const RUB_K = 0.0016; // rub progress per px moved
 const GHOST_SCALE = 1.06; // matches the drag-ghost CSS scale
 
-type Kind = "rub" | "hold" | "sample" | "airdry" | "instant";
+type Kind = "rub" | "hold" | "sample" | "airdry" | "instant" | "contact";
 
 interface DragState {
   id: ItemId;
@@ -48,9 +48,10 @@ function actionKind(tool: ItemId, target: ItemId): Kind {
   if (tool === "alcohol-pad" && target === "slide") return "rub"; // wipe clean
   if (tool === "loop" && target === "slide") return "rub"; // smear
   if (tool === "filter" && target === "slide") return "rub"; // blot
-  if (tool === "loop" && target === "lamp") return "hold"; // sterilize / re-sterilize
-  if (tool === "slide" && target === "lamp") return "hold"; // fix
-  if (tool === "loop" && target === "culture") return "sample"; // insert + sample
+  if (tool === "loop" && target === "lamp") return "hold"; // sterilize (vertical + horizontal)
+  if (tool === "match" && target === "lamp") return "contact"; // light lamp — stays in hand
+  if (tool === "slide" && target === "lamp") return "contact"; // fix: pass over the flame ×3
+  if (tool === "loop" && (target === "culture" || target === "petri")) return "sample"; // insert / touch a colony
   return "instant";
 }
 
@@ -83,17 +84,17 @@ function nextHint(s: Lab2DState): string {
       if (!s.trash.match) return "Gugurtni biohazardga tashlang";
       return "Bosqich tayyor";
     case "stage-2":
-      if (s.loop.sterilizePasses < 3) return "Halqani olov ustida ushlab turing (qizigancha)";
-      if (!s.loop.carriesSample) return "Halqani kultura probirkasiga soling";
+      if (s.loop.sterilizePasses < 3) return "Halqani olovda qizdiring — avval vertikal, so'ng gorizontal (↻ tugma bilan buring)";
+      if (!s.loop.carriesSample) return "Sterillangan halqani Petri kosachasidagi koloniyaga tegizing (yoki ↻ boshini pastga qilib probirkaga soling)";
       if (!s.slide.onRack) return "Buyum oynasini stolga sudrab oling";
       if (!s.slide.cleaned) return "Oynani spirtli salfetka bilan arting";
       if (!s.slide.naclApplied) return "NaCl ni oynaga tomizing";
       if (!s.slide.smeared) return "Halqani oyna ustida yurgizib surtma qiling";
-      if (!s.loop.resterilized) return "Halqani qaytadan olovda ushlab sterillang";
+      if (!s.loop.resterilized) return "Halqani qaytadan olovda qizdiring (vertikal + gorizontal)";
       return "Bosqich tayyor";
     case "stage-3":
       if (!s.slide.airDried) return "Oynani ko'tarib havoda ushlab quriting (~12s)";
-      if (s.slide.fixPasses < 3) return "Oynani olov ustida ushlab turing (fiksatsiya)";
+      if (s.slide.fixPasses < 3) return `Oynani olov ustidan 3 marta o'tkazing — fiksatsiya (${s.slide.fixPasses}/3)`;
       return "Bosqich tayyor";
     case "stage-4":
       if (!s.slide.methyleneBlue.applied) return "Metilen ko'kini oynaga olib boring";
@@ -141,6 +142,17 @@ export function Lab1Workbench() {
   mbReadyRef.current = mbReady;
   const [mbLeft, setMbLeft] = useState(0);
 
+  // Collapsible tool tray (open by default).
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Loop orientation in 4 directions (CSS deg): 0 = ring left, 90 = ring up,
+  // 180 = ring right, 270 = ring down. Rotated by R / the ↻ button.
+  const [loopDeg, setLoopDeg] = useState(0);
+  const loopDegRef = useRef(0);
+  loopDegRef.current = loopDeg;
+  // Two-phase loop heating accumulators (vertical + horizontal).
+  const heatV = useRef(0);
+  const heatH = useRef(0);
+
   useEffect(() => {
     mountLab(config);
   }, [mountLab]);
@@ -162,7 +174,12 @@ export function Lab1Workbench() {
       state.slide.fixPasses === 0 &&
       !state.slide.methyleneBlue.applied &&
       state.score.earned === 0;
-    if (fresh) setPlaced((p) => (Object.keys(p).length ? {} : p));
+    if (fresh) {
+      setPlaced((p) => (Object.keys(p).length ? {} : p));
+      heatV.current = 0;
+      heatH.current = 0;
+      setLoopDeg(0);
+    }
   }, [
     state.match.struck,
     state.lamp.lit,
@@ -185,6 +202,23 @@ export function Lab1Workbench() {
     }
   }, [state.slide.methyleneBlue.applied, state.slide.methyleneBlue.washed]);
 
+  // Keyboard shortcut for desktop: press "R" to rotate the loop vertical /
+  // horizontal (works any time the loop is placed or being dragged). The
+  // on-screen ↻ button covers touchscreen monitors.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "r" || e.key === "R") {
+        if (dragRef.current?.id === "loop" || placedRef.current["loop"]) {
+          e.preventDefault();
+          setLoopDeg((d) => (d + 90) % 360);
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const flashAt = useCallback((kind: Fx["kind"], x: number, y: number) => {
     fxKey.current += 1;
     setFx({ kind, x, y, key: fxKey.current });
@@ -195,9 +229,23 @@ export function Lab1Workbench() {
     window.setTimeout(() => setToast(null), 1800);
   }, []);
 
-  /** Screen-space active point of the dragged tool (its working end). */
+  /** Screen-space active point of the dragged tool (its working end). The loop's
+   *  wire ring rotates with loopDeg: 0 left, 90 up, 180 right, 270 down. */
   function hitPoint(d: DragState, clientX: number, clientY: number) {
     const def = ITEM_BY_ID[d.id];
+    if (d.id === "loop") {
+      const r = Math.abs(def.tipX ?? 100) * GHOST_SCALE;
+      switch (loopDegRef.current) {
+        case 90:
+          return { hx: clientX, hy: clientY - r }; // ring up
+        case 180:
+          return { hx: clientX + r, hy: clientY }; // ring right
+        case 270:
+          return { hx: clientX, hy: clientY + r }; // ring down
+        default:
+          return { hx: clientX - r, hy: clientY }; // ring left
+      }
+    }
     return { hx: clientX + (def.tipX ?? 0) * GHOST_SCALE, hy: clientY + (def.tipY ?? 0) * GHOST_SCALE };
   }
 
@@ -254,6 +302,11 @@ export function Lab1Workbench() {
     const after = useLab2DStore.getState().state;
     cancelHold();
     if (after !== before) onSuccess(intent, target);
+    // Sterilization is finished → reset the two-phase heat accumulators.
+    if (intent === "sterilize-loop" || intent === "resterilize-loop") {
+      heatV.current = 0;
+      heatH.current = 0;
+    }
     // The tool STAYS in the hand — the student keeps holding it until they
     // release. Lock this target so it doesn't immediately re-trigger.
     lockTargetRef.current = target;
@@ -261,17 +314,35 @@ export function Lab1Workbench() {
 
   function startTimed(kind: Kind, target: ItemId | "air", intent: StepId, duration: number) {
     cancelHold();
+    // NOTE: heatV/heatH are NOT reset here — the student heats the loop vertical
+    // in one hold and horizontal in another (touchscreen-friendly); both
+    // accumulate until sterilization completes, then they reset.
     const h: Hold = { kind, target, intent, progress: 0 };
     holdRef.current = h;
     setHold(h);
     let p = 0;
     holdIv.current = window.setInterval(() => {
-      p += TICK / duration;
-      if (p >= 1) {
-        completeAction(intent, target);
-        return;
+      let prog: number;
+      if (kind === "hold") {
+        // Loop sterilization: heat in BOTH orientations (student rotates with R).
+        const half = HOLD_DUR / 2;
+        const vert = loopDegRef.current === 90 || loopDegRef.current === 270;
+        if (vert) heatV.current = Math.min(1, heatV.current + TICK / half);
+        else heatH.current = Math.min(1, heatH.current + TICK / half);
+        prog = (heatV.current + heatH.current) / 2;
+        if (heatV.current >= 1 && heatH.current >= 1) {
+          completeAction(intent, target);
+          return;
+        }
+      } else {
+        p += TICK / duration;
+        if (p >= 1) {
+          completeAction(intent, target);
+          return;
+        }
+        prog = p;
       }
-      const nh: Hold = { kind, target, intent, progress: p };
+      const nh: Hold = { kind, target, intent, progress: prog };
       holdRef.current = nh;
       setHold(nh);
     }, TICK);
@@ -282,6 +353,18 @@ export function Lab1Workbench() {
     const h: Hold = { kind: "rub", target, intent, progress: 0 };
     holdRef.current = h;
     setHold(h);
+  }
+
+  /** Touch action that fires once on contact and keeps the tool in the hand
+   *  (light the lamp, pass the slide over the flame). Re-fires on each re-entry
+   *  because the lock clears when the pointer leaves the target. */
+  function fireContact(intent: StepId, target: ItemId | "air") {
+    const store = useLab2DStore.getState();
+    const before = store.state;
+    store.dispatchStep(intent);
+    const after = useLab2DStore.getState().state;
+    if (after !== before) onSuccess(intent, target);
+    lockTargetRef.current = target;
   }
 
   const startDrag = useCallback((id: ItemId, e: React.PointerEvent) => {
@@ -301,7 +384,8 @@ export function Lab1Workbench() {
     const { hx, hy } = hitPoint(d, clientX, clientY);
     const tg = targetAt(hx - rect.left, hy - rect.top, d.id);
     if (tg) {
-      if (tg === "lamp" && !s.lamp.lit) return null; // can't use an unlit flame
+      // Loop/slide need a lit flame; the match itself is what lights it.
+      if (tg === "lamp" && !s.lamp.lit && d.id !== "match") return null;
       const intent = intentFor(d.id, tg, s);
       // Fixation only after the smear has air-dried (otherwise let air-dry win).
       if (intent && !(intent === "flame-fix" && !s.slide.airDried)) {
@@ -344,9 +428,23 @@ export function Lab1Workbench() {
       // This target's action was just completed and the tool is still in hand.
       if (lockTargetRef.current === desired.target) return;
 
+      // Contact actions (light lamp / pass slide over flame) fire on touch and
+      // keep the tool in hand; the lock makes each re-entry count as one pass.
+      if (desired.kind === "contact") {
+        if (h) cancelHold();
+        fireContact(desired.intent, desired.target);
+        return;
+      }
+
       if (desired.kind === "instant") {
         if (h) cancelHold();
         return; // fires on release
+      }
+
+      // Inserting the loop into the TUBE needs its ring pointing DOWN (270°).
+      if (desired.kind === "sample" && desired.target === "culture" && loopDegRef.current !== 270) {
+        if (h) cancelHold();
+        return;
       }
 
       if (!h || h.target !== desired.target || h.kind !== desired.kind) {
@@ -432,8 +530,24 @@ export function Lab1Workbench() {
     }
 
     // Place / reposition the tool on the bench (stays until manually removed).
-    const xPct = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
-    const yPct = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
+    let xPct = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
+    let yPct = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
+    // The loop must rest on its stand, not on the bare bench — snap to it.
+    if (d.id === "loop" && placedRef.current["loop-stand"]) {
+      const st = placedRef.current["loop-stand"];
+      xPct = st.x;
+      yPct = st.y - 7;
+    }
+    // The slide may only sit on the staining bridge — snap to it.
+    if (d.id === "slide") {
+      const br = placedRef.current["bridge"];
+      if (br) {
+        xPct = br.x;
+        yPct = br.y - 4;
+      } else {
+        showToast("Avval bo'yash ko'prigini stolga qo'ying");
+      }
+    }
     setPlaced((p) => ({ ...p, [d.id]: { x: xPct, y: yPct } }));
     if (d.id === "slide" && !store.state.slide.onRack) store.dispatchStep("pick-slide");
     endDrag();
@@ -463,6 +577,7 @@ export function Lab1Workbench() {
   const activeIdx = STAGE_IDS.indexOf(state.currentStageId as (typeof STAGE_IDS)[number]);
   const hint = nextHint(state);
   const slidePos = placed["slide"];
+  const lampPos = placed["lamp"];
 
   const validTargets = new Set<ItemId>();
   if (drag) {
@@ -470,12 +585,6 @@ export function Lab1Workbench() {
       if (it.target && placedSet.has(it.id) && it.id !== drag.id && intentFor(drag.id, it.id, state)) validTargets.add(it.id);
     });
   }
-
-  const ringColor = hold && (hold.intent === "smear-sample" || hold.intent === "clean-slide" || hold.intent === "blot-filter")
-    ? "#7c3aed"
-    : hold && hold.intent === "air-dry"
-    ? "#0ea5e9"
-    : "#f97316";
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden select-none text-slate-800" style={{ background: "#ececec" }}>
@@ -513,9 +622,20 @@ export function Lab1Workbench() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <ToolSidebar state={state} placed={placedSet} draggingId={drag?.id ?? null} binBump={binBump} onStartDrag={startDrag} />
+        {sidebarOpen && (
+          <ToolSidebar state={state} placed={placedSet} draggingId={drag?.id ?? null} binBump={binBump} onStartDrag={startDrag} />
+        )}
 
         <div ref={tableRef} className="relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
+          {/* Collapsible-tray toggle (‹ close / › open) */}
+          <button
+            onClick={() => setSidebarOpen((o) => !o)}
+            className="absolute left-2 top-1/2 z-40 grid h-14 w-7 -translate-y-1/2 place-items-center rounded-lg bg-white/90 text-xl font-bold text-slate-600 shadow-md transition hover:bg-white"
+            title={sidebarOpen ? "Asboblar panelini yopish" : "Asboblar panelini ochish"}
+          >
+            {sidebarOpen ? "‹" : "›"}
+          </button>
+
           {placedSet.size === 0 && !drag && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">
@@ -529,6 +649,7 @@ export function Lab1Workbench() {
             const isValid = validTargets.has(it.id);
             const isHover = hoverTarget === it.id;
             const plugOff = it.id === "culture" && hold?.kind === "sample";
+            const petriLidOff = it.id === "petri" && hold?.kind === "sample";
             return (
               <div key={it.id} className="absolute" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%,-50%)", opacity: drag?.id === it.id ? 0.35 : 1 }}>
                 {(isValid || isHover) && (
@@ -556,11 +677,85 @@ export function Lab1Workbench() {
                   style={{ cursor: "grab" }}
                   title={it.label}
                 >
-                  {it.render(state, { binBump, tubePlugOff: plugOff })}
+                  {it.id === "loop" ? (
+                    <div style={{ transform: `rotate(${loopDeg}deg)`, transition: "transform 0.12s ease" }}>
+                      {it.render(state, { binBump })}
+                    </div>
+                  ) : (
+                    it.render(state, { binBump, tubePlugOff: plugOff, petriLidOff: petriLidOff })
+                  )}
                 </div>
               </div>
             );
           })}
+
+          {/* Smear marks being written onto the slide as the loop rubs */}
+          {hold?.intent === "smear-sample" && slidePos && (
+            <div className="pointer-events-none absolute z-20" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="120" height="46" viewBox="0 0 120 46">
+                <path
+                  d="M60 23 m -17 0 a 17 8.5 0 1 0 34 0 a 13 6.5 0 1 0 -26 0 a 9 4.5 0 1 0 18 0"
+                  stroke="#cdbb93"
+                  strokeWidth="2.6"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeDasharray={170}
+                  strokeDashoffset={170 * (1 - hold.progress)}
+                  opacity="0.9"
+                />
+              </svg>
+            </div>
+          )}
+
+          {/* Cleaning shine sweeping across the slide as the alcohol pad wipes */}
+          {hold?.intent === "clean-slide" && slidePos && (
+            <div
+              className="pointer-events-none absolute z-20 overflow-hidden rounded"
+              style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)", width: 104, height: 36 }}
+            >
+              <div
+                className="absolute top-0 h-full"
+                style={{
+                  width: 26,
+                  left: `${-25 + hold.progress * 110}%`,
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent)",
+                  transform: "skewX(-16deg)",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Fixation pass counter near the lamp (stage 3) */}
+          {lampPos && state.currentStageId === "stage-3" && state.slide.airDried && state.slide.fixPasses < 3 && (
+            <div
+              className="pointer-events-none absolute z-20 flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1 shadow-md"
+              style={{ left: `${lampPos.x}%`, top: `${lampPos.y - 16}%`, transform: "translate(-50%,-50%)" }}
+            >
+              <span className="grid h-6 w-6 place-items-center rounded-md bg-amber-300 text-sm font-bold text-slate-900">{state.slide.fixPasses}</span>
+              <span className="text-sm font-bold text-slate-700">/3</span>
+            </div>
+          )}
+
+          {/* Filter-paper blotting: absorbing dabs appear on the slide */}
+          {hold?.intent === "blot-filter" && slidePos && (
+            <div className="pointer-events-none absolute z-20" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)", width: 104, height: 36 }}>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    left: `${22 + i * 28}%`,
+                    top: "32%",
+                    width: 18,
+                    height: 13,
+                    background: "rgba(255,255,255,0.55)",
+                    opacity: Math.max(0, hold.progress * 1.3 - i * 0.3),
+                    filter: "blur(2px)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
           {/* MB contact countdown near the placed slide */}
           {slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
@@ -613,13 +808,17 @@ export function Lab1Workbench() {
           {/* Drag ghost */}
           {drag && draggingDef && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
-              {hold && drag.id === "loop" && hold.kind === "hold" ? (
-                <BacterialLoop heatLevel={hold.progress} />
-              ) : hold && drag.id === "loop" && hold.kind === "sample" ? (
-                // Rotate the loop so its WIRE RING (left end) swings down into the
-                // vertical tube; negative angle = ring goes down, handle up.
-                <div style={{ transform: `rotate(${-hold.progress * 95}deg)`, transition: "transform 0.08s linear" }}>
-                  <BacterialLoop heatLevel={0} />
+              {drag.id === "loop" ? (
+                // The loop always shows the student's manual orientation (R key):
+                // horizontal or vertical (ring down). It glows while heating and
+                // dips down to touch a colony in the open Petri dish.
+                <div
+                  style={{
+                    transform: `rotate(${loopDeg}deg) translateY(${hold?.kind === "sample" && hold.target === "petri" ? hold.progress * 14 : 0}px)`,
+                    transition: "transform 0.12s ease",
+                  }}
+                >
+                  <BacterialLoop heatLevel={hold?.kind === "hold" ? hold.progress : 0} />
                 </div>
               ) : (
                 draggingDef.render(state, { binBump })
@@ -628,6 +827,23 @@ export function Lab1Workbench() {
               {/* Warm glow while fixing a slide over the flame */}
               {hold && drag.id === "slide" && hold.kind === "hold" && (
                 <div className="absolute inset-0 rounded-md" style={{ background: `rgba(255,140,40,${0.15 + hold.progress * 0.4})`, mixBlendMode: "screen" }} />
+              )}
+
+              {/* Match head heating up (ember grows) while striking */}
+              {hold?.intent === "strike-match" && (
+                <div
+                  className="absolute"
+                  style={{
+                    left: 16,
+                    top: 17,
+                    width: 24,
+                    height: 24,
+                    transform: "translate(-50%,-50%)",
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle, rgba(255,190,50,${0.3 + hold.progress * 0.6}) 0%, rgba(255,110,20,${hold.progress * 0.55}) 45%, transparent 70%)`,
+                    filter: "blur(1px)",
+                  }}
+                />
               )}
 
               {/* Airflow lines while air-drying in the hand */}
@@ -639,19 +855,34 @@ export function Lab1Workbench() {
                 </div>
               )}
 
-              {/* Progress ring + label for any held/rubbed action */}
-              {hold && (
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <svg width="72" height="72" viewBox="0 0 72 72">
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(0,0,0,0.15)" strokeWidth="5" />
-                    <circle cx="36" cy="36" r="30" fill="none" stroke={ringColor} strokeWidth="5" strokeLinecap="round" strokeDasharray={2 * Math.PI * 30} strokeDashoffset={2 * Math.PI * 30 * (1 - hold.progress)} transform="rotate(-90 36 36)" />
-                  </svg>
-                  <div className="absolute left-1/2 top-[112%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
-                    {holdLabel(hold)}
-                  </div>
+              {/* No circular indicators — actions show their state on the
+                  object. Air-dry keeps only a small countdown text label. */}
+              {hold && hold.kind === "airdry" && (
+                <div className="absolute left-1/2 top-[120%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
+                  {holdLabel(hold)}
+                </div>
+              )}
+
+              {/* Loop orientation indicator (ring direction + R hint) */}
+              {drag.id === "loop" && (
+                <div className="absolute left-1/2 top-[150%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[10px] font-medium text-white">
+                  {loopDeg === 270 ? "Boshi past" : loopDeg === 90 ? "Boshi tepa" : "Yonlama"} · <span className="text-amber-300">R</span>
+                  {hold?.kind === "hold" && ` · V ${heatV.current >= 1 ? "✓" : "…"} G ${heatH.current >= 1 ? "✓" : "…"}`}
                 </div>
               )}
             </div>
+          )}
+
+          {/* Touch-friendly loop rotation control (no keyboard needed) */}
+          {(placedSet.has("loop") || drag?.id === "loop") && state.currentStageId === "stage-2" && !state.loop.resterilized && (
+            <button
+              onClick={() => setLoopDeg((d) => (d + 90) % 360)}
+              className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-violet-500 active:scale-95"
+            >
+              <span className="inline-block" style={{ transform: `rotate(${loopDeg}deg)`, transition: "transform 0.15s ease" }}>↳</span>
+              Halqani burish · ↻ (yoki R) ·{" "}
+              {loopDeg === 270 ? "boshi past" : loopDeg === 90 ? "boshi tepa" : "yonlama"}
+            </button>
           )}
 
           <AnimatePresence>

@@ -42,7 +42,7 @@ export function RealisticSlide({
   const vh = (h / w) * 100;
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 100 ${vh}`} preserveAspectRatio="xMidYMid meet">
+    <svg width={w} height={h} viewBox={`0 0 100 ${vh}`} preserveAspectRatio="xMidYMid meet" style={{ overflow: "visible", filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.22))" }}>
       <defs>
         <pattern id={`frostedHatch-${variant}`} patternUnits="userSpaceOnUse" width="2" height="2" patternTransform="rotate(45)">
           <line x1="0" y1="0" x2="0" y2="2" stroke="#aab8bf" strokeWidth="0.4" />
@@ -134,6 +134,8 @@ export function RealisticSlide({
       {/* Immersion oil bead */}
       {oilApplied && <ellipse cx="58" cy={vh / 2} rx="11" ry={vh * 0.22} fill={`url(#oilBead-${variant})`} />}
 
+      {/* Diagonal glass reflection sweep */}
+      <polygon points={`26,1 40,1 24,${vh - 1} 14,${vh - 1}`} fill="#ffffff" opacity="0.16" />
       {/* Top edge specular highlight */}
       <rect x="0.6" y="0.6" width="98.8" height="0.6" fill="#ffffff" opacity="0.85" />
     </svg>

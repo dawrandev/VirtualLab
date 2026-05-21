@@ -11,12 +11,14 @@ import { AlcoholPad } from "../components2d/items/AlcoholPad";
 import { NaClBottle } from "../components2d/items/NaClBottle";
 import { BacterialLoop } from "../components2d/items/BacterialLoop";
 import { CultureTube } from "../components2d/items/CultureTube";
+import { PetriDish } from "../components2d/items/PetriDish";
 import { MethyleneBlueBottle } from "../components2d/items/MethyleneBlueBottle";
 import { WashBottle } from "../components2d/items/WashBottle";
 import { FilterPaper } from "../components2d/items/FilterPaper";
 import { ImmersionOilBottle } from "../components2d/items/ImmersionOilBottle";
 import { MicroscopeIcon } from "../components2d/items/MicroscopeIcon";
 import { BiohazardBin } from "../components2d/items/BiohazardBin";
+import { LoopStand } from "../components2d/items/LoopStand";
 import { KidneyTray } from "../components2d/items/KidneyTray";
 import { StainingBridge } from "../components2d/items/StainingBridge";
 
@@ -30,7 +32,9 @@ export type ItemId =
   | "alcohol-pad"
   | "nacl"
   | "loop"
+  | "loop-stand"
   | "culture"
+  | "petri"
   | "mb"
   | "wash"
   | "filter"
@@ -54,7 +58,7 @@ export interface ItemDef {
   tipY?: number;
   /** Scale used only in the sidebar card preview. */
   preview: number;
-  render: (state: Lab2DState, opts: { binBump: number; tubePlugOff?: boolean }) => ReactNode;
+  render: (state: Lab2DState, opts: { binBump: number; tubePlugOff?: boolean; petriLidOff?: boolean }) => ReactNode;
 }
 
 export const ITEMS: ItemDef[] = [
@@ -94,10 +98,10 @@ export const ITEMS: ItemDef[] = [
     label: "Buyraksimon lotok",
     apparatus: true,
     target: false,
-    w: 360,
-    h: 223,
-    preview: 0.2,
-    render: () => <KidneyTray width={360} />,
+    w: 440,
+    h: 308,
+    preview: 0.15,
+    render: () => <KidneyTray width={440} />,
   },
   {
     id: "bridge",
@@ -145,9 +149,9 @@ export const ITEMS: ItemDef[] = [
     label: "NaCl 0.9%",
     apparatus: false,
     target: false,
-    w: 50,
-    h: 100,
-    preview: 0.7,
+    w: 54,
+    h: 104,
+    preview: 0.66,
     render: () => <NaClBottle />,
   },
   {
@@ -162,6 +166,16 @@ export const ITEMS: ItemDef[] = [
     render: (s) => <BacterialLoop heatLevel={s.loop.heatLevel} />,
   },
   {
+    id: "loop-stand",
+    label: "Halqa tagligi",
+    apparatus: true,
+    target: false,
+    w: 150,
+    h: 90,
+    preview: 0.5,
+    render: () => <LoopStand width={150} />,
+  },
+  {
     id: "culture",
     label: "Kultura probirkasi",
     apparatus: true,
@@ -170,6 +184,16 @@ export const ITEMS: ItemDef[] = [
     h: 231,
     preview: 0.34,
     render: (s, o) => <CultureTube sampled={s.loop.carriesSample || s.slide.smeared} plugOff={o.tubePlugOff} />,
+  },
+  {
+    id: "petri",
+    label: "Petri kosachasi",
+    apparatus: true,
+    target: true,
+    w: 210,
+    h: 128,
+    preview: 0.3,
+    render: (s, o) => <PetriDish sampled={s.loop.carriesSample || s.slide.smeared} lidOff={o.petriLidOff} width={210} />,
   },
   {
     id: "mb",
@@ -196,10 +220,10 @@ export const ITEMS: ItemDef[] = [
     label: "Filtr qog'oz",
     apparatus: false,
     target: false,
-    w: 84,
-    h: 100,
-    preview: 0.7,
-    render: () => <FilterPaper />,
+    w: 60,
+    h: 71,
+    preview: 0.9,
+    render: () => <FilterPaper width={60} />,
   },
   {
     id: "oil",
@@ -246,7 +270,7 @@ export function intentFor(tool: ItemId, target: ItemId, s: Lab2DState): StepId |
   switch (tool) {
     case "match":
       if (target === "matchbox") return s.match.struck ? null : "strike-match";
-      if (target === "lamp") return "light-lamp";
+      if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
       if (target === "bin") return "discard-match";
       return null;
     case "alcohol-pad":
@@ -255,7 +279,7 @@ export function intentFor(tool: ItemId, target: ItemId, s: Lab2DState): StepId |
       return target === "slide" ? "add-nacl" : null;
     case "loop":
       if (target === "lamp") return s.slide.smeared && !s.loop.resterilized ? "resterilize-loop" : "sterilize-loop";
-      if (target === "culture") return "take-sample";
+      if (target === "culture" || target === "petri") return "take-sample";
       if (target === "slide") return "smear-sample";
       return null;
     case "slide":

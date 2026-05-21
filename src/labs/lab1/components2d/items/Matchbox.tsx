@@ -14,8 +14,8 @@ interface Props {
  */
 export function Matchbox({ open }: Props) {
   return (
-    <div style={{ position: "relative", width: 110, height: 70 }}>
-      <svg width="110" height="70" viewBox="0 0 110 70">
+    <div style={{ position: "relative", width: 110, height: 70, filter: "drop-shadow(0 4px 5px rgba(0,0,0,0.25))" }}>
+      <svg width="110" height="70" viewBox="0 0 110 70" style={{ overflow: "visible" }}>
         <defs>
           <linearGradient id="boxOuter" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#f6e8b6" />

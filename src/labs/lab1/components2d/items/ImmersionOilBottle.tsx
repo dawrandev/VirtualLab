@@ -7,7 +7,7 @@
  */
 export function ImmersionOilBottle() {
   return (
-    <svg width="50" height="96" viewBox="0 0 50 96">
+    <svg width="50" height="96" viewBox="0 0 50 96" style={{ overflow: "visible", filter: "drop-shadow(0 4px 5px rgba(0,0,0,0.25))" }}>
       <defs>
         <linearGradient id="oilGlass" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#6e4413" />
@@ -52,8 +52,12 @@ export function ImmersionOilBottle() {
         n=1.515
       </text>
 
-      {/* Specular highlight */}
-      <rect x="12.5" y="30" width="3" height="52" rx="1.5" fill="#ffffff" opacity="0.4" />
+      {/* Specular highlights — glossy 3D */}
+      <rect x="12" y="30" width="3.6" height="52" rx="1.8" fill="#ffffff" opacity="0.5" />
+      <rect x="16.5" y="32" width="1.4" height="46" rx="0.7" fill="#ffffff" opacity="0.26" />
+      <ellipse cx="16" cy="32" rx="6" ry="3" fill="#ffffff" opacity="0.4" />
+      {/* Right-edge soft shade */}
+      <path d="M39 30 L39 86 Q39 92 33 92 L31 92 Q37 90 37 84 L37 32 Z" fill="#2a1606" opacity="0.18" />
     </svg>
   );
 }
