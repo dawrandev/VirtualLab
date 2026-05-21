@@ -2,29 +2,18 @@
 
 import type { ZoomViewProps } from "@/components/lab2d/ZoomLens";
 import { motion } from "framer-motion";
-import { useLab2DStore } from "@/stores/labStore2d";
-import type { StainId } from "@/engine2d/types";
 import { TopDownSlide } from "./_TopDownSlide";
 import { useAutoDone } from "./_useAutoDone";
 import { usePhase } from "./_usePhase";
 
-/** Pre: slide still wet with the just-applied stain (washed=false). Sheen
- *  scrolls down. Post: slide with the stain washed (matches live state). */
+/** Pre: slide still flooded with methylene blue (washed=false). Sheen scrolls
+ *  down. Post: slide with the stain washed (matches live state). */
 export default function WashZoom({ onDone }: ZoomViewProps) {
   useAutoDone(onDone, 1100);
   const phase = usePhase(750);
-  // Find which stain we're washing in this beat (the most recently
-  // applied-and-not-yet-washed one in the live state).
-  const justWashed = useLab2DStore((s) => mostRecentWashedStain(s.state.slide.stains));
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <TopDownSlide
-        override={
-          phase === "pre" && justWashed
-            ? { stainApplied: { id: justWashed, applied: true, washed: false } }
-            : undefined
-        }
-      />
+      <TopDownSlide override={phase === "pre" ? { mbApplied: true, mbWashed: false } : undefined} />
       <motion.div
         className="absolute pointer-events-none"
         initial={{ y: -200, opacity: 0.7 }}
@@ -45,14 +34,4 @@ export default function WashZoom({ onDone }: ZoomViewProps) {
       </div>
     </div>
   );
-}
-
-/** Heuristic: the most recent stain in priority order that's now washed. */
-function mostRecentWashedStain(
-  stains: Record<StainId, { applied: boolean; washed: boolean }>,
-): StainId | null {
-  if (stains.safranin.applied && stains.safranin.washed) return "safranin";
-  if (stains.lugol.applied && stains.lugol.washed) return "lugol";
-  if (stains.cv.applied && stains.cv.washed) return "cv";
-  return null;
 }

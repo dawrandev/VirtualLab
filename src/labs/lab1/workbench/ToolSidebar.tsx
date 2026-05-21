@@ -1,0 +1,84 @@
+"use client";
+
+import { useState } from "react";
+import type { Lab2DState } from "@/engine2d/types";
+import { ITEMS, requiredItem, type ItemId } from "./items";
+
+interface Props {
+  state: Lab2DState;
+  placed: Set<ItemId>;
+  draggingId: ItemId | null;
+  binBump: number;
+  onStartDrag: (id: ItemId, e: React.PointerEvent) => void;
+}
+
+/**
+ * Light tool tray on the left. Every item (apparatus + reagents + tools) lives
+ * here at the start; the student drags each one onto the empty bench and places
+ * it anywhere. The next expected item glows; items already on the bench dim.
+ * Styled to match the original light lab theme (no dark navy).
+ */
+export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag }: Props) {
+  const [hovered, setHovered] = useState<ItemId | null>(null);
+  const required = requiredItem(state);
+
+  return (
+    <aside
+      className="relative z-20 flex h-full w-[212px] shrink-0 flex-col border-r border-slate-300/70"
+      style={{ background: "linear-gradient(180deg,#fbfbfc 0%,#eef0f3 100%)" }}
+    >
+      <div className="px-4 pt-3 pb-2 border-b border-slate-200">
+        <h2 className="text-sm font-bold tracking-wide text-slate-700">🧪 Laboratoriya asboblari</h2>
+        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+          Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying
+        </p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 py-3 grid grid-cols-2 gap-2 content-start wb-tray">
+        {ITEMS.map((item) => {
+          const isPlaced = placed.has(item.id);
+          const isRequired = required === item.id && !isPlaced;
+          return (
+            <div key={item.id} className="relative">
+              <button
+                type="button"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  onStartDrag(item.id, e);
+                }}
+                onPointerEnter={() => setHovered(item.id)}
+                onPointerLeave={() => setHovered((h) => (h === item.id ? null : h))}
+                className="group flex w-full flex-col items-center gap-1 rounded-xl bg-white px-1.5 py-2 transition"
+                style={{
+                  border: isRequired ? "2px solid #d97706" : "2px solid #e2e8f0",
+                  boxShadow: isRequired ? "0 0 0 1px #f59e0b, 0 0 12px rgba(217,119,6,0.45)" : "0 1px 2px rgba(0,0,0,0.08)",
+                  opacity: isPlaced || draggingId === item.id ? 0.4 : 1,
+                  cursor: "grab",
+                  animation: isRequired ? "wbGlow 1.6s ease-in-out infinite" : undefined,
+                }}
+              >
+                <div
+                  className="pointer-events-none flex h-[58px] w-full items-center justify-center overflow-hidden"
+                >
+                  <div style={{ transform: `scale(${item.preview})` }}>{item.render(state, { binBump })}</div>
+                </div>
+                <span className="pointer-events-none text-center text-[10px] font-medium leading-tight text-slate-600">
+                  {item.label}
+                </span>
+                {isPlaced && (
+                  <span className="pointer-events-none text-[8px] uppercase tracking-wider text-amber-600">stolda</span>
+                )}
+              </button>
+
+              {hovered === item.id && (
+                <div className="pointer-events-none absolute left-1/2 top-[102%] z-50 w-36 -translate-x-1/2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-center text-[11px] text-white shadow-xl">
+                  {item.label}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}

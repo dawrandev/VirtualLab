@@ -2,6 +2,8 @@
 
 interface Props {
   enabled: boolean;
+  /** Render-size multiplier (1 = 90×120). */
+  scale?: number;
 }
 
 /**
@@ -9,10 +11,10 @@ interface Props {
  * modal. Visually shadowed/grey when disabled; full color + soft halo when
  * the slide is ready.
  */
-export function MicroscopeIcon({ enabled }: Props) {
+export function MicroscopeIcon({ enabled, scale = 1 }: Props) {
   const tint = enabled ? "#1f3b6b" : "#a3afb8";
   return (
-    <svg width="90" height="120" viewBox="0 0 90 120">
+    <svg width={90 * scale} height={120 * scale} viewBox="0 0 90 120">
       <defs>
         <linearGradient id="msBody" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor={enabled ? "#ffffff" : "#dfe4e8"} />

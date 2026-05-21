@@ -5,39 +5,33 @@ import { Lab1ResultModal } from "./components2d/Lab1ResultModal";
 import { microscopeResult } from "./content/microscope";
 
 /**
- * Reference-aligned 4 stages. The video's smear-prep clip (29-37s) compresses
- * the procedure to: light lamp → sterilize loop → sample → smear → fix.
- * We adopt the same coarse stages while keeping the Gram-stain chain in
- * stage 4 (not shown in the clip but pedagogically required).
+ * Lab 1 — **Methylene Blue Simple Staining** (изучение морфологии бактериальной
+ * клетки). Same coarse 4-stage structure as before, but the staining stage now
+ * uses a single methylene-blue dropper instead of the Gram chain, and the
+ * missing protocol steps are present: slide cleaning, loop re-sterilization,
+ * air-drying, filter-paper blotting and immersion oil.
+ *
+ * Re-sterilizing the loop happens AFTER the smear (to burn off residual
+ * microbes) — the microbiologically correct order from the official assignment.
  */
 const SCORE_RULES: ScoreRule[] = [
-  { id: "lampLit", weight: 1, predicate: (s) => s.lamp.lit },
+  { id: "lampLit", weight: 0.5, predicate: (s) => s.lamp.lit },
   { id: "matchDiscarded", weight: 0.5, predicate: (s) => s.trash.match === true },
+  { id: "slideCleaned", weight: 1, predicate: (s) => s.slide.cleaned },
   { id: "loopSterilized", weight: 1, predicate: (s) => s.loop.sterilizePasses >= 3 },
   { id: "sampleTaken", weight: 0.5, predicate: (s) => s.loop.carriesSample || s.slide.smeared },
   { id: "naclApplied", weight: 1, predicate: (s) => s.slide.naclApplied },
   { id: "smeared", weight: 1, predicate: (s) => s.slide.smeared },
+  { id: "resterilized", weight: 0.5, predicate: (s) => s.loop.resterilized },
+  { id: "airDried", weight: 1, predicate: (s) => s.slide.airDried },
   { id: "fixed", weight: 1, predicate: (s) => s.slide.fixPasses >= 3 },
   {
-    id: "stainCv",
+    id: "mbStained",
     weight: 1,
-    predicate: (s) => s.slide.stains.cv.applied && s.slide.stains.cv.washed,
+    predicate: (s) => s.slide.methyleneBlue.applied && s.slide.methyleneBlue.washed,
   },
-  {
-    id: "stainLugol",
-    weight: 0.5,
-    predicate: (s) => s.slide.stains.lugol.applied && s.slide.stains.lugol.washed,
-  },
-  {
-    id: "stainDecolor",
-    weight: 0.5,
-    predicate: (s) => s.slide.stains.decolor.applied,
-  },
-  {
-    id: "stainSafranin",
-    weight: 1,
-    predicate: (s) => s.slide.stains.safranin.applied && s.slide.stains.safranin.washed,
-  },
+  { id: "blotted", weight: 0.5, predicate: (s) => s.slide.blotted },
+  { id: "oilApplied", weight: 0.5, predicate: (s) => s.slide.oilApplied },
   // Total = 10.0
 ];
 
@@ -58,7 +52,6 @@ const STAGES: Stage2D[] = [
         },
       },
       {
-        // Folded: opens cap + lights lamp in one drag onto the lamp.
         id: "light-lamp",
         hintKey: "lab1.hint.lightLamp",
         effect: (d) => {
@@ -88,10 +81,12 @@ const STAGES: Stage2D[] = [
     titleKey: "lab1.stage2.title",
     steps: [
       {
+        // Completed by HOLDING the loop in the flame until it glows
+        // (the workbench drives a hold timer; one completion sterilizes it).
         id: "sterilize-loop",
         hintKey: "lab1.hint.sterilizeLoop",
         effect: (d) => {
-          d.loop.sterilizePasses = Math.min(3, d.loop.sterilizePasses + 1);
+          d.loop.sterilizePasses = 3;
           d.loop.heatLevel = 1;
         },
       },
@@ -111,12 +106,20 @@ const STAGES: Stage2D[] = [
         },
       },
       {
+        id: "clean-slide",
+        hintKey: "lab1.hint.cleanSlide",
+        effect: (d) => {
+          d.slide.cleaned = true;
+        },
+        precondition: (s) => s.slide.onRack && s.lamp.lit,
+      },
+      {
         id: "add-nacl",
         hintKey: "lab1.hint.addNacl",
         effect: (d) => {
           d.slide.naclApplied = true;
         },
-        precondition: (s) => s.slide.onRack,
+        precondition: (s) => s.slide.onRack && s.slide.cleaned,
       },
       {
         id: "smear-sample",
@@ -126,13 +129,24 @@ const STAGES: Stage2D[] = [
         },
         precondition: (s) => s.slide.naclApplied && s.loop.carriesSample,
       },
+      {
+        id: "resterilize-loop",
+        hintKey: "lab1.hint.resterilizeLoop",
+        effect: (d) => {
+          d.loop.resterilized = true;
+          d.loop.carriesSample = false;
+          d.loop.heatLevel = 1;
+        },
+        precondition: (s) => s.slide.smeared,
+      },
     ],
     check: (s) => {
       if (s.loop.sterilizePasses < 3) return fail("lab1.error.loopNotSterile");
-      if (!s.loop.carriesSample && !s.slide.smeared) return fail("lab1.error.noSample");
       if (!s.slide.onRack) return fail("lab1.error.slideMissing");
+      if (!s.slide.cleaned) return fail("lab1.error.slideNotClean");
       if (!s.slide.naclApplied) return fail("lab1.error.noNacl");
       if (!s.slide.smeared) return fail("lab1.error.smearWeak");
+      if (!s.loop.resterilized) return fail("lab1.error.loopNotResterile");
       return ok();
     },
   },
@@ -141,15 +155,26 @@ const STAGES: Stage2D[] = [
     titleKey: "lab1.stage3.title",
     steps: [
       {
-        id: "flame-fix",
-        hintKey: "lab1.hint.flameFix",
+        id: "air-dry",
+        hintKey: "lab1.hint.airDry",
         effect: (d) => {
-          d.slide.fixPasses = Math.min(3, d.slide.fixPasses + 1);
+          d.slide.airDried = true;
         },
         precondition: (s) => s.slide.smeared,
       },
+      {
+        // Completed by HOLDING the slide over the flame (hold timer in the
+        // workbench); one completion fixes the smear.
+        id: "flame-fix",
+        hintKey: "lab1.hint.flameFix",
+        effect: (d) => {
+          d.slide.fixPasses = 3;
+        },
+        precondition: (s) => s.slide.airDried,
+      },
     ],
     check: (s) => {
+      if (!s.slide.airDried) return fail("lab1.error.notDried");
       if (s.slide.fixPasses < 3) return fail("lab1.error.notFixed");
       return ok();
     },
@@ -159,71 +184,37 @@ const STAGES: Stage2D[] = [
     titleKey: "lab1.stage4.title",
     steps: [
       {
-        id: "stain-cv",
-        hintKey: "lab1.hint.stainCv",
+        id: "apply-mb",
+        hintKey: "lab1.hint.applyMb",
         effect: (d) => {
-          d.slide.stains.cv.applied = true;
-          d.slide.stains.cv.appliedMs = Date.now();
-          d.slide.activeStain = "cv";
+          d.slide.methyleneBlue.applied = true;
+          d.slide.methyleneBlue.appliedMs = Date.now();
         },
+        precondition: (s) => s.slide.fixPasses >= 3,
       },
       {
-        id: "wash-cv",
+        id: "wash-mb",
         hintKey: "lab1.hint.wash",
         effect: (d) => {
-          d.slide.stains.cv.washed = true;
-          d.slide.activeStain = null;
+          d.slide.methyleneBlue.washed = true;
         },
-        precondition: (s) => s.slide.stains.cv.applied,
+        precondition: (s) => s.slide.methyleneBlue.applied,
       },
       {
-        id: "stain-lugol",
-        hintKey: "lab1.hint.stainLugol",
+        id: "blot-filter",
+        hintKey: "lab1.hint.blotFilter",
         effect: (d) => {
-          d.slide.stains.lugol.applied = true;
-          d.slide.stains.lugol.appliedMs = Date.now();
-          d.slide.activeStain = "lugol";
+          d.slide.blotted = true;
         },
-        precondition: (s) => s.slide.stains.cv.washed,
+        precondition: (s) => s.slide.methyleneBlue.washed,
       },
       {
-        id: "wash-lugol",
-        hintKey: "lab1.hint.wash",
+        id: "apply-oil",
+        hintKey: "lab1.hint.applyOil",
         effect: (d) => {
-          d.slide.stains.lugol.washed = true;
-          d.slide.activeStain = null;
+          d.slide.oilApplied = true;
         },
-        precondition: (s) => s.slide.stains.lugol.applied,
-      },
-      {
-        id: "stain-decolor",
-        hintKey: "lab1.hint.stainDecolor",
-        effect: (d) => {
-          d.slide.stains.decolor.applied = true;
-          d.slide.stains.decolor.appliedMs = Date.now();
-          d.slide.activeStain = "decolor";
-          d.slide.stains.cv.washed = true;
-        },
-        precondition: (s) => s.slide.stains.lugol.washed,
-      },
-      {
-        id: "stain-safranin",
-        hintKey: "lab1.hint.stainSafranin",
-        effect: (d) => {
-          d.slide.stains.safranin.applied = true;
-          d.slide.stains.safranin.appliedMs = Date.now();
-          d.slide.activeStain = "safranin";
-        },
-        precondition: (s) => s.slide.stains.decolor.applied,
-      },
-      {
-        id: "wash-safranin",
-        hintKey: "lab1.hint.wash",
-        effect: (d) => {
-          d.slide.stains.safranin.washed = true;
-          d.slide.activeStain = null;
-        },
-        precondition: (s) => s.slide.stains.safranin.applied,
+        precondition: (s) => s.slide.blotted,
       },
       {
         id: "open-microscope",
@@ -231,19 +222,14 @@ const STAGES: Stage2D[] = [
         effect: (d) => {
           d.microscopeOpen = true;
         },
-        precondition: (s) => s.slide.stains.safranin.washed,
+        precondition: (s) => s.slide.oilApplied,
       },
     ],
     check: (s) => {
-      const seq =
-        s.slide.stains.cv.applied &&
-        s.slide.stains.cv.washed &&
-        s.slide.stains.lugol.applied &&
-        s.slide.stains.lugol.washed &&
-        s.slide.stains.decolor.applied &&
-        s.slide.stains.safranin.applied &&
-        s.slide.stains.safranin.washed;
-      if (!seq) return fail("lab1.error.gramSequenceIncomplete");
+      if (!s.slide.methyleneBlue.applied || !s.slide.methyleneBlue.washed)
+        return fail("lab1.error.notStained");
+      if (!s.slide.blotted) return fail("lab1.error.notBlotted");
+      if (!s.slide.oilApplied) return fail("lab1.error.noOil");
       return ok();
     },
   },
@@ -251,7 +237,7 @@ const STAGES: Stage2D[] = [
 
 const config: Lab2DConfig = {
   id: 1,
-  slug: "bacterial-smear",
+  slug: "methylene-blue-smear",
   titleKey: "lab1.title",
   stages: STAGES,
   initialState: () => freshLab2DState(),

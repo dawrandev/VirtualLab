@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ---- Workbench tool tray (light theme) ---- */
+@keyframes wbGlow {
+  0%, 100% { box-shadow: 0 0 0 1px #f59e0b, 0 0 10px rgba(217,119,6,0.4); }
+  50% { box-shadow: 0 0 0 1px #f59e0b, 0 0 18px rgba(217,119,6,0.65); }
+}
+@keyframes wbZonePulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+@keyframes wbAirflow {
+  0% { transform: translateX(-24px); opacity: 0; }
+  40% { opacity: 0.85; }
+  100% { transform: translateX(54px); opacity: 0; }
+}
+@keyframes wbCheckPop {
+  0% { transform: translate(-50%,-50%) scale(0.2); opacity: 0; }
+  50% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+}
+@keyframes wbMbFade {
+  0% { opacity: 0; }
+  100% { opacity: 0.9; }
+}
+.wb-tray::-webkit-scrollbar { width: 8px; }
+.wb-tray::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.wb-tray { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }

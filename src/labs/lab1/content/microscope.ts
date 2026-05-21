@@ -1,53 +1,45 @@
 import type { Lab2DState, MicroscopeResult } from "@/engine2d/types";
 
-/** Map state → microscope outcome (Gram +/-, quality). */
+/**
+ * Map state → microscope outcome for the **methylene blue simple stain**.
+ * A simple stain does not differentiate cell-wall types — every cell takes up
+ * the blue dye — so the result is about whether cells are *resolvable* and how
+ * *clean* the preparation is (smear, fixation, the single stain, blotting, oil).
+ */
 export function microscopeResult(state: Lab2DState): MicroscopeResult {
-  const cv = state.slide.stains.cv;
-  const safranin = state.slide.stains.safranin;
-  const fixed = state.slide.fixPasses >= 3;
-  const smeared = state.slide.smeared;
-  // Decolorizer step is what differentiates Gram+ vs Gram-; track it
-  // independently of the legacy "smearRotations" field which no longer exists.
-  if (!smeared || !fixed) {
+  const s = state.slide;
+  const mb = s.methyleneBlue;
+  const fixed = s.fixPasses >= 3;
+  const stained = mb.applied && mb.washed;
+
+  if (!s.smeared || !fixed || !stained) {
     return {
-      gramOutcome: "ambiguous",
+      cellsVisible: false,
+      morphology: [],
       qualityTier: "low",
       notes: [
-        "Surtma yetarli darajada qotirilmagan yoki tayyorlanmagan.",
+        "Preparat to'liq tayyorlanmagan (surtma / fiksatsiya / bo'yash yetishmaydi).",
         "Mikroskop ostida hujayralar deyarli ko'rinmaydi.",
       ],
     };
   }
 
   const score = state.score.outOfTen;
-  const properGramSequence =
-    cv.applied && state.slide.stains.lugol.applied && state.slide.stains.decolor.applied && safranin.applied;
-
-  if (!properGramSequence) {
-    return {
-      gramOutcome: "ambiguous",
-      qualityTier: "low",
-      notes: [
-        "Bo'yash bosqichlari to'liq emas. To'rt reagentni tartibida qo'llang.",
-      ],
-    };
+  const qualityTier = score >= 8 ? "high" : score >= 5 ? "medium" : "low";
+  const oil = s.oilApplied;
+  const notes: string[] = [
+    "Barcha hujayralar bir xil ko'k rangga bo'yalgan — oddiy bo'yash usuli (metilen ko'ki).",
+    "Ko'rinadigan shakllar: kokklar (to'p-to'p) va tayoqchalar (batsillalar).",
+  ];
+  if (!oil) {
+    notes.push("Immersion moyisiz 100× obyektivda tasvir xira — moy qo'shilmagan.");
+  } else if (qualityTier === "high") {
+    notes.push("Immersion moyi bilan 100× da tasvir tiniq. Tayyorlash sifati a'lo.");
+  } else if (qualityTier === "medium") {
+    notes.push("Tasvir qoniqarli, ammo tayyorlashda biroz nuqson bor.");
+  } else {
+    notes.push("Sifat past — protokol bosqichlarini qayta ko'rib chiqing.");
   }
 
-  // High score → high quality; safranin dominant on washed-CV slide → Gram negative
-  const cvDominant = cv.washed === false || (cv.applied && !state.slide.stains.decolor.applied);
-  const qualityTier = score >= 8 ? "high" : score >= 5 ? "medium" : "low";
-  return {
-    gramOutcome: cvDominant ? "positive" : "negative",
-    qualityTier,
-    notes: [
-      cvDominant
-        ? "Hujayralar binafsha-ko'k bo'yalgan — Gram-musbat (Gr+)."
-        : "Hujayralar pushti-qizg'ish bo'yalgan — Gram-manfiy (Gr−).",
-      qualityTier === "high"
-        ? "Tayyorlash sifati a'lo darajada."
-        : qualityTier === "medium"
-        ? "Tayyorlashda biroz nuqson bor."
-        : "Sifat past — protokolni qayta o'qib chiqing.",
-    ],
-  };
+  return { cellsVisible: true, morphology: ["cocci", "rods"], qualityTier, notes };
 }

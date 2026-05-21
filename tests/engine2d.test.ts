@@ -8,6 +8,28 @@ import {
   setStageStatus,
 } from "@/engine2d/stateMachine";
 import { microscopeResult } from "@/labs/lab1/content/microscope";
+import type { Lab2DState } from "@/engine2d/types";
+
+/** A fully-correct methylene-blue preparation. */
+function perfectState(): Lab2DState {
+  const state = bootstrapStages(lab1Config, lab1Config.initialState());
+  state.lamp = { uncapped: true, lit: true };
+  state.match = { struck: true, lit: false, burned: true, burnProgress: 1 };
+  state.trash.match = true;
+  state.loop = { heatLevel: 0, sterilizePasses: 3, carriesSample: false, resterilized: true };
+  state.slide = {
+    onRack: true,
+    cleaned: true,
+    naclApplied: true,
+    smeared: true,
+    airDried: true,
+    fixPasses: 3,
+    methyleneBlue: { applied: true, appliedMs: 0, washed: true },
+    blotted: true,
+    oilApplied: true,
+  };
+  return state;
+}
 
 describe("engine2d — bootstrap + state machine", () => {
   it("seeds first stage as active and the rest pending", () => {
@@ -41,115 +63,82 @@ describe("engine2d — scoring", () => {
   });
 
   it("perfect happy path returns 10/10", () => {
-    const state = bootstrapStages(lab1Config, lab1Config.initialState());
-    Object.assign(state, {
-      lamp: { uncapped: true, lit: true },
-      match: { struck: true, lit: false, burned: true, burnProgress: 1 },
-      loop: { heatLevel: 0, sterilizePasses: 3, carriesSample: false },
-      trash: { match: true },
-      slide: {
-        onRack: true,
-        naclApplied: true,
-        smeared: true,
-        fixPasses: 3,
-        activeStain: null,
-        stains: {
-          cv: { applied: true, appliedMs: 0, washed: true },
-          lugol: { applied: true, appliedMs: 0, washed: true },
-          decolor: { applied: true, appliedMs: 0, washed: false },
-          safranin: { applied: true, appliedMs: 0, washed: true },
-        },
-      },
-    });
-    const { outOfTen } = computeScore(state, lab1Config.scoreRules);
-    expect(outOfTen).toBeGreaterThanOrEqual(9.5);
+    const { outOfTen, earned } = computeScore(perfectState(), lab1Config.scoreRules);
+    expect(earned).toBe(10);
+    expect(outOfTen).toBe(10);
   });
 });
 
 describe("engine2d — stage check predicates", () => {
   it("stage 1 fails before lamp is lit", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
-    const result = lab1Config.stages[0].check(state);
-    expect(result.ok).toBe(false);
+    expect(lab1Config.stages[0].check(state).ok).toBe(false);
   });
 
   it("stage 1 passes when lamp lit and match discarded", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
     state.lamp = { uncapped: true, lit: true };
     state.trash.match = true;
-    const result = lab1Config.stages[0].check(state);
-    expect(result.ok).toBe(true);
+    expect(lab1Config.stages[0].check(state).ok).toBe(true);
   });
 
-  it("stage 2 fails when smear is missing", () => {
+  it("stage 2 fails when loop is not re-sterilized after the smear", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
     state.loop.sterilizePasses = 3;
     state.loop.carriesSample = true;
     state.slide.onRack = true;
-    state.slide.naclApplied = true;
-    state.slide.smeared = false;
-    const result = lab1Config.stages[1].check(state);
-    expect(result.ok).toBe(false);
-  });
-
-  it("stage 2 passes with full smear preparation", () => {
-    const state = bootstrapStages(lab1Config, lab1Config.initialState());
-    state.loop.sterilizePasses = 3;
-    state.loop.carriesSample = true;
-    state.slide.onRack = true;
+    state.slide.cleaned = true;
     state.slide.naclApplied = true;
     state.slide.smeared = true;
-    const result = lab1Config.stages[1].check(state);
-    expect(result.ok).toBe(true);
+    state.loop.resterilized = false;
+    expect(lab1Config.stages[1].check(state).ok).toBe(false);
   });
 
-  it("stage 3 fails until 3 fixation passes", () => {
+  it("stage 2 passes with full smear preparation + re-sterilization", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
+    state.loop.sterilizePasses = 3;
+    state.loop.carriesSample = true;
+    state.slide.onRack = true;
+    state.slide.cleaned = true;
+    state.slide.naclApplied = true;
+    state.slide.smeared = true;
+    state.loop.resterilized = true;
+    expect(lab1Config.stages[1].check(state).ok).toBe(true);
+  });
+
+  it("stage 3 needs air-drying and 3 fixation passes", () => {
+    const state = bootstrapStages(lab1Config, lab1Config.initialState());
+    state.slide.airDried = true;
     state.slide.fixPasses = 2;
     expect(lab1Config.stages[2].check(state).ok).toBe(false);
     state.slide.fixPasses = 3;
     expect(lab1Config.stages[2].check(state).ok).toBe(true);
   });
 
-  it("stage 4 requires full Gram sequence", () => {
+  it("stage 4 requires methylene blue applied+washed, blotted and oiled", () => {
     const state = bootstrapStages(lab1Config, lab1Config.initialState());
-    state.slide.stains.cv = { applied: true, appliedMs: 0, washed: true };
-    state.slide.stains.lugol = { applied: true, appliedMs: 0, washed: true };
-    state.slide.stains.decolor = { applied: true, appliedMs: 0, washed: false };
-    state.slide.stains.safranin = { applied: true, appliedMs: 0, washed: true };
-    const result = lab1Config.stages[3].check(state);
-    expect(result.ok).toBe(true);
+    state.slide.methyleneBlue = { applied: true, appliedMs: 0, washed: true };
+    state.slide.blotted = false;
+    expect(lab1Config.stages[3].check(state).ok).toBe(false);
+    state.slide.blotted = true;
+    state.slide.oilApplied = true;
+    expect(lab1Config.stages[3].check(state).ok).toBe(true);
   });
 });
 
 describe("engine2d — microscope outcome", () => {
-  it("ambiguous before fixation", () => {
-    const state = freshLab2DState();
-    const r = microscopeResult(state);
-    expect(r.gramOutcome).toBe("ambiguous");
+  it("no cells visible before fixation/staining", () => {
+    const r = microscopeResult(freshLab2DState());
+    expect(r.cellsVisible).toBe(false);
+    expect(r.qualityTier).toBe("low");
   });
 
-  it("returns positive when CV dominates and decolorization is absent", () => {
-    const state = freshLab2DState();
-    state.slide.smeared = true;
-    state.slide.fixPasses = 3;
-    state.slide.stains.cv = { applied: true, appliedMs: 0, washed: false };
-    state.slide.stains.lugol = { applied: true, appliedMs: 0, washed: true };
-    state.slide.stains.decolor = { applied: true, appliedMs: 0, washed: false };
-    state.slide.stains.safranin = { applied: true, appliedMs: 0, washed: true };
+  it("shows blue-stained cocci and rods on a complete preparation", () => {
+    const state = perfectState();
+    state.score = computeScore(state, lab1Config.scoreRules);
     const r = microscopeResult(state);
-    expect(r.gramOutcome).toBe("positive");
-  });
-
-  it("returns negative when decolorizer washes CV", () => {
-    const state = freshLab2DState();
-    state.slide.smeared = true;
-    state.slide.fixPasses = 3;
-    state.slide.stains.cv = { applied: true, appliedMs: 0, washed: true };
-    state.slide.stains.lugol = { applied: true, appliedMs: 0, washed: true };
-    state.slide.stains.decolor = { applied: true, appliedMs: 0, washed: false };
-    state.slide.stains.safranin = { applied: true, appliedMs: 0, washed: true };
-    const r = microscopeResult(state);
-    expect(r.gramOutcome).toBe("negative");
+    expect(r.cellsVisible).toBe(true);
+    expect(r.morphology).toEqual(expect.arrayContaining(["cocci", "rods"]));
+    expect(r.qualityTier).toBe("high");
   });
 });

@@ -1,14 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { StainId } from "@/engine2d/types";
 import type { ZoomViewProps } from "@/components/lab2d/ZoomLens";
 import { TopDownSlide } from "./_TopDownSlide";
 import { useAutoDone } from "./_useAutoDone";
 import { usePhase } from "./_usePhase";
 
 interface Props extends ZoomViewProps {
-  variant: StainId;
   color: string;
   label: string;
   /** Cutscene duration in milliseconds. */
@@ -16,23 +14,16 @@ interface Props extends ZoomViewProps {
 }
 
 /**
- * Stain cutscene with explicit BEFORE/AFTER phasing.
- *   pre  (0 … 65% ms): slide rendered WITHOUT this stain. Drops fall from
- *                      above; a brief flood ring expands.
- *   post (65% … 100%): slide rendered WITH this stain (matches live state).
+ * Single-stain cutscene (methylene blue) with explicit BEFORE/AFTER phasing.
+ *   pre  (0 … 65% ms): slide rendered WITHOUT the stain; drops fall, ring expands.
+ *   post (65% … 100%): slide rendered WITH the stain (matches live state).
  */
-export function StainBase({ onDone, variant, color, label, ms }: Props) {
+export function StainBase({ onDone, color, label, ms }: Props) {
   useAutoDone(onDone, ms);
   const phase = usePhase(Math.round(ms * 0.65));
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <TopDownSlide
-        override={
-          phase === "pre"
-            ? { stainApplied: { id: variant, applied: false } }
-            : undefined
-        }
-      />
+      <TopDownSlide override={phase === "pre" ? { mbApplied: false } : undefined} />
       {/* Falling droplets — appear in pre-phase */}
       {phase === "pre" &&
         [0, 1, 2].map((i) => (

@@ -17,10 +17,7 @@ export type ZoomViewId =
   | "nacl-drop"
   | "smear"
   | "flame-fix"
-  | "stain-cv"
-  | "stain-lugol"
-  | "stain-decolor"
-  | "stain-safranin"
+  | "stain-mb"
   | "wash";
 
 export interface ActiveZoom {

@@ -29,9 +29,10 @@ function buildParticles(count: number, sizeRange: [number, number], opacity: num
 }
 
 /**
- * Microscope final view modal — adapted from the previous 3D-lab one.
- * Eyepiece vignette, scroll-pan-zoomable interior, drifting bacteria layer,
- * score badge, gram outcome tag, and Заново/restart action.
+ * Microscope final view modal — eyepiece vignette, drifting bacteria layer,
+ * score badge and notes. For the simple stain every cell is methylene-blue
+ * (no Gram differentiation); the result conveys morphology + preparation
+ * quality.
  */
 export function Lab1ResultModal() {
   const open = useLab2DStore((s) => s.state.microscopeOpen);
@@ -42,12 +43,13 @@ export function Lab1ResultModal() {
   const result = useMemo(() => microscopeResult(state), [state]);
   const tier = result.qualityTier;
   const particles = useMemo(() => {
+    if (!result.cellsVisible) return buildParticles(6, [4, 10], 0.25);
     if (tier === "high") return buildParticles(34, [6, 16], 0.85);
-    if (tier === "medium") return buildParticles(14, [5, 12], 0.45);
-    return buildParticles(6, [4, 10], 0.25);
-  }, [tier]);
+    if (tier === "medium") return buildParticles(14, [5, 12], 0.5);
+    return buildParticles(6, [4, 10], 0.3);
+  }, [tier, result.cellsVisible]);
 
-  const stainColor = result.gramOutcome === "positive" ? "#5b2e8c" : result.gramOutcome === "negative" ? "#cc3a55" : "#787878";
+  const stainColor = "#2742b8"; // methylene blue
 
   return (
     <AnimatePresence>
@@ -71,7 +73,7 @@ export function Lab1ResultModal() {
           <div className="relative w-[min(86vw,720px)] aspect-square">
             <div
               className="absolute inset-0 rounded-full overflow-hidden ring-4 ring-slate-800 shadow-[0_0_120px_rgba(0,0,0,0.8)]"
-              style={{ background: "radial-gradient(circle, #efe4f5 0%, #c1a8d1 60%, #6c4e7a 90%, #1a0e22 100%)" }}
+              style={{ background: "radial-gradient(circle, #eaf1fb 0%, #c4d4ee 60%, #6c84b4 90%, #11203a 100%)" }}
             >
               {particles.map((p) => (
                 <motion.div
@@ -96,19 +98,20 @@ export function Lab1ResultModal() {
                   }}
                 />
               ))}
+              {/* Objective magnification badge */}
+              <div className="absolute left-4 top-4 rounded-md bg-black/40 px-2 py-1 text-[11px] font-bold tracking-wider text-white">
+                100× {state.slide.oilApplied ? "· oil" : ""}
+              </div>
             </div>
 
-            <div className="absolute -bottom-44 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 w-[420px]">
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 px-6 py-3 shadow-2xl text-center text-white">
+            <div className="absolute -bottom-44 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 w-[440px]">
+              <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-3 shadow-2xl text-center text-white">
                 <p className="text-[11px] uppercase tracking-widest opacity-80">Mikroskop natijasi</p>
                 <p className="text-3xl font-bold">{state.score.outOfTen.toFixed(1)} / 10</p>
               </div>
               <div className="rounded-xl bg-white/95 px-4 py-2 text-sm text-slate-800 shadow-md text-center">
-                <p className="font-semibold">
-                  {result.gramOutcome === "positive" ? "Gram-musbat (Gr+)" : result.gramOutcome === "negative" ? "Gram-manfiy (Gr−)" : "Aniqlanmagan"}
-                </p>
                 {result.notes.map((n, i) => (
-                  <p key={i} className="text-xs text-slate-600">
+                  <p key={i} className={i === 0 ? "font-semibold" : "text-xs text-slate-600"}>
                     {n}
                   </p>
                 ))}

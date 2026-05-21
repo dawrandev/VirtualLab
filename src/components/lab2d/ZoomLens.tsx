@@ -14,10 +14,7 @@ const Views: Record<ZoomViewId, ComponentType<ZoomViewProps>> = {
   "nacl-drop": lazy(() => import("@/labs/lab1/components2d/zoom/NaClDropZoom")),
   smear: lazy(() => import("@/labs/lab1/components2d/zoom/SmearZoom")),
   "flame-fix": lazy(() => import("@/labs/lab1/components2d/zoom/FlameFixZoom")),
-  "stain-cv": lazy(() => import("@/labs/lab1/components2d/zoom/StainCvZoom")),
-  "stain-lugol": lazy(() => import("@/labs/lab1/components2d/zoom/StainLugolZoom")),
-  "stain-decolor": lazy(() => import("@/labs/lab1/components2d/zoom/StainDecolorZoom")),
-  "stain-safranin": lazy(() => import("@/labs/lab1/components2d/zoom/StainSafraninZoom")),
+  "stain-mb": lazy(() => import("@/labs/lab1/components2d/zoom/StainMbZoom")),
   wash: lazy(() => import("@/labs/lab1/components2d/zoom/WashZoom")),
 };
 

@@ -43,8 +43,13 @@ export interface ScoreRule {
   predicate: (state: Lab2DState) => boolean;
 }
 
+export type CellMorphology = "cocci" | "rods";
+
 export interface MicroscopeResult {
-  gramOutcome: "positive" | "negative" | "ambiguous";
+  /** Whether stained cells are resolvable in the eyepiece. */
+  cellsVisible: boolean;
+  /** Cell shapes the student should be able to identify. */
+  morphology: CellMorphology[];
   qualityTier: "high" | "medium" | "low";
   notes: string[];
 }
@@ -65,14 +70,28 @@ export interface Lab2DState {
   // Lab-specific slice (lab1):
   match: { struck: boolean; lit: boolean; burned: boolean; burnProgress: number };
   lamp: { uncapped: boolean; lit: boolean };
-  loop: { heatLevel: number; sterilizePasses: number; carriesSample: boolean };
+  loop: {
+    heatLevel: number;
+    sterilizePasses: number;
+    carriesSample: boolean;
+    /** Re-flamed after the smear, to burn off residual microbes. */
+    resterilized: boolean;
+  };
   slide: {
     onRack: boolean;
+    /** Cleaned & defatted with the alcohol pad before use. */
+    cleaned: boolean;
     naclApplied: boolean;
     smeared: boolean;
+    /** Air-dried (timer elapsed) before heat fixation. */
+    airDried: boolean;
     fixPasses: number;
-    activeStain: StainId | null;
-    stains: Record<StainId, { applied: boolean; appliedMs: number; washed: boolean }>;
+    /** Methylene blue is the only stain in a simple stain. */
+    methyleneBlue: StainLayer;
+    /** Blotted dry with filter paper after washing. */
+    blotted: boolean;
+    /** A drop of immersion oil placed for the 100× objective. */
+    oilApplied: boolean;
   };
   trash: Record<ItemId, boolean>;
   errors: ErrorRecord[];
@@ -80,7 +99,12 @@ export interface Lab2DState {
   microscopeOpen: boolean;
 }
 
-export type StainId = "cv" | "lugol" | "decolor" | "safranin";
+/** Single stain layer (methylene blue simple stain uses exactly one). */
+export interface StainLayer {
+  applied: boolean;
+  appliedMs: number;
+  washed: boolean;
+}
 
 export interface Step2D {
   id: StepId;
