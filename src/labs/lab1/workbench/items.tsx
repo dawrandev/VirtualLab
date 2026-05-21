@@ -17,11 +17,15 @@ import { FilterPaper } from "../components2d/items/FilterPaper";
 import { ImmersionOilBottle } from "../components2d/items/ImmersionOilBottle";
 import { MicroscopeIcon } from "../components2d/items/MicroscopeIcon";
 import { BiohazardBin } from "../components2d/items/BiohazardBin";
+import { KidneyTray } from "../components2d/items/KidneyTray";
+import { StainingBridge } from "../components2d/items/StainingBridge";
 
 export type ItemId =
   | "match"
   | "matchbox"
   | "lamp"
+  | "tray"
+  | "bridge"
   | "slide"
   | "alcohol-pad"
   | "nacl"
@@ -86,15 +90,37 @@ export const ITEMS: ItemDef[] = [
     render: (s) => <SpiritLamp uncapped={s.lamp.uncapped} lit={s.lamp.lit} />,
   },
   {
+    id: "tray",
+    label: "Buyraksimon lotok",
+    apparatus: true,
+    target: false,
+    w: 360,
+    h: 223,
+    preview: 0.2,
+    render: () => <KidneyTray width={360} />,
+  },
+  {
+    id: "bridge",
+    label: "Bo'yash ko'prigi",
+    apparatus: true,
+    target: false,
+    w: 150,
+    h: 240,
+    preview: 0.26,
+    render: () => <StainingBridge width={150} />,
+  },
+  {
     id: "slide",
     label: "Buyum oynasi",
     apparatus: false,
     target: true,
-    w: 130,
-    h: 42,
-    preview: 0.95,
+    w: 96,
+    h: 31,
+    preview: 1.05,
     render: (s) => (
       <GlassSlide
+        width={96}
+        height={31}
         naclApplied={s.slide.naclApplied}
         smeared={s.slide.smeared}
         dried={s.slide.airDried}
