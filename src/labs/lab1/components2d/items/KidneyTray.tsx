@@ -2,6 +2,8 @@
 
 interface Props {
   width?: number;
+  /** Blue methylene-blue runoff pooled in the basin (after washing). */
+  stained?: boolean;
 }
 
 /**
@@ -10,7 +12,7 @@ interface Props {
  * a soft white basin gradient, a diffuse (blurred) enamel sheen, a soft far-wall
  * shadow and a thin glossy near rim — no flat fills, no thick cartoon outline.
  */
-export function KidneyTray({ width = 330 }: Props) {
+export function KidneyTray({ width = 330, stained }: Props) {
   const w = width;
   const h = w * (210 / 300);
   // Reniform outline: wider rounded left lobe, narrower right, concave top.
@@ -57,6 +59,15 @@ export function KidneyTray({ width = 330 }: Props) {
           />
           {/* Diffuse enamel sheen */}
           <ellipse cx="120" cy="96" rx="74" ry="30" fill="url(#ktSheen2)" filter="url(#ktBlur)" />
+          {/* Methylene-blue runoff pooled in the basin (after washing) */}
+          {stained && (
+            <>
+              <path d={kidney} fill="#3a57c8" opacity="0.2" />
+              <ellipse cx="150" cy="132" rx="92" ry="30" fill="#22379e" opacity="0.34" filter="url(#ktBlur)" />
+              <path d="M70 128 Q150 150 232 126" stroke="#1b2e86" strokeWidth="6" fill="none" opacity="0.3" strokeLinecap="round" />
+              <path d="M96 138 Q150 124 208 140" stroke="#2c46b0" strokeWidth="4" fill="none" opacity="0.28" strokeLinecap="round" />
+            </>
+          )}
           {/* Thin dark enamel rim */}
           <path d={kidney} fill="none" stroke="url(#ktRim2b)" strokeWidth="2.6" />
           {/* Bright near-rim highlight (lower edge gloss) */}

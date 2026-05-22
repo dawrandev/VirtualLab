@@ -9,6 +9,8 @@ import config from "../config2d";
 import { Lab1ResultModal } from "../components2d/Lab1ResultModal";
 import { Drop } from "../components2d/animations/Drop";
 import { BacterialLoop } from "../components2d/items/BacterialLoop";
+import { TestTubeRack } from "../components2d/items/TestTubeRack";
+import { LoopStand } from "../components2d/items/LoopStand";
 import { ToolSidebar } from "./ToolSidebar";
 import { ITEMS, ITEM_BY_ID, intentFor, type ItemId } from "./items";
 
@@ -141,6 +143,9 @@ export function Lab1Workbench() {
   const mbReadyRef = useRef(false);
   mbReadyRef.current = mbReady;
   const [mbLeft, setMbLeft] = useState(0);
+  // Blue methylene-blue runoff pooled in the kidney tray after the wash step,
+  // showing the tray's purpose (catching the dye washed off the slide).
+  const [trayStained, setTrayStained] = useState(false);
 
   // Collapsible tool tray (open by default).
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -179,6 +184,7 @@ export function Lab1Workbench() {
       heatV.current = 0;
       heatH.current = 0;
       setLoopDeg(0);
+      setTrayStained(false);
     }
   }, [
     state.match.struck,
@@ -257,13 +263,19 @@ export function Lab1Workbench() {
       if (itemId === exclude) continue;
       const def = ITEM_BY_ID[itemId];
       if (!def.target) continue;
-      const cx = (pos.x / 100) * rect.width;
-      const cy = (pos.y / 100) * rect.height;
+      // A tight custom hit-zone (e.g. the lamp's flame) is used as-is, with no
+      // extra drop-padding; everything else uses its full box + DROP_PAD.
+      const tight = def.hitW != null;
+      const zw = def.hitW ?? def.w;
+      const zh = def.hitH ?? def.h;
+      const pad = tight ? 0 : DROP_PAD;
+      const cx = (pos.x / 100) * rect.width + (def.hitDX ?? 0);
+      const cy = (pos.y / 100) * rect.height + (def.hitDY ?? 0);
       if (
-        px >= cx - def.w / 2 - DROP_PAD &&
-        px <= cx + def.w / 2 + DROP_PAD &&
-        py >= cy - def.h / 2 - DROP_PAD &&
-        py <= cy + def.h / 2 + DROP_PAD
+        px >= cx - zw / 2 - pad &&
+        px <= cx + zw / 2 + pad &&
+        py >= cy - zh / 2 - pad &&
+        py <= cy + zh / 2 + pad
       )
         return itemId;
     }
@@ -532,11 +544,38 @@ export function Lab1Workbench() {
     // Place / reposition the tool on the bench (stays until manually removed).
     let xPct = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
     let yPct = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
-    // The loop must rest on its stand, not on the bare bench — snap to it.
+    // The loop stands upright in its rack's centre sleeve — snap there and
+    // orient it vertically (ring up, handle down into the sleeve). Offset is in
+    // px (loop centre 55px below the stand centre) so seating is bench-height
+    // independent, matching the loop's full-size rotated geometry.
     if (d.id === "loop" && placedRef.current["loop-stand"]) {
       const st = placedRef.current["loop-stand"];
       xPct = st.x;
-      yPct = st.y - 7;
+      yPct = st.y + (-55 / rect.height) * 100;
+      setLoopDeg(90);
+    }
+    // The culture tube seats in its rack (shtativ) ONLY when dropped over the
+    // rack — otherwise it stays where it's dropped, so the student can take it
+    // out onto the bench (e.g. to dip the loop into it). When seated it snaps
+    // into the front-centre hole: both render 1:1 with their viewBox, so the
+    // offset is in px (then % of bench height) to align the tube's base (tube
+    // y222) with the rack's front dimple (rack y152) — tube centre 59.5px above.
+    if (d.id === "culture" && placedRef.current["tube-rack"]) {
+      const rk = placedRef.current["tube-rack"];
+      const def = ITEM_BY_ID["tube-rack"];
+      const rcx = (rk.x / 100) * rect.width;
+      const rcy = (rk.y / 100) * rect.height;
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const overRack =
+        px >= rcx - def.w / 2 - DROP_PAD &&
+        px <= rcx + def.w / 2 + DROP_PAD &&
+        py >= rcy - def.h / 2 - DROP_PAD &&
+        py <= rcy + def.h / 2 + DROP_PAD;
+      if (overRack) {
+        xPct = rk.x;
+        yPct = rk.y + (-59.5 / rect.height) * 100;
+      }
     }
     // The slide may only sit on the staining bridge — snap to it.
     if (d.id === "slide") {
@@ -561,7 +600,11 @@ export function Lab1Workbench() {
     if (intent === "add-nacl") flashAt("drop-nacl", sx, sy);
     else if (intent === "apply-mb") flashAt("drop-mb", sx, sy);
     else if (intent === "apply-oil") flashAt("drop-oil", sx, sy);
-    else if (intent === "wash-mb") flashAt("wash", sx, sy);
+    else if (intent === "wash-mb") {
+      flashAt("wash", sx, sy);
+      // The rinsed-off methylene blue collects in the tray under the bridge.
+      if (placedRef.current["tray"]) setTrayStained(true);
+    }
     else if (target !== "air") {
       const tp = placedRef.current[target];
       flashAt("check", tp?.x ?? sx, tp?.y ?? sy);
@@ -648,14 +691,28 @@ export function Lab1Workbench() {
             const pos = placed[it.id];
             const isValid = validTargets.has(it.id);
             const isHover = hoverTarget === it.id;
-            const plugOff = it.id === "culture" && hold?.kind === "sample";
-            const petriLidOff = it.id === "petri" && hold?.kind === "sample";
+            // Open ONLY the vessel the loop is actually sampling from (its hold
+            // target) — not both the tube and the dish at once.
+            const sampling = hold?.kind === "sample" && hold.target === it.id;
+            const plugOff = it.id === "culture" && sampling;
+            const petriLidOff = it.id === "petri" && sampling;
             return (
               <div key={it.id} className="absolute" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%,-50%)", opacity: drag?.id === it.id ? 0.35 : 1 }}>
                 {(isValid || isHover) && (
                   <div
-                    className="pointer-events-none absolute -inset-3 rounded-2xl"
+                    className="pointer-events-none absolute rounded-xl"
                     style={{
+                      // Items with a tight hit-zone (the lamp's flame) show the
+                      // box AT that zone — so the visible rectangle == the active
+                      // area; everything else boxes the whole item (-inset-3).
+                      ...(it.hitW != null
+                        ? {
+                            left: it.w / 2 + (it.hitDX ?? 0) - it.hitW / 2,
+                            top: it.h / 2 + (it.hitDY ?? 0) - (it.hitH ?? it.h) / 2,
+                            width: it.hitW,
+                            height: it.hitH ?? it.h,
+                          }
+                        : { inset: -12 }),
                       border: `2px dashed ${isHover ? "#7c3aed" : "#a78bfa"}`,
                       boxShadow: isHover ? "0 0 18px rgba(124,58,237,0.45)" : "none",
                       animation: "wbZonePulse 1.4s ease-in-out infinite",
@@ -682,12 +739,35 @@ export function Lab1Workbench() {
                       {it.render(state, { binBump })}
                     </div>
                   ) : (
-                    it.render(state, { binBump, tubePlugOff: plugOff, petriLidOff: petriLidOff })
+                    it.render(state, { binBump, tubePlugOff: plugOff, petriLidOff: petriLidOff, trayStained })
                   )}
                 </div>
               </div>
             );
           })}
+
+          {/* Front face of the tube rack — painted ON TOP of the seated tube so
+              the tube passes THROUGH the hole (body sticks out above, the hole
+              opening + front lips occlude it, lower body shows in the open front). */}
+          {placedSet.has("tube-rack") && placedSet.has("culture") && placed["tube-rack"] && (
+            <div
+              className="pointer-events-none absolute"
+              style={{ left: `${placed["tube-rack"].x}%`, top: `${placed["tube-rack"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}
+            >
+              <TestTubeRack width={340} front />
+            </div>
+          )}
+
+          {/* Front face of the loop stand — frosts the seated loop's handle so it
+              reads as standing INSIDE the plastic sleeve, not in front of it. */}
+          {placedSet.has("loop-stand") && placedSet.has("loop") && placed["loop-stand"] && (
+            <div
+              className="pointer-events-none absolute"
+              style={{ left: `${placed["loop-stand"].x}%`, top: `${placed["loop-stand"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}
+            >
+              <LoopStand width={200} front />
+            </div>
+          )}
 
           {/* Smear marks being written onto the slide as the loop rubs */}
           {hold?.intent === "smear-sample" && slidePos && (
@@ -774,27 +854,31 @@ export function Lab1Workbench() {
               {fx.kind === "drop-oil" && <Drop trigger={fx.key} color="#e7b94e" fallHeight={64} />}
             </div>
           )}
-          {/* Water-wash animation: a stream sweeps down, rinsing the blue away */}
+          {/* Water-wash animation: a stream sweeps down the slide and the rinsed
+              blue dye drains downward toward the tray (where it pools). The box
+              extends below the slide so the runoff visibly heads into the basin. */}
           {fx?.kind === "wash" && (
             <div
               key={fx.key}
-              className="pointer-events-none absolute z-30 overflow-hidden rounded-md"
-              style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-50%)", width: 130, height: 96 }}
+              className="pointer-events-none absolute z-30 overflow-hidden"
+              style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-30%)", width: 130, height: 200 }}
             >
+              {/* Clear water stream rinsing the slide */}
               <motion.div
-                initial={{ y: -96, opacity: 0.9 }}
-                animate={{ y: 70, opacity: 0 }}
+                initial={{ y: -90, opacity: 0.9 }}
+                animate={{ y: 60, opacity: 0 }}
                 transition={{ duration: 0.95, ease: "easeIn" }}
-                style={{ width: "100%", height: 64, background: "linear-gradient(180deg, rgba(150,200,225,0) 0%, rgba(150,200,225,0.9) 50%, rgba(150,200,225,0) 100%)" }}
+                style={{ width: "100%", height: 60, background: "linear-gradient(180deg, rgba(150,200,225,0) 0%, rgba(150,200,225,0.9) 50%, rgba(150,200,225,0) 100%)" }}
               />
-              {[0, 1, 2, 3].map((i) => (
+              {/* Blue dye carried off the slide, draining down into the tray */}
+              {[0, 1, 2, 3, 4].map((i) => (
                 <motion.div
                   key={i}
-                  initial={{ y: -40, opacity: 0.8 }}
-                  animate={{ y: 90, opacity: 0 }}
-                  transition={{ duration: 0.7, delay: i * 0.06, ease: "easeIn" }}
+                  initial={{ y: 4, opacity: 0 }}
+                  animate={{ y: 168, opacity: [0, 0.85, 0.85, 0] }}
+                  transition={{ duration: 0.85, delay: i * 0.07, ease: "easeIn" }}
                   className="absolute rounded-full"
-                  style={{ left: `${22 + i * 20}%`, width: 6, height: 12, background: "#9fc8e1" }}
+                  style={{ left: `${20 + i * 16}%`, width: 6, height: 14, background: "#2c46b0" }}
                 />
               ))}
             </div>

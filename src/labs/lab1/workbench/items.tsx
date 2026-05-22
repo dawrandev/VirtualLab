@@ -19,6 +19,7 @@ import { ImmersionOilBottle } from "../components2d/items/ImmersionOilBottle";
 import { MicroscopeIcon } from "../components2d/items/MicroscopeIcon";
 import { BiohazardBin } from "../components2d/items/BiohazardBin";
 import { LoopStand } from "../components2d/items/LoopStand";
+import { TestTubeRack } from "../components2d/items/TestTubeRack";
 import { KidneyTray } from "../components2d/items/KidneyTray";
 import { StainingBridge } from "../components2d/items/StainingBridge";
 
@@ -33,6 +34,7 @@ export type ItemId =
   | "nacl"
   | "loop"
   | "loop-stand"
+  | "tube-rack"
   | "culture"
   | "petri"
   | "mb"
@@ -58,7 +60,17 @@ export interface ItemDef {
   tipY?: number;
   /** Scale used only in the sidebar card preview. */
   preview: number;
-  render: (state: Lab2DState, opts: { binBump: number; tubePlugOff?: boolean; petriLidOff?: boolean }) => ReactNode;
+  /** Optional TIGHT hit-zone (px, centred at the item ± hitDX/hitDY) used
+   *  instead of the full w×h + drop-padding. E.g. the lamp only reacts at its
+   *  flame, not over the whole glass body. */
+  hitW?: number;
+  hitH?: number;
+  hitDX?: number;
+  hitDY?: number;
+  render: (
+    state: Lab2DState,
+    opts: { binBump: number; tubePlugOff?: boolean; petriLidOff?: boolean; trayStained?: boolean },
+  ) => ReactNode;
 }
 
 export const ITEMS: ItemDef[] = [
@@ -90,6 +102,11 @@ export const ITEMS: ItemDef[] = [
     target: true,
     w: 160,
     h: 200,
+    // Only the flame at the top is active (≈ viewBox 80,40 → 60px above centre),
+    // so tools must be brought to the FLAME, not anywhere on the lamp.
+    hitW: 56,
+    hitH: 78,
+    hitDY: -58,
     preview: 0.42,
     render: (s) => <SpiritLamp uncapped={s.lamp.uncapped} lit={s.lamp.lit} />,
   },
@@ -101,7 +118,7 @@ export const ITEMS: ItemDef[] = [
     w: 440,
     h: 308,
     preview: 0.15,
-    render: () => <KidneyTray width={440} />,
+    render: (_s, o) => <KidneyTray width={440} stained={o.trayStained} />,
   },
   {
     id: "bridge",
@@ -155,6 +172,18 @@ export const ITEMS: ItemDef[] = [
     render: () => <NaClBottle />,
   },
   {
+    // Drawn BEFORE the loop so the stand (back) sits behind a seated loop; the
+    // workbench paints <LoopStand front /> on top to frost the handle.
+    id: "loop-stand",
+    label: "Halqa shtativi",
+    apparatus: true,
+    target: false,
+    w: 200,
+    h: 164,
+    preview: 0.34,
+    render: () => <LoopStand width={200} />,
+  },
+  {
     id: "loop",
     label: "Bakteriologik halqa",
     apparatus: false,
@@ -166,14 +195,14 @@ export const ITEMS: ItemDef[] = [
     render: (s) => <BacterialLoop heatLevel={s.loop.heatLevel} />,
   },
   {
-    id: "loop-stand",
-    label: "Halqa tagligi",
+    id: "tube-rack",
+    label: "Probirka shtativi",
     apparatus: true,
     target: false,
-    w: 150,
-    h: 90,
-    preview: 0.5,
-    render: () => <LoopStand width={150} />,
+    w: 340,
+    h: 210,
+    preview: 0.2,
+    render: () => <TestTubeRack width={340} />,
   },
   {
     id: "culture",
@@ -240,9 +269,9 @@ export const ITEMS: ItemDef[] = [
     label: "Biohazard idishi",
     apparatus: true,
     target: true,
-    w: 110,
-    h: 130,
-    preview: 0.5,
+    w: 120,
+    h: 150,
+    preview: 0.46,
     render: (_s, { binBump }) => <BiohazardBin bumpKey={binBump} />,
   },
   {
@@ -250,10 +279,10 @@ export const ITEMS: ItemDef[] = [
     label: "Mikroskop",
     apparatus: true,
     target: true,
-    w: 144,
-    h: 192,
-    preview: 0.36,
-    render: (s) => <MicroscopeIcon enabled={s.slide.oilApplied} scale={1.6} />,
+    w: 204,
+    h: 289,
+    preview: 0.3,
+    render: (s) => <MicroscopeIcon enabled={s.slide.oilApplied} scale={1.7} />,
   },
 ];
 
