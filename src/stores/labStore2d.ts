@@ -16,6 +16,9 @@ interface Lab2DStore {
   state: Lab2DState;
   mountLab: (cfg: Lab2DConfig) => void;
   dispatchStep: (stepId: StepId) => void;
+  /** Exam mode: apply a step's effect from ANY stage, ignoring preconditions
+   *  and stage gating (every action is allowed; ordering is graded at the end). */
+  applyStepRaw: (stepId: StepId) => void;
   patchState: (mutator: (draft: Lab2DState) => void) => void;
   pushError: (messageKey: string) => void;
   checkStage: () => void;
@@ -69,6 +72,26 @@ export const useLab2DStore = create<Lab2DStore>((set, get) => ({
       next.score = { earned: score.earned, outOfTen: score.outOfTen };
       set({ state: next });
     }
+  },
+
+  applyStepRaw(stepId) {
+    const cfg = get().config;
+    const state = get().state;
+    if (!cfg) return;
+    let step = null;
+    for (const stg of cfg.stages) {
+      const s = stg.steps.find((x) => x.id === stepId);
+      if (s) {
+        step = s;
+        break;
+      }
+    }
+    if (!step) return;
+    const next = clone(state);
+    step.effect(next);
+    const score = computeScore(next, cfg.scoreRules);
+    next.score = { earned: score.earned, outOfTen: score.outOfTen };
+    set({ state: next });
   },
 
   pushError(messageKey) {

@@ -10,6 +10,8 @@ interface Props {
   draggingId: ItemId | null;
   binBump: number;
   onStartDrag: (id: ItemId, e: React.PointerEvent) => void;
+  /** Learn mode shows the next-tool glow + guidance subtitle; exam hides them. */
+  showHints?: boolean;
 }
 
 /**
@@ -18,9 +20,9 @@ interface Props {
  * it anywhere. The next expected item glows; items already on the bench dim.
  * Styled to match the original light lab theme (no dark navy).
  */
-export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag }: Props) {
+export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag, showHints = true }: Props) {
   const [hovered, setHovered] = useState<ItemId | null>(null);
-  const required = requiredItem(state);
+  const required = showHints ? requiredItem(state) : null;
 
   return (
     <aside
@@ -29,9 +31,11 @@ export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag }:
     >
       <div className="px-4 pt-3 pb-2 border-b border-slate-200">
         <h2 className="text-sm font-bold tracking-wide text-slate-700">🧪 Laboratoriya asboblari</h2>
-        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-          Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying
-        </p>
+        {showHints && (
+          <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+            Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying
+          </p>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 grid grid-cols-2 gap-2 content-start wb-tray">

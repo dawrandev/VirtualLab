@@ -12,6 +12,11 @@ import { BacterialLoop } from "../components2d/items/BacterialLoop";
 import { TestTubeRack } from "../components2d/items/TestTubeRack";
 import { LoopStand } from "../components2d/items/LoopStand";
 import { ToolSidebar } from "./ToolSidebar";
+import { ModeSelect } from "./ModeSelect";
+import { PlanningSidebar } from "./PlanningSidebar";
+import { ExamResultModal } from "../components2d/ExamResultModal";
+import type { ExamAction, ExamPhase, LabMode } from "../exam/protocol";
+import { scoreExam, type ExamResult } from "../exam/scoring";
 import { ITEMS, ITEM_BY_ID, intentFor, type ItemId } from "./items";
 
 const STAGE_IDS = ["stage-1", "stage-2", "stage-3", "stage-4"] as const;
@@ -158,12 +163,28 @@ export function Lab1Workbench() {
   const heatV = useRef(0);
   const heatH = useRef(0);
 
+  // --- Mode / exam state ---
+  // null = mode picker shown. "learn" = guided (hints, ✓). "exam" = graded.
+  const [mode, setMode] = useState<LabMode | null>(null);
+  const modeRef = useRef<LabMode | null>(null);
+  modeRef.current = mode;
+  const [examPhase, setExamPhase] = useState<ExamPhase>("planning");
+  const plannedOrder = useRef<string[]>([]);
+  const [actionLog, setActionLog] = useState<ExamAction[]>([]);
+  const [examResult, setExamResult] = useState<ExamResult | null>(null);
+  const isExam = mode === "exam";
+  const examActive = isExam && examPhase === "execution";
+
+  const recordAction = useCallback((intent: string, loopHeat?: number) => {
+    setActionLog((log) => [...log, { intent, ts: Date.now(), ...(loopHeat != null ? { loopHeat } : {}) }]);
+  }, []);
+
   useEffect(() => {
     mountLab(config);
   }, [mountLab]);
 
   useEffect(() => {
-    if (!cfg) return;
+    if (!cfg || modeRef.current === "exam") return; // exam has no stage progression
     const idx = cfg.stages.findIndex((st) => st.id === state.currentStageId);
     if (idx < 0 || idx >= cfg.stages.length - 1) return;
     const stg = cfg.stages[idx];
@@ -224,6 +245,24 @@ export function Lab1Workbench() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // The loop cools after flaming (glowing red → grey over ~4s). Realistic in
+  // both modes; in exam, sampling while still hot is a graded mistake.
+  useEffect(() => {
+    if (state.loop.heatLevel <= 0) return;
+    const iv = window.setInterval(() => {
+      const s = useLab2DStore.getState();
+      if (s.state.loop.heatLevel <= 0) {
+        window.clearInterval(iv);
+        return;
+      }
+      s.patchState((d) => {
+        d.loop.heatLevel = Math.max(0, Math.round((d.loop.heatLevel - 0.08) * 100) / 100);
+      });
+    }, 350);
+    return () => window.clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.loop.heatLevel > 0]);
 
   const flashAt = useCallback((kind: Fx["kind"], x: number, y: number) => {
     fxKey.current += 1;
@@ -307,13 +346,33 @@ export function Lab1Workbench() {
     setHold(null);
   }
 
-  function completeAction(intent: StepId, target: ItemId | "air") {
+  /** Perform a protocol action. Exam mode: every action is allowed (no
+   *  preconditions/stage gating) and recorded for end-of-run grading. Learn
+   *  mode: the engine enforces order and we report success on a real change. */
+  function performIntent(intent: StepId, target: ItemId | "air"): boolean {
     const store = useLab2DStore.getState();
+    if (modeRef.current === "exam") {
+      const loopHeat = intent === "take-sample" ? store.state.loop.heatLevel : undefined;
+      store.applyStepRaw(intent);
+      // The eyepiece view is shown from the result screen, not mid-run.
+      if (intent === "open-microscope") store.patchState((d) => { d.microscopeOpen = false; });
+      recordAction(intent, loopHeat);
+      onSuccess(intent, target);
+      return true;
+    }
     const before = store.state;
     store.dispatchStep(intent);
     const after = useLab2DStore.getState().state;
+    if (after !== before) {
+      onSuccess(intent, target);
+      return true;
+    }
+    return false;
+  }
+
+  function completeAction(intent: StepId, target: ItemId | "air") {
+    performIntent(intent, target);
     cancelHold();
-    if (after !== before) onSuccess(intent, target);
     // Sterilization is finished → reset the two-phase heat accumulators.
     if (intent === "sterilize-loop" || intent === "resterilize-loop") {
       heatV.current = 0;
@@ -371,11 +430,7 @@ export function Lab1Workbench() {
    *  (light the lamp, pass the slide over the flame). Re-fires on each re-entry
    *  because the lock clears when the pointer leaves the target. */
   function fireContact(intent: StepId, target: ItemId | "air") {
-    const store = useLab2DStore.getState();
-    const before = store.state;
-    store.dispatchStep(intent);
-    const after = useLab2DStore.getState().state;
-    if (after !== before) onSuccess(intent, target);
+    performIntent(intent, target);
     lockTargetRef.current = target;
   }
 
@@ -393,19 +448,22 @@ export function Lab1Workbench() {
     const inside = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
     if (!inside) return null;
     const s = useLab2DStore.getState().state;
+    const examMode = modeRef.current === "exam";
     const { hx, hy } = hitPoint(d, clientX, clientY);
     const tg = targetAt(hx - rect.left, hy - rect.top, d.id);
     if (tg) {
       // Loop/slide need a lit flame; the match itself is what lights it.
       if (tg === "lamp" && !s.lamp.lit && d.id !== "match") return null;
       const intent = intentFor(d.id, tg, s);
-      // Fixation only after the smear has air-dried (otherwise let air-dry win).
-      if (intent && !(intent === "flame-fix" && !s.slide.airDried)) {
+      // Learn mode lets air-dry win until the smear is dried; exam mode allows
+      // fixing whenever (a wet fix is graded down, not blocked).
+      if (intent && (examMode || !(intent === "flame-fix" && !s.slide.airDried))) {
         return { target: tg as ItemId | "air", intent, kind: actionKind(d.id, tg) };
       }
     }
-    // Slide held in the open air during stage 3 → air-drying.
-    if (d.id === "slide" && s.currentStageId === "stage-3" && s.slide.smeared && !s.slide.airDried) {
+    // Slide held in the open air → air-drying (gated by stage in learn mode, by
+    // state alone in exam mode since there are no stages).
+    if (d.id === "slide" && s.slide.smeared && !s.slide.airDried && (examMode || s.currentStageId === "stage-3")) {
       return { target: "air" as const, intent: "air-dry" as StepId, kind: "airdry" as Kind };
     }
     return null;
@@ -526,14 +584,13 @@ export function Lab1Workbench() {
     if (target) {
       const intent = intentFor(d.id, target, store.state);
       if (intent && actionKind(d.id, target) === "instant") {
-        if (intent === "wash-mb" && !mbReadyRef.current) {
+        if (modeRef.current === "exam") {
+          // Allow every action; early/wrong ones are graded down, not blocked.
+          performIntent(intent, target);
+        } else if (intent === "wash-mb" && !mbReadyRef.current) {
           showToast("Bo'yoq hali ta'sir qilmoqda — kuting");
-        } else {
-          const before = store.state;
-          store.dispatchStep(intent);
-          const after = useLab2DStore.getState().state;
-          if (after !== before) onSuccess(intent, target);
-          else showToast("Hozir bo'lmaydi — ketma-ketlikni kuzating");
+        } else if (!performIntent(intent, target)) {
+          showToast("Hozir bo'lmaydi — ketma-ketlikni kuzating");
         }
         placeOrRemove(d.id, intent, e.clientX, e.clientY);
         endDrag();
@@ -583,12 +640,15 @@ export function Lab1Workbench() {
       if (br) {
         xPct = br.x;
         yPct = br.y - 4;
-      } else {
+      } else if (modeRef.current !== "exam") {
         showToast("Avval bo'yash ko'prigini stolga qo'ying");
       }
     }
     setPlaced((p) => ({ ...p, [d.id]: { x: xPct, y: yPct } }));
-    if (d.id === "slide" && !store.state.slide.onRack) store.dispatchStep("pick-slide");
+    if (d.id === "slide" && !store.state.slide.onRack) {
+      if (modeRef.current === "exam") store.applyStepRaw("pick-slide");
+      else store.dispatchStep("pick-slide");
+    }
     endDrag();
   }
 
@@ -605,10 +665,51 @@ export function Lab1Workbench() {
       // The rinsed-off methylene blue collects in the tray under the bridge.
       if (placedRef.current["tray"]) setTrayStained(true);
     }
-    else if (target !== "air") {
+    else if (target !== "air" && modeRef.current !== "exam") {
+      // The green ✓ is guidance — only in learn mode.
       const tp = placedRef.current[target];
       flashAt("check", tp?.x ?? sx, tp?.y ?? sy);
     }
+  }
+
+  /** Re-cap the lamp to put it out (a click, when lit). */
+  function extinguishLamp() {
+    const store = useLab2DStore.getState();
+    if (!store.state.lamp.lit) return;
+    store.patchState((d) => {
+      d.lamp.lit = false;
+      d.lamp.uncapped = false;
+    });
+    if (modeRef.current === "exam") recordAction("extinguish-lamp");
+  }
+
+  function startExam(order: string[]) {
+    plannedOrder.current = order;
+    setExamPhase("execution");
+  }
+
+  function finishExam() {
+    const store = useLab2DStore.getState();
+    const p = placedRef.current;
+    const sameSpot = (a?: { x: number; y: number }, b?: { x: number; y: number }) =>
+      !!a && !!b && Math.abs(a.x - b.x) < 2;
+    const loopOnStand = sameSpot(p["loop"], p["loop-stand"]);
+    const tubeInRack = sameSpot(p["culture"], p["tube-rack"]);
+    setExamResult(scoreExam(plannedOrder.current, actionLog, store.state, { loopOnStand, tubeInRack }));
+    setExamPhase("result");
+  }
+
+  function restart() {
+    resetLab();
+    setPlaced({});
+    setActionLog([]);
+    setExamResult(null);
+    plannedOrder.current = [];
+    setLoopDeg(0);
+    heatV.current = 0;
+    heatH.current = 0;
+    setExamPhase("planning");
+    setMode(null);
   }
 
   if (!cfg) {
@@ -639,37 +740,62 @@ export function Lab1Workbench() {
           <span className="text-sm font-bold tracking-wide text-slate-800">Bakterial hujayra morfologiyasi</span>
           <span className="text-[11px] text-slate-500">Oddiy bo'yash — metilen ko'ki · Lab 1</span>
         </div>
-        <div className="ml-3 hidden items-center gap-1.5 md:flex">
-          {STAGE_IDS.map((id, i) => (
-            <div key={id} className="flex items-center gap-1.5">
-              <div className="grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: i < activeIdx ? "#10b981" : i === activeIdx ? "#7c3aed" : "#cbd5e1" }}>
-                {i < activeIdx ? "✓" : i + 1}
+        {!isExam && (
+          <div className="ml-3 hidden items-center gap-1.5 md:flex">
+            {STAGE_IDS.map((id, i) => (
+              <div key={id} className="flex items-center gap-1.5">
+                <div className="grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: i < activeIdx ? "#10b981" : i === activeIdx ? "#7c3aed" : "#cbd5e1" }}>
+                  {i < activeIdx ? "✓" : i + 1}
+                </div>
+                {i < STAGE_IDS.length - 1 && <div className="h-0.5 w-4 rounded bg-slate-300" />}
               </div>
-              {i < STAGE_IDS.length - 1 && <div className="h-0.5 w-4 rounded bg-slate-300" />}
-            </div>
-          ))}
-        </div>
-        <div className="mx-auto flex max-w-[40%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
-          <span className="text-amber-300">➜</span>
-          <span className="truncate">{hint}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-gradient-to-br from-violet-600 to-indigo-700 px-3 py-1.5 text-center">
-            <span className="text-sm font-bold text-white">{state.score.outOfTen.toFixed(1)}</span>
-            <span className="text-[11px] text-violet-200">/10</span>
+            ))}
           </div>
-          <button onClick={resetLab} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">
+        )}
+        {!isExam && (
+          <div className="mx-auto flex max-w-[40%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
+            <span className="text-amber-300">➜</span>
+            <span className="truncate">{hint}</span>
+          </div>
+        )}
+        {examActive && (
+          <div className="mx-auto flex items-center gap-2 rounded-xl bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 ring-1 ring-violet-200">
+            <span>📝</span>
+            <span>Imtihon — yordam yo'q. Bilganingizcha bajaring.</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          {!isExam && (
+            <div className="rounded-lg bg-gradient-to-br from-violet-600 to-indigo-700 px-3 py-1.5 text-center">
+              <span className="text-sm font-bold text-white">{state.score.outOfTen.toFixed(1)}</span>
+              <span className="text-[11px] text-violet-200">/10</span>
+            </div>
+          )}
+          {examActive && (
+            <button onClick={finishExam} className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">
+              ✓ Yakunlash
+            </button>
+          )}
+          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">
             ↻ Qayta
           </button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {sidebarOpen && (
-          <ToolSidebar state={state} placed={placedSet} draggingId={drag?.id ?? null} binBump={binBump} onStartDrag={startDrag} />
+        {sidebarOpen && !(isExam && examPhase === "planning") && (
+          <ToolSidebar state={state} placed={placedSet} draggingId={drag?.id ?? null} binBump={binBump} onStartDrag={startDrag} showHints={!isExam} />
         )}
 
         <div ref={tableRef} className="relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
+          {/* During planning the bench is idle — focus is on the right panel. */}
+          {isExam && examPhase === "planning" && (
+            <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">
+              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">
+                Avval o'ng paneldan ish tartibini tuzing →
+              </p>
+            </div>
+          )}
           {/* Collapsible-tray toggle (‹ close / › open) */}
           <button
             onClick={() => setSidebarOpen((o) => !o)}
@@ -679,7 +805,7 @@ export function Lab1Workbench() {
             {sidebarOpen ? "‹" : "›"}
           </button>
 
-          {placedSet.size === 0 && !drag && (
+          {placedSet.size === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">
                 Asboblarni chap paneldan ish stoliga sudrab oling
@@ -742,6 +868,20 @@ export function Lab1Workbench() {
                     it.render(state, { binBump, tubePlugOff: plugOff, petriLidOff: petriLidOff, trayStained })
                   )}
                 </div>
+                {/* Re-cap the lamp to put it out (click the cap). */}
+                {it.id === "lamp" && state.lamp.lit && (
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      extinguishLamp();
+                    }}
+                    title="Spirtovkani qopqoq bilan o'chirish"
+                    className="absolute right-0 top-0 z-30 grid h-7 w-7 place-items-center rounded-full bg-slate-700/90 text-[13px] text-white shadow ring-1 ring-white/40 transition hover:bg-slate-800"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             );
           })}
@@ -837,14 +977,26 @@ export function Lab1Workbench() {
             </div>
           )}
 
-          {/* MB contact countdown near the placed slide */}
-          {slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
+          {/* MB contact countdown — learn mode only (guidance). */}
+          {!isExam && slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
             <div
               className="pointer-events-none absolute z-20 rounded-lg bg-blue-900/90 px-3 py-1.5 text-xs font-semibold text-white shadow-md"
               style={{ left: `${slidePos.x}%`, top: `${slidePos.y + 12}%`, transform: "translate(-50%,0)" }}
             >
               {mbReady ? "Tayyor — endi yuving" : `Ta'sir vaqti: ${mbLeft}s`}
             </div>
+          )}
+          {/* Exam mode: no text — the dye just slowly deepens on the smear as it
+              develops (subtle cue; washing too early is graded down). */}
+          {isExam && slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
+            <motion.div
+              key="mb-develop"
+              className="pointer-events-none absolute z-[19] rounded-sm"
+              style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)", width: 92, height: 27, background: "#16308f", mixBlendMode: "multiply" }}
+              initial={{ opacity: 0.12 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ duration: 9, ease: "easeIn" }}
+            />
           )}
 
           {fx && (fx.kind === "drop-nacl" || fx.kind === "drop-mb" || fx.kind === "drop-oil") && (
@@ -902,7 +1054,7 @@ export function Lab1Workbench() {
                     transition: "transform 0.12s ease",
                   }}
                 >
-                  <BacterialLoop heatLevel={hold?.kind === "hold" ? hold.progress : 0} />
+                  <BacterialLoop heatLevel={hold?.kind === "hold" ? hold.progress : state.loop.heatLevel} />
                 </div>
               ) : (
                 draggingDef.render(state, { binBump })
@@ -951,14 +1103,14 @@ export function Lab1Workbench() {
               {drag.id === "loop" && (
                 <div className="absolute left-1/2 top-[150%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[10px] font-medium text-white">
                   {loopDeg === 270 ? "Boshi past" : loopDeg === 90 ? "Boshi tepa" : "Yonlama"} · <span className="text-amber-300">R</span>
-                  {hold?.kind === "hold" && ` · V ${heatV.current >= 1 ? "✓" : "…"} G ${heatH.current >= 1 ? "✓" : "…"}`}
+                  {hold?.kind === "hold" && !isExam && ` · V ${heatV.current >= 1 ? "✓" : "…"} G ${heatH.current >= 1 ? "✓" : "…"}`}
                 </div>
               )}
             </div>
           )}
 
           {/* Touch-friendly loop rotation control (no keyboard needed) */}
-          {(placedSet.has("loop") || drag?.id === "loop") && state.currentStageId === "stage-2" && !state.loop.resterilized && (
+          {(placedSet.has("loop") || drag?.id === "loop") && !state.loop.resterilized && (isExam || state.currentStageId === "stage-2") && (
             <button
               onClick={() => setLoopDeg((d) => (d + 90) % 360)}
               className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-violet-500 active:scale-95"
@@ -977,9 +1129,23 @@ export function Lab1Workbench() {
             )}
           </AnimatePresence>
         </div>
+
+        {isExam && examPhase === "planning" && <PlanningSidebar onStart={startExam} />}
       </div>
 
       <Lab1ResultModal />
+
+      <AnimatePresence>{mode === null && <ModeSelect onPick={setMode} />}</AnimatePresence>
+
+      <AnimatePresence>
+        {isExam && examPhase === "result" && examResult && !state.microscopeOpen && (
+          <ExamResultModal
+            result={examResult}
+            onRestart={restart}
+            onViewScope={() => useLab2DStore.getState().setMicroscopeOpen(true)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
