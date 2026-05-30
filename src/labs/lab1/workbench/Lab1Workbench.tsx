@@ -43,7 +43,7 @@ interface Hold {
   progress: number;
 }
 interface Fx {
-  kind: "check" | "drop-nacl" | "drop-mb" | "drop-oil" | "wash";
+  kind: "check" | "drop-nacl" | "drop-mb" | "drop-oil" | "wash" | "blot";
   x: number;
   y: number;
   key: number;
@@ -54,7 +54,7 @@ function actionKind(tool: ItemId, target: ItemId): Kind {
   if (tool === "match" && target === "matchbox") return "rub"; // strike
   if (tool === "alcohol-pad" && target === "slide") return "rub"; // wipe clean
   if (tool === "loop" && target === "slide") return "rub"; // smear
-  if (tool === "filter" && target === "slide") return "rub"; // blot
+  if (tool === "filter" && target === "slide") return "contact"; // blot — press on top, no rubbing
   if (tool === "loop" && target === "lamp") return "hold"; // sterilize (vertical + horizontal)
   if (tool === "match" && target === "lamp") return "contact"; // light lamp — stays in hand
   if (tool === "slide" && target === "lamp") return "contact"; // fix: pass over the flame ×3
@@ -91,11 +91,13 @@ function nextHint(s: Lab2DState): string {
       if (!s.trash.match) return "Gugurtni biohazardga tashlang";
       return "Bosqich tayyor";
     case "stage-2":
-      if (s.loop.sterilizePasses < 3) return "Halqani olovda qizdiring — avval vertikal, so'ng gorizontal (↻ tugma bilan buring)";
-      if (!s.loop.carriesSample) return "Sterillangan halqani Petri kosachasidagi koloniyaga tegizing (yoki ↻ boshini pastga qilib probirkaga soling)";
-      if (!s.slide.onRack) return "Buyum oynasini stolga sudrab oling";
+      // Slide is prepared FIRST (clean + NaCl), then the loop is sterilized
+      // right before it is used — so it is freshly sterile when sampling.
+      if (!s.slide.onRack) return "Buyum oynasini bo'yash ko'prigiga qo'ying";
       if (!s.slide.cleaned) return "Oynani spirtli salfetka bilan arting";
       if (!s.slide.naclApplied) return "NaCl ni oynaga tomizing";
+      if (s.loop.sterilizePasses < 3) return "Halqani olovda qizdiring — avval vertikal, so'ng gorizontal (↻ tugma bilan buring)";
+      if (!s.loop.carriesSample) return "Halqa biroz sovugach kulturadan namuna oling (qizigan halqa bakteriyani o'ldiradi)";
       if (!s.slide.smeared) return "Halqani oyna ustida yurgizib surtma qiling";
       if (!s.loop.resterilized) return "Halqani qaytadan olovda qizdiring (vertikal + gorizontal)";
       return "Bosqich tayyor";
@@ -106,7 +108,7 @@ function nextHint(s: Lab2DState): string {
     case "stage-4":
       if (!s.slide.methyleneBlue.applied) return "Metilen ko'kini oynaga olib boring";
       if (!s.slide.methyleneBlue.washed) return "Suv bilan yuving";
-      if (!s.slide.blotted) return "Filtr qog'oz bilan oynani arting";
+      if (!s.slide.blotted) return "Filtr qog'ozni oyna ustiga bosib qo'ying (ishqalamang)";
       if (!s.slide.oilApplied) return "Immersion moyini tomizing";
       return "Oynani mikroskopga olib boring";
     default:
@@ -665,6 +667,7 @@ export function Lab1Workbench() {
       // The rinsed-off methylene blue collects in the tray under the bridge.
       if (placedRef.current["tray"]) setTrayStained(true);
     }
+    else if (intent === "blot-filter") flashAt("blot", sx, sy);
     else if (target !== "air" && modeRef.current !== "exam") {
       // The green ✓ is guidance — only in learn mode.
       const tp = placedRef.current[target];
@@ -956,27 +959,6 @@ export function Lab1Workbench() {
             </div>
           )}
 
-          {/* Filter-paper blotting: absorbing dabs appear on the slide */}
-          {hold?.intent === "blot-filter" && slidePos && (
-            <div className="pointer-events-none absolute z-20" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)", width: 104, height: 36 }}>
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full"
-                  style={{
-                    left: `${22 + i * 28}%`,
-                    top: "32%",
-                    width: 18,
-                    height: 13,
-                    background: "rgba(255,255,255,0.55)",
-                    opacity: Math.max(0, hold.progress * 1.3 - i * 0.3),
-                    filter: "blur(2px)",
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
           {/* MB contact countdown — learn mode only (guidance). */}
           {!isExam && slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
             <div
@@ -1033,6 +1015,23 @@ export function Lab1Workbench() {
                   style={{ left: `${20 + i * 16}%`, width: 6, height: 14, background: "#2c46b0" }}
                 />
               ))}
+            </div>
+          )}
+          {/* Filter-paper blot: a soft press + absorbing patch (no rubbing —
+              the paper is simply laid on the slide and wicks the water away). */}
+          {fx?.kind === "blot" && (
+            <div
+              key={fx.key}
+              className="pointer-events-none absolute z-30"
+              style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-50%)", width: 104, height: 36 }}
+            >
+              <motion.div
+                initial={{ scale: 1.08, opacity: 0 }}
+                animate={{ scale: [1.08, 0.97, 1], opacity: [0, 0.6, 0] }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
+                className="absolute inset-0 rounded"
+                style={{ background: "rgba(255,255,255,0.55)", filter: "blur(2px)" }}
+              />
             </div>
           )}
           {fx?.kind === "check" && (

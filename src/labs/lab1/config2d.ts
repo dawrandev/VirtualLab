@@ -80,24 +80,9 @@ const STAGES: Stage2D[] = [
     id: "stage-2",
     titleKey: "lab1.stage2.title",
     steps: [
-      {
-        // Completed by HOLDING the loop in the flame until it glows
-        // (the workbench drives a hold timer; one completion sterilizes it).
-        id: "sterilize-loop",
-        hintKey: "lab1.hint.sterilizeLoop",
-        effect: (d) => {
-          d.loop.sterilizePasses = 3;
-          d.loop.heatLevel = 1;
-        },
-      },
-      {
-        id: "take-sample",
-        hintKey: "lab1.hint.takeSample",
-        effect: (d) => {
-          d.loop.carriesSample = true;
-        },
-        precondition: (s) => s.loop.sterilizePasses >= 3,
-      },
+      // Correct smear-prep order: prepare the slide first (pick → clean → NaCl),
+      // THEN sterilize the loop right before it is used, so it is freshly
+      // sterile when taking the sample and smearing into the waiting NaCl drop.
       {
         id: "pick-slide",
         hintKey: "lab1.hint.pickSlide",
@@ -120,6 +105,24 @@ const STAGES: Stage2D[] = [
           d.slide.naclApplied = true;
         },
         precondition: (s) => s.slide.onRack && s.slide.cleaned,
+      },
+      {
+        // Completed by HOLDING the loop in the flame until it glows
+        // (the workbench drives a hold timer; one completion sterilizes it).
+        id: "sterilize-loop",
+        hintKey: "lab1.hint.sterilizeLoop",
+        effect: (d) => {
+          d.loop.sterilizePasses = 3;
+          d.loop.heatLevel = 1;
+        },
+      },
+      {
+        id: "take-sample",
+        hintKey: "lab1.hint.takeSample",
+        effect: (d) => {
+          d.loop.carriesSample = true;
+        },
+        precondition: (s) => s.loop.sterilizePasses >= 3,
       },
       {
         id: "smear-sample",

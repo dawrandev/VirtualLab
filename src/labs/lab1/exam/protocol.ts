@@ -43,7 +43,7 @@ export const MAIN_STEPS: MainStep[] = [
   { id: "light-lamp", card: "Spirtovkani yoqish", result: "Spirtovkani yoqish", points: 0.3, requires: [] },
   { id: "clean-slide", card: "Oynani tozalash", result: "Buyum oynasini spirtli salfetka bilan tozalash", points: 0.4, requires: [] },
   { id: "add-nacl", card: "NaCl tomizish", result: "Oynaga NaCl tomchisini tomizish", points: 0.4, requires: ["clean-slide"] },
-  { id: "sterilize-loop", card: "Halqani sterillash", result: "Bakteriologik halqani olovda sterillash", points: 0.5, requires: ["light-lamp"] },
+  { id: "sterilize-loop", card: "Halqani sterillash", result: "Bakteriologik halqani olovda sterillash", points: 0.5, requires: ["light-lamp", "add-nacl"] },
   { id: "take-sample", card: "Namuna olish", result: "Kulturadan namuna olish", points: 0.5, requires: ["sterilize-loop"] },
   { id: "smear-sample", card: "Surtma tayyorlash", result: "Surtma tayyorlash (NaCl bilan yoyish)", points: 0.7, requires: ["add-nacl", "take-sample"] },
   { id: "resterilize-loop", card: "Halqani qayta sterillash", result: "Halqani qayta sterillash", points: 0.3, requires: ["smear-sample"] },

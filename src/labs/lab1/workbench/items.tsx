@@ -334,11 +334,13 @@ export function requiredItem(s: Lab2DState): ItemId | null {
     case "stage-1":
       return "match";
     case "stage-2":
-      if (s.loop.sterilizePasses < 3) return "loop";
-      if (!s.loop.carriesSample) return "loop";
+      // Prepare the slide first (clean + NaCl), then sterilize the loop right
+      // before sampling — matches the correct smear-preparation order.
       if (!s.slide.onRack) return "slide";
       if (!s.slide.cleaned) return "alcohol-pad";
       if (!s.slide.naclApplied) return "nacl";
+      if (s.loop.sterilizePasses < 3) return "loop";
+      if (!s.loop.carriesSample) return "loop";
       if (!s.slide.smeared) return "loop";
       if (!s.loop.resterilized) return "loop";
       return null;
