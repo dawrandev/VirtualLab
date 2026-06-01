@@ -38,7 +38,7 @@ export const LABS: LabEntry[] = [
     accent: { from: "#a855f7", to: "#7e22ce", ring: "#d8b4fe", soft: "#faf5ff" },
     paths:
       "M5 4h14M7 4v4l-2 9a2 2 0 0 0 2 2.6M17 4v4l2 9a2 2 0 0 1-2 2.6M9 20h6",
-    available: false,
+    available: true,
   },
   {
     id: 3,
