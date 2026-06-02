@@ -11,6 +11,8 @@ interface Props {
   gramPositive?: boolean;
   /** 0..1 reaction progress — the dye flood deepens as the reagent develops. */
   develop?: number;
+  /** No smear yet — render a clean blank slide (used by Lab 3 before smearing). */
+  blank?: boolean;
   width?: number;
   height?: number;
 }
@@ -28,7 +30,7 @@ const FLOOD: Partial<Record<GramStage, string>> = {
  * fuchsin counterstain → final read (violet cells if Gram-positive, pink if
  * negative). A filter-paper sheet can sit over the smear during step 1.
  */
-export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, develop = 1, width = 132, height = 42 }: Props) {
+export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, develop = 1, blank, width = 132, height = 42 }: Props) {
   const w = width;
   const h = height;
   const vh = (h / w) * 100;
@@ -91,12 +93,14 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, de
         <rect x="24" y="2" width="74" height={vh - 4} rx="2" fill="url(#gsFuchsinField)" />
       )}
 
-      {/* The smear — clustered cocci, coloured by stage */}
-      <g opacity={flood ? 0.55 : 0.95}>
-        {COCCI.map(([dx, dy], i) => (
-          <circle key={i} cx={cx + dx} cy={cyc + dy} r={1.5} fill={cellColor} />
-        ))}
-      </g>
+      {/* The smear — clustered cocci, coloured by stage (hidden until smeared) */}
+      {!blank && (
+        <g opacity={flood ? 0.55 : 0.95}>
+          {COCCI.map(([dx, dy], i) => (
+            <circle key={i} cx={cx + dx} cy={cyc + dy} r={1.5} fill={cellColor} />
+          ))}
+        </g>
+      )}
 
       {/* Wet flood while a reagent is on the slide — deepens as it develops */}
       {flood && (

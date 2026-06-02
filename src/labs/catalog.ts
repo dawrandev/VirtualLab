@@ -43,23 +43,23 @@ export const LABS: LabEntry[] = [
   {
     id: 3,
     href: "/lab/3",
+    title: "Drigalski usulida ekish",
+    subtitle: "Shpatel bilan ekish — toza kultura",
+    description: "Suspenziyani shpatel bilan 3 ta plastinkaga ketma-ket surtib, alohida koloniyalardan toza kultura ajratish va Gram bo'yash.",
+    accent: { from: "#14b8a6", to: "#0f766e", ring: "#5eead4", soft: "#f0fdfa" },
+    paths:
+      "M4 9a8 4 0 1 0 16 0 8 4 0 1 0-16 0zM7 9q5 -3 10 0M7 11q5 -2 10 0",
+    available: true,
+  },
+  {
+    id: 4,
+    href: "/lab/4",
     title: "Ziehl-Neelsen usuli",
     subtitle: "Kislotaga chidamli bo'yash",
     description: "Karbol fuksin, kislota va metilen ko'ki bilan sil tayoqchasini (KCHB) aniqlash.",
     accent: { from: "#ec4899", to: "#be185d", ring: "#f9a8d4", soft: "#fdf2f8" },
     paths:
       "M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zM12 6v6M9 9h6",
-    available: false,
-  },
-  {
-    id: 4,
-    href: "/lab/4",
-    title: "Oziq muhitlarga ekish",
-    subtitle: "Sof kultura ajratish",
-    description: "Petri kosachasidagi agar muhitiga bakteriologik halqa bilan zigzag ekish va inkubatsiya.",
-    accent: { from: "#14b8a6", to: "#0f766e", ring: "#5eead4", soft: "#f0fdfa" },
-    paths:
-      "M4 9a8 4 0 0 0 16 0M4 9a8 4 0 0 1 16 0v6a8 4 0 0 1-16 0zM9 8.5l2 2 3-3",
     available: false,
   },
   {

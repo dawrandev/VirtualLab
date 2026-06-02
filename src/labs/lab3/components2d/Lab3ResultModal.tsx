@@ -1,0 +1,83 @@
+"use client";
+
+import { motion } from "framer-motion";
+import type { ExamResult, StepStatus } from "../exam/scoring";
+
+interface Props {
+  result: ExamResult;
+  onRestart: () => void;
+  onViewScope: () => void;
+}
+
+function tier(pct: number): { label: string; color: string } {
+  if (pct >= 85) return { label: "A'lo", color: "#10b981" };
+  if (pct >= 70) return { label: "Yaxshi", color: "#3b82f6" };
+  if (pct >= 50) return { label: "Qoniqarli", color: "#f59e0b" };
+  return { label: "Qoniqarsiz", color: "#ef4444" };
+}
+
+const MARK: Record<StepStatus, { icon: string; color: string; bg: string }> = {
+  full: { icon: "✓", color: "#059669", bg: "#ecfdf5" },
+  partial: { icon: "≈", color: "#d97706", bg: "#fffbeb" },
+  zero: { icon: "✕", color: "#dc2626", bg: "#fef2f2" },
+};
+
+/** End-of-exam breakdown for Lab 3 — five PDF criteria, full/partial/zero, /100. */
+export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
+  const pct = (result.total / result.max) * 100;
+  const t = tier(pct);
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+      <motion.div initial={{ y: 20, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 240, damping: 24 }} className="flex max-h-[92vh] w-[min(94vw,560px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center gap-4 px-6 py-5" style={{ background: `linear-gradient(135deg, ${t.color}22, #ffffff)` }}>
+          <div className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl text-white shadow-lg" style={{ background: t.color }}>
+            <div className="text-center leading-none">
+              <div className="text-2xl font-extrabold">{result.total}</div>
+              <div className="text-[10px] opacity-90">/ {result.max}</div>
+            </div>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-slate-800">{t.label}</p>
+            <p className="text-[13px] text-slate-500">Drigalski usuli — imtihon natijasi (PDF mezoni)</p>
+          </div>
+        </div>
+
+        <div className="wb-tray flex-1 space-y-2.5 overflow-y-auto px-5 py-4">
+          <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: result.classification.isRight ? "#ecfdf5" : "#fef2f2" }}>
+            <span className="text-xl">{result.classification.isRight ? "🔬" : "⚠️"}</span>
+            <div className="text-[13px]">
+              <p className="font-semibold" style={{ color: result.classification.isRight ? "#059669" : "#dc2626" }}>
+                {result.classification.picked == null ? "Morfologiya aniqlanmadi" : result.classification.isRight ? "Gram tegishliligi to'g'ri aniqlandi" : "Gram tegishliligi noto'g'ri aniqlandi"}
+              </p>
+              <p className="text-slate-500">To'g'ri javob: {result.classification.correct === "positive" ? "Gram-musbat kokklar" : "Gram-manfiy"}</p>
+            </div>
+          </div>
+
+          {result.steps.map((s) => {
+            const m = MARK[s.status];
+            return (
+              <div key={s.id} className="rounded-xl px-3 py-2.5" style={{ background: m.bg }}>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-sm font-bold" style={{ color: m.color, border: `1.5px solid ${m.color}` }}>{m.icon}</span>
+                  <p className="flex-1 text-[13px] font-medium leading-snug text-slate-700">{s.label}</p>
+                  <span className="shrink-0 text-[12px] font-bold tabular-nums" style={{ color: m.color }}>{s.earned} / {s.full}</span>
+                </div>
+                {s.notes.length > 0 && (
+                  <ul className="mt-1 list-inside list-disc pl-9 text-[11px]" style={{ color: m.color }}>
+                    {s.notes.map((n, i) => <li key={i}>{n}</li>)}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-2 border-t border-slate-200 p-3">
+          <button onClick={onViewScope} className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Mikroskopni ko'rish</button>
+          <button onClick={onRestart} className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">Qayta boshlash</button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
