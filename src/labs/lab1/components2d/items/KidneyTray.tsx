@@ -2,8 +2,11 @@
 
 interface Props {
   width?: number;
-  /** Blue methylene-blue runoff pooled in the basin (after washing). */
+  /** Dye runoff pooled in the basin (after washing). */
   stained?: boolean;
+  /** Pooled dye colour: [pool fill, deep centre, streak, streak2].
+   *  Defaults to methylene blue (Lab 1). Lab 2 passes violet / pink. */
+  stainColors?: [string, string, string, string];
 }
 
 /**
@@ -12,7 +15,7 @@ interface Props {
  * a soft white basin gradient, a diffuse (blurred) enamel sheen, a soft far-wall
  * shadow and a thin glossy near rim — no flat fills, no thick cartoon outline.
  */
-export function KidneyTray({ width = 330, stained }: Props) {
+export function KidneyTray({ width = 330, stained, stainColors = ["#3a57c8", "#22379e", "#1b2e86", "#2c46b0"] }: Props) {
   const w = width;
   const h = w * (210 / 300);
   // Reniform outline: wider rounded left lobe, narrower right, concave top.
@@ -62,10 +65,10 @@ export function KidneyTray({ width = 330, stained }: Props) {
           {/* Methylene-blue runoff pooled in the basin (after washing) */}
           {stained && (
             <>
-              <path d={kidney} fill="#3a57c8" opacity="0.2" />
-              <ellipse cx="150" cy="132" rx="92" ry="30" fill="#22379e" opacity="0.34" filter="url(#ktBlur)" />
-              <path d="M70 128 Q150 150 232 126" stroke="#1b2e86" strokeWidth="6" fill="none" opacity="0.3" strokeLinecap="round" />
-              <path d="M96 138 Q150 124 208 140" stroke="#2c46b0" strokeWidth="4" fill="none" opacity="0.28" strokeLinecap="round" />
+              <path d={kidney} fill={stainColors[0]} opacity="0.2" />
+              <ellipse cx="150" cy="132" rx="92" ry="30" fill={stainColors[1]} opacity="0.34" filter="url(#ktBlur)" />
+              <path d="M70 128 Q150 150 232 126" stroke={stainColors[2]} strokeWidth="6" fill="none" opacity="0.3" strokeLinecap="round" />
+              <path d="M96 138 Q150 124 208 140" stroke={stainColors[3]} strokeWidth="4" fill="none" opacity="0.28" strokeLinecap="round" />
             </>
           )}
           {/* Thin dark enamel rim */}

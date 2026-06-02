@@ -18,8 +18,12 @@ export const SPECIMEN = {
   shapeUz: "kokklar (uzum boshiga o'xshash to'plamlar)",
 };
 
-/** Compressed contact time (real 1–2 min) before pouring off / next reagent. */
-export const STAIN_WAIT_MS = 6000;
+/** Compressed contact time before pouring off / next reagent. Real protocol is
+ *  1–2 min; the sim waits 10 s but the learn-mode countdown DISPLAYS the real
+ *  2:00 → 0:00 minutes (sped up ~12×). */
+export const STAIN_WAIT_MS = 10000;
+/** Protocol time shown on the (sped-up) learn-mode reaction countdown. */
+export const DISPLAY_WAIT_SECONDS = 120;
 /** Decolorization window after applying alcohol (real 30–60 s). Washing inside
  *  this window = correct; too early = under-decolorized, too late = over. */
 export const DECOLOR_MIN_MS = 2500;

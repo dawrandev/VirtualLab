@@ -9,6 +9,8 @@ interface Props {
   oilApplied?: boolean;
   /** Specimen Gram type — drives the retained cell colour after staining. */
   gramPositive?: boolean;
+  /** 0..1 reaction progress — the dye flood deepens as the reagent develops. */
+  develop?: number;
   width?: number;
   height?: number;
 }
@@ -26,7 +28,7 @@ const FLOOD: Partial<Record<GramStage, string>> = {
  * fuchsin counterstain → final read (violet cells if Gram-positive, pink if
  * negative). A filter-paper sheet can sit over the smear during step 1.
  */
-export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, width = 132, height = 42 }: Props) {
+export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, develop = 1, width = 132, height = 42 }: Props) {
   const w = width;
   const h = height;
   const vh = (h / w) * 100;
@@ -96,7 +98,7 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, wi
         ))}
       </g>
 
-      {/* Wet flood while a reagent is on the slide */}
+      {/* Wet flood while a reagent is on the slide — deepens as it develops */}
       {flood && (
         <rect
           x="24"
@@ -105,16 +107,15 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, wi
           height={vh - 4}
           rx="2"
           fill={flood}
-          opacity={stage === "iodine" ? 0.8 : 0.7}
-          style={{ animation: "wbMbFade 1.4s ease-out" }}
+          opacity={(stage === "iodine" ? 0.5 : 0.42) + develop * 0.42}
         />
       )}
 
-      {/* Filter paper laid over the smear (gentian-violet step) */}
+      {/* Filter paper laid over the smear — soaks up the violet dye as it develops */}
       {filterOn && (
         <g>
           <rect x="30" y="3" width="60" height={vh - 6} rx="1.5" fill="#efece1" stroke="#cfcabd" strokeWidth="0.5" opacity="0.92" />
-          <rect x="30" y="3" width="60" height={vh - 6} rx="1.5" fill={flood ?? "#7c5cc4"} opacity="0.18" />
+          <rect x="30" y="3" width="60" height={vh - 6} rx="1.5" fill={flood ?? "#7c5cc4"} opacity={flood ? 0.12 + develop * 0.5 : 0.12} />
           <path d="M84 3 L90 3 L90 9 Z" fill="#ddd8c8" />
         </g>
       )}

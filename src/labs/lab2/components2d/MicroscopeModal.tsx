@@ -86,7 +86,8 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onCl
                     }}
                   />
                 ))}
-                <div className="absolute left-4 top-4 rounded-md bg-black/40 px-2 py-1 text-[11px] font-bold tracking-wider text-white">100× · immersion</div>
+                {/* Centred at the bottom so the circular mask never clips it. */}
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md bg-black/40 px-2.5 py-1 text-[11px] font-bold tracking-wider text-white">100× · immersion</div>
               </div>
             </div>
 

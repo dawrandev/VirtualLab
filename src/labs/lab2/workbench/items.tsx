@@ -43,7 +43,10 @@ export interface Lab2ItemDef {
   hitH?: number;
   hitDX?: number;
   hitDY?: number;
-  render: (state: GramState, opts: { trayStained?: boolean }) => ReactNode;
+  render: (
+    state: GramState,
+    opts: { trayStained?: boolean; develop?: number; trayColors?: [string, string, string, string] },
+  ) => ReactNode;
 }
 
 export const LAB2_ITEMS: Lab2ItemDef[] = [
@@ -55,7 +58,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
     w: 440,
     h: 308,
     preview: 0.15,
-    render: (_s, o) => <KidneyTray width={440} stained={o.trayStained} />,
+    render: (_s, o) => <KidneyTray width={440} stained={o.trayStained} stainColors={o.trayColors} />,
   },
   {
     id: "bridge",
@@ -75,8 +78,8 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
     w: 132,
     h: 42,
     preview: 0.78,
-    render: (s) => (
-      <GramSlide stage={gramStage(s)} filterOn={s.slide.filterOn} oilApplied={s.slide.oilApplied} gramPositive width={132} height={42} />
+    render: (s, o) => (
+      <GramSlide stage={gramStage(s)} filterOn={s.slide.filterOn} oilApplied={s.slide.oilApplied} gramPositive develop={o.develop ?? 1} width={132} height={42} />
     ),
   },
   {

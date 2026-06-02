@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { LAB2_ITEMS, LAB2_ITEM_BY_ID, intentFor, type Lab2ItemId } from "./items";
 import { freshGramState, applyGramStep, type GramState, type GramIntent } from "../state";
-import { SPECIMEN, type LabMode, type ExamPhase } from "../exam/protocol";
+import { SPECIMEN, STAIN_WAIT_MS, DISPLAY_WAIT_SECONDS, type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreGramExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab2Sidebar } from "./Lab2Sidebar";
 import { ModeSelect } from "./ModeSelect";
@@ -24,10 +24,25 @@ interface DragState {
   py: number;
 }
 interface Fx {
-  kind: "drip-gv" | "drip-lugol" | "drip-alcohol" | "drip-fuchsin" | "drip-oil" | "wash" | "blot";
+  kind: "drip-gv" | "drip-lugol" | "drip-alcohol" | "drip-fuchsin" | "drip-oil" | "wash" | "blot" | "runoff" | "drain";
   x: number;
   y: number;
   key: number;
+  /** Colour for runoff / drain streaks. */
+  color?: string;
+}
+
+/** Reagents that have a 1–2 min reaction wait (shown as a sped-up countdown). */
+const WAIT_REAGENTS: Record<string, true> = { "apply-gv": true, "apply-lugol": true, "apply-fuchsin": true };
+
+const TRAY_VIOLET: [string, string, string, string] = ["#6d28d9", "#4c1d95", "#5b21b6", "#7c3aed"];
+const TRAY_PINK: [string, string, string, string] = ["#d4146a", "#9d174d", "#a8194f", "#be185d"];
+
+function fmtClock(totalSec: number): string {
+  const s = Math.max(0, Math.ceil(totalSec));
+  const m = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${m}:${ss.toString().padStart(2, "0")}`;
 }
 
 const DRIP_COLOR: Record<string, string> = {
@@ -74,6 +89,11 @@ export function Lab2Workbench() {
   const [trayStained, setTrayStained] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Reaction wait (1–2 min, sped up to 10 s): which reagent is developing + a
+  // 0→1 progress that deepens the dye and drives the learn-mode countdown.
+  const [reaction, setReaction] = useState<{ kind: string; start: number } | null>(null);
+  const [reactionProg, setReactionProg] = useState(1);
+
   // Mode / exam
   const [mode, setMode] = useState<LabMode | null>(null);
   const modeRef = useRef<LabMode | null>(null);
@@ -89,11 +109,23 @@ export function Lab2Workbench() {
   const isExam = mode === "exam";
   const examActive = isExam && examPhase === "execution";
 
-  const flashAt = useCallback((kind: Fx["kind"], x: number, y: number) => {
+  const flashAt = useCallback((kind: Fx["kind"], x: number, y: number, color?: string, ms = 1000) => {
     fxKey.current += 1;
-    setFx({ kind, x, y, key: fxKey.current });
-    window.setTimeout(() => setFx(null), 1000);
+    const k = fxKey.current;
+    setFx({ kind, x, y, key: k, color });
+    window.setTimeout(() => setFx((f) => (f && f.key === k ? null : f)), ms);
   }, []);
+
+  // Tick the reaction progress 0→1 over the (sped-up) wait, then hold at 1.
+  useEffect(() => {
+    if (!reaction) return;
+    const iv = window.setInterval(() => {
+      const p = Math.min(1, (Date.now() - reaction.start) / STAIN_WAIT_MS);
+      setReactionProg(p);
+      if (p >= 1) window.clearInterval(iv);
+    }, 80);
+    return () => window.clearInterval(iv);
+  }, [reaction]);
   const showToast = useCallback((msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 1800);
@@ -110,15 +142,33 @@ export function Lab2Workbench() {
     const sp = placedRef.current["slide"];
     const sx = sp?.x ?? 50;
     const sy = sp?.y ?? 50;
-    if (intent === "apply-gv") flashAt("drip-gv", sx, sy);
-    else if (intent === "apply-lugol") flashAt("drip-lugol", sx, sy);
-    else if (intent === "apply-alcohol") flashAt("drip-alcohol", sx, sy);
-    else if (intent === "apply-fuchsin") flashAt("drip-fuchsin", sx, sy);
+    const hasTray = !!placedRef.current["tray"];
+
+    // Any new action ends the previous reaction wait.
+    if (WAIT_REAGENTS[intent]) {
+      setReaction({ kind: intent, start: Date.now() });
+      setReactionProg(0);
+    } else {
+      setReaction(null);
+      setReactionProg(1);
+    }
+
+    if (intent === "apply-gv") flashAt("drip-gv", sx, sy, undefined, 1400);
+    else if (intent === "apply-lugol") flashAt("drip-lugol", sx, sy, undefined, 1400);
+    else if (intent === "apply-fuchsin") flashAt("drip-fuchsin", sx, sy, undefined, 1400);
     else if (intent === "apply-oil") flashAt("drip-oil", sx, sy);
-    else if (intent === "blot") flashAt("blot", sx, sy);
+    else if (intent === "apply-alcohol") {
+      // Decolorization: the violet visibly streams off the slide.
+      flashAt("runoff", sx, sy, "#5b21b6", 1300);
+      if (hasTray) setTrayStained(true);
+    } else if (intent === "remove-filter") {
+      // Pour off the gentian violet as the filter is lifted.
+      flashAt("drain", sx, sy, "#5b21b6", 1200);
+      if (hasTray) setTrayStained(true);
+    } else if (intent === "blot") flashAt("blot", sx, sy);
     else if (intent === "wash") {
       flashAt("wash", sx, sy);
-      if (placedRef.current["tray"]) setTrayStained(true);
+      if (hasTray) setTrayStained(true);
     } else if (intent === "to-microscope") {
       setReveal(false);
       setScopeOpen(true);
@@ -270,6 +320,8 @@ export function Lab2Workbench() {
     setActionLog([]);
     setExamResult(null);
     setTrayStained(false);
+    setReaction(null);
+    setReactionProg(1);
     setScopeOpen(false);
     setReveal(false);
     setExamPhase("planning");
@@ -280,6 +332,12 @@ export function Lab2Workbench() {
   const draggingDef = drag ? LAB2_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(gram);
   const slidePos = placed["slide"];
+  // Dye flood deepens while a reagent develops, else it's fully developed.
+  const develop = reaction ? reactionProg : 1;
+  const trayColors = gram.slide.fuchsin.applied ? TRAY_PINK : TRAY_VIOLET;
+  const renderOpts = { trayStained, develop, trayColors };
+  // The reaction countdown is a learning aid → learn mode only, while waiting.
+  const showCountdown = !isExam && reaction != null && slidePos;
 
   const validTargets = new Set<Lab2ItemId>();
   if (drag) {
@@ -376,7 +434,7 @@ export function Lab2Workbench() {
                   style={{ cursor: "grab" }}
                   title={it.label}
                 >
-                  {it.render(gram, { trayStained })}
+                  {it.render(gram, renderOpts)}
                 </div>
               </div>
             );
@@ -403,11 +461,70 @@ export function Lab2Workbench() {
               <motion.div initial={{ scale: 1.08, opacity: 0 }} animate={{ scale: [1.08, 0.97, 1], opacity: [0, 0.6, 0] }} transition={{ duration: 0.9, ease: "easeOut" }} className="absolute inset-0 rounded" style={{ background: "rgba(255,255,255,0.55)", filter: "blur(2px)" }} />
             </div>
           )}
+          {/* Decolorization runoff — the violet streams off the slide downward,
+              and pour-off drain as the filter is lifted. Both flow into the tray. */}
+          {(fx?.kind === "runoff" || fx?.kind === "drain") && (
+            <div key={fx.key} className="pointer-events-none absolute z-30 overflow-hidden" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-20%)", width: 140, height: 200 }}>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ y: 0, opacity: 0 }}
+                  animate={{ y: 170, opacity: [0, 0.85, 0.85, 0] }}
+                  transition={{ duration: fx.kind === "runoff" ? 1.1 : 0.95, delay: i * 0.06, ease: "easeIn" }}
+                  className="absolute rounded-full"
+                  style={{ left: `${18 + i * 13}%`, width: fx.kind === "runoff" ? 5 : 7, height: fx.kind === "runoff" ? 18 : 13, background: fx.color ?? "#5b21b6" }}
+                />
+              ))}
+              {/* a faint wash of colour sweeping down for the runoff */}
+              {fx.kind === "runoff" && (
+                <motion.div
+                  initial={{ y: -40, opacity: 0.5 }}
+                  animate={{ y: 120, opacity: 0 }}
+                  transition={{ duration: 1.1, ease: "easeIn" }}
+                  className="absolute left-[10%] right-[10%] rounded"
+                  style={{ height: 40, background: `linear-gradient(180deg, transparent, ${fx.color}66, transparent)` }}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Reaction countdown (learn mode) — shows the real 1–2 min protocol
+              time ticking 2:00 → 0:00, sped up into the 10 s sim wait. */}
+          {showCountdown && slidePos && (
+            <div className="pointer-events-none absolute z-30" style={{ left: `${slidePos.x}%`, top: `${slidePos.y - 16}%`, transform: "translate(-50%,-100%)" }}>
+              <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/90 px-3 py-2 text-white shadow-lg">
+                {/* progress ring */}
+                <svg width="34" height="34" viewBox="0 0 34 34" className="shrink-0">
+                  <circle cx="17" cy="17" r="14" fill="none" stroke="#ffffff22" strokeWidth="3" />
+                  <circle
+                    cx="17"
+                    cy="17"
+                    r="14"
+                    fill="none"
+                    stroke={reactionProg >= 1 ? "#34d399" : "#a78bfa"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 14}
+                    strokeDashoffset={2 * Math.PI * 14 * (1 - reactionProg)}
+                    transform="rotate(-90 17 17)"
+                    style={{ transition: "stroke-dashoffset 0.1s linear" }}
+                  />
+                  <text x="17" y="20" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">
+                    {reactionProg >= 1 ? "✓" : fmtClock(DISPLAY_WAIT_SECONDS * (1 - reactionProg))}
+                  </text>
+                </svg>
+                <div className="leading-tight">
+                  <p className="text-[12px] font-semibold">{reactionProg >= 1 ? "Tayyor — keyingi bosqich" : "Bo'yoq ta'sir qilmoqda…"}</p>
+                  <p className="text-[10px] text-slate-300">Real vaqt: 1–2 daqiqa</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Drag ghost */}
           {drag && draggingDef && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
-              {draggingDef.render(gram, { trayStained })}
+              {draggingDef.render(gram, { trayStained, trayColors })}
             </div>
           )}
 
