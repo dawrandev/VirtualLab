@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
+import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
+import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
 import { MicroscopeModal } from "@/labs/lab2/components2d/MicroscopeModal";
 import { LAB3_ITEMS, LAB3_ITEM_BY_ID, intentFor, canIncubate, type Lab3ItemId } from "./items";
 import { freshDrigalskiState, applyDrigalskiStep, type DrigalskiState, type DrigalskiIntent } from "../state";
@@ -443,6 +445,10 @@ export function Lab3Workbench() {
   const trayColors = drig.gram.fuchsin ? TRAY_PINK : TRAY_VIOLET;
   const renderOpts = { spatulaHot, incubatorRunning: inc != null, develop, trayStained, trayColors };
   const slidePos = placed["slide"];
+  // Seated-on-station detection (drives the loop's vertical pose + the 3-layer
+  // occlusion overlays so the loop/tube read as *inside* their stations).
+  const loopOnStand = !!placed["loop"] && !!placed["loop-stand"] && Math.abs(placed["loop"].x - placed["loop-stand"].x) < 2;
+  const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
 
   const validTargets = new Set<Lab3ItemId>();
   if (drag) {
@@ -538,11 +544,29 @@ export function Lab3Workbench() {
                   style={{ cursor: "grab" }}
                   title={it.label}
                 >
-                  {it.render(drig, renderOpts)}
+                  {it.id === "loop" && loopOnStand ? (
+                    <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(drig, renderOpts)}</div>
+                  ) : (
+                    it.render(drig, renderOpts)
+                  )}
                 </div>
               </div>
             );
           })}
+
+          {/* Front face of the test-tube rack — painted over the seated suspension
+              tube so it reads as passing THROUGH the hole, not in front of it. */}
+          {tubeInRack && placed["rack"] && (
+            <div className="pointer-events-none absolute" style={{ left: `${placed["rack"].x}%`, top: `${placed["rack"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+              <TestTubeRack width={340} front />
+            </div>
+          )}
+          {/* Front face of the loop stand — frosts the seated loop's handle. */}
+          {loopOnStand && placed["loop-stand"] && (
+            <div className="pointer-events-none absolute" style={{ left: `${placed["loop-stand"].x}%`, top: `${placed["loop-stand"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+              <LoopStand width={200} front />
+            </div>
+          )}
 
           {/* Smear marks building up as the loop rubs the slide */}
           {hold?.intent === "make-smear" && slidePos && (
