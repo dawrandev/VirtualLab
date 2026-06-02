@@ -58,10 +58,10 @@ function fmtHours(h: number): string {
 
 function nextHint(s: DrigalskiState): string {
   if (!s.dishes) return "Oziqa muhitli 3 ta Petri idishini stolga qo'ying";
-  if (!s.spatulaSterile) return "Drigalski shpatelini olov ustida sterillang";
   if (!s.pipetteLoaded && !s.d1.material) return "Pipetka bilan suspenziyadan oling";
   if (!s.d1.material) return "Pipetkadagi materialni 1-idishga tomizing";
-  if (!s.d1.spread) return "Shpatel bilan 1-idishdagi agarga surting";
+  if (!s.spatulaSterile) return "Drigalski shpatelini olovda sterillang (so'ng sovuting)";
+  if (!s.d1.spread) return "Sovugan steril shpatel bilan 1-idishdagi agarga surting";
   if (!s.d2.spread) return "O'sha shpatel bilan (sterillamasdan) 2-idishga surting";
   if (!s.d3.spread) return "O'sha shpatel bilan 3-idishga surting";
   if (!s.incubated) return "3 ta idishni ham termostatga qo'ying (18-24 soat)";

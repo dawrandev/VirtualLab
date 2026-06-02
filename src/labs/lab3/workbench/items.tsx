@@ -121,11 +121,12 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
     label: "Drigalski shpateli",
     apparatus: false,
     target: false,
-    w: 200,
-    h: 70,
-    tipX: -78, // spreading foot (left end)
-    preview: 0.62,
-    render: (_s, o) => <DrigalskiSpatula width={200} hot={o.spatulaHot} />,
+    w: 220,
+    h: 96,
+    tipX: -85, // triangular spreading head (left end)
+    tipY: 24,
+    preview: 0.58,
+    render: (_s, o) => <DrigalskiSpatula width={220} hot={o.spatulaHot} />,
   },
   {
     id: "pipette",
@@ -320,9 +321,9 @@ export function canIncubate(s: DrigalskiState): boolean {
 /** Next item the student is expected to use (learn-mode highlight + hint). */
 export function requiredItem(s: DrigalskiState): Lab3ItemId | null {
   if (!s.dishes) return "dish-1";
-  if (!s.spatulaSterile) return "spatula";
   if (!s.pipetteLoaded && !s.d1.material) return "pipette";
   if (!s.d1.material) return "pipette";
+  if (!s.spatulaSterile) return "spatula";
   if (!s.d1.spread) return "spatula";
   if (!s.d2.spread) return "spatula";
   if (!s.d3.spread) return "spatula";
