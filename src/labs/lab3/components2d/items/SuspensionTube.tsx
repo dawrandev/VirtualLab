@@ -2,13 +2,15 @@
 
 interface Props {
   width?: number;
+  /** Lift the cotton plug out of the mouth (while the pipette draws from it). */
+  plugOff?: boolean;
 }
 
 /**
  * Test tube of turbid bacterial suspension — a glass tube in a small stand-free
  * pose with a cloudy off-white liquid (the inoculum) and a cotton plug.
  */
-export function SuspensionTube({ width = 56 }: Props) {
+export function SuspensionTube({ width = 56, plugOff }: Props) {
   const w = width;
   const h = w * (180 / 56);
   return (
@@ -40,8 +42,10 @@ export function SuspensionTube({ width = 56 }: Props) {
       {/* Specular */}
       <rect x="18" y="42" width="3" height="120" rx="1.5" fill="#ffffff" opacity="0.6" />
 
-      {/* Cotton plug */}
-      <path d="M11 36 Q9 18 17 10 Q22 5 28 5 Q34 5 39 10 Q47 18 45 36 Q45 42 40 42 L16 42 Q11 42 11 36 Z" fill="url(#suCotton)" stroke="#cabfa6" strokeWidth="1" />
+      {/* Cotton plug — lifts out of the mouth while sampling */}
+      <g style={{ transition: "transform 0.4s ease", transform: plugOff ? "translate(16px,-30px) rotate(14deg)" : "none", transformOrigin: "28px 24px" }}>
+        <path d="M11 36 Q9 18 17 10 Q22 5 28 5 Q34 5 39 10 Q47 18 45 36 Q45 42 40 42 L16 42 Q11 42 11 36 Z" fill="url(#suCotton)" stroke="#cabfa6" strokeWidth="1" />
+      </g>
 
       {/* Red label */}
       <text x="28" y="100" fill="#d33b54" fontFamily="cursive, sans-serif" fontSize="8" fontStyle="italic" transform="rotate(90 28 100)">suspenziya</text>

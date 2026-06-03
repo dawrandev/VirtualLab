@@ -60,7 +60,15 @@ export interface Lab3ItemDef {
   hitDY?: number;
   render: (
     state: DrigalskiState,
-    opts: { spatulaHot?: boolean; incubatorRunning?: boolean; develop?: number; smearProg?: number; trayStained?: boolean; trayColors?: [string, string, string, string] },
+    opts: {
+      spatulaHot?: boolean;
+      incubatorRunning?: boolean;
+      develop?: number;
+      smearProg?: number;
+      trayStained?: boolean;
+      trayColors?: [string, string, string, string];
+      suspensionPlugOff?: boolean;
+    },
   ) => ReactNode;
 }
 
@@ -70,14 +78,14 @@ function dishDef(n: 1 | 2 | 3): Lab3ItemDef {
     label: `Oziqa muhitli idish ${n}`,
     apparatus: true,
     target: true,
-    w: 150,
-    h: 150,
+    w: 132,
+    h: 140,
     preview: 0.42,
     render: (s) => {
       const d = n === 1 ? s.d1 : n === 2 ? { material: false, spread: s.d2.spread } : { material: false, spread: s.d3.spread };
       return (
         <PetriAgarDish
-          diameter={150}
+          diameter={132}
           material={n === 1 ? s.d1.material : false}
           spread={d.spread}
           growth={dishGrowth(s, n)}
@@ -157,17 +165,17 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
     w: 56,
     h: 180,
     preview: 0.42,
-    render: () => <SuspensionTube width={56} />,
+    render: (_s, o) => <SuspensionTube width={56} plugOff={o.suspensionPlugOff} />,
   },
   {
     id: "incubator",
     label: "Termostat",
     apparatus: true,
     target: true,
-    w: 200,
-    h: 250,
-    preview: 0.3,
-    render: (_s, o) => <Incubator width={200} running={o.incubatorRunning} />,
+    w: 264,
+    h: 330,
+    preview: 0.26,
+    render: (_s, o) => <Incubator width={264} running={o.incubatorRunning} />,
   },
   {
     id: "loop-stand",
@@ -289,7 +297,8 @@ export const LAB3_ITEM_BY_ID: Record<Lab3ItemId, Lab3ItemDef> = Object.fromEntri
 /** The intent a (tool → target) drop performs, or null if meaningless. */
 export function intentFor(tool: Lab3ItemId, target: Lab3ItemId, s: DrigalskiState): DrigalskiIntent | null {
   if (tool === "spatula") {
-    if (target === "lamp") return "sterilize-spatula";
+    if (target === "alcohol-jar") return !s.spatulaDipped && !s.spatulaSterile ? "dip-spatula" : null;
+    if (target === "lamp") return s.spatulaDipped ? "sterilize-spatula" : null;
     if (target === "dish-1") return s.d1.material ? "spread-1" : null;
     if (target === "dish-2") return s.d1.spread ? "spread-2" : null;
     if (target === "dish-3") return s.d2.spread ? "spread-3" : null;

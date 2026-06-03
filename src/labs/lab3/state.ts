@@ -12,6 +12,8 @@
 export interface DrigalskiState {
   /** Three agar plates obtained and set on the bench. */
   dishes: boolean;
+  /** Working end dipped in alcohol (before flaming). */
+  spatulaDipped: boolean;
   /** Spreader flamed/sterile before plate 1. */
   spatulaSterile: boolean;
   /** Suspension drawn into the pipette. */
@@ -33,6 +35,7 @@ export interface DrigalskiState {
 export function freshDrigalskiState(): DrigalskiState {
   return {
     dishes: false,
+    spatulaDipped: false,
     spatulaSterile: false,
     pipetteLoaded: false,
     d1: { material: false, spread: false },
@@ -49,6 +52,7 @@ export function freshDrigalskiState(): DrigalskiState {
 
 export type DrigalskiIntent =
   | "get-dishes"
+  | "dip-spatula"
   | "sterilize-spatula"
   | "load-pipette"
   | "drop-material" // pipette → dish 1
@@ -99,8 +103,13 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
     case "get-dishes":
       s.dishes = true;
       break;
+    case "dip-spatula":
+      s.spatulaDipped = true;
+      break;
     case "sterilize-spatula":
+      // Flame burns off the alcohol → sterile (and briefly red-hot).
       s.spatulaSterile = true;
+      s.spatulaDipped = false;
       break;
     case "load-pipette":
       s.pipetteLoaded = true;

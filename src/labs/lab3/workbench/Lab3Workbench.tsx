@@ -32,11 +32,23 @@ interface DragState {
   px: number;
   py: number;
 }
+type Kind = "rub" | "sample" | "contact" | "instant";
 interface Hold {
+  kind: Kind;
   intent: DrigalskiIntent;
   target: Lab3ItemId;
   progress: number;
 }
+
+/** How a (tool → target) action is performed. */
+function actionKind(intent: DrigalskiIntent): Kind {
+  if (intent === "load-pipette" || intent === "pick-colony") return "sample"; // timed, with a visual
+  if (intent === "make-smear" || intent === "spread-1" || intent === "spread-2" || intent === "spread-3") return "rub";
+  if (intent === "to-microscope") return "instant";
+  return "contact"; // drip material, dip, flame, apply dyes, wash — fire on touch
+}
+
+const SAMPLE_DUR = 1500;
 interface Fx {
   kind: "drip-mat" | "drip-gv" | "drip-lugol" | "drip-alcohol" | "drip-fuchsin" | "wash";
   x: number;
@@ -60,7 +72,8 @@ function nextHint(s: DrigalskiState): string {
   if (!s.dishes) return "Oziqa muhitli 3 ta Petri idishini stolga qo'ying";
   if (!s.pipetteLoaded && !s.d1.material) return "Pipetka bilan suspenziyadan oling";
   if (!s.d1.material) return "Pipetkadagi materialni 1-idishga tomizing";
-  if (!s.spatulaSterile) return "Drigalski shpatelini olovda sterillang (so'ng sovuting)";
+  if (!s.spatulaDipped && !s.spatulaSterile) return "Shpatel uchini spirt bankasiga botiring";
+  if (!s.spatulaSterile) return "Shpatelni olovda yoqing — spirt yonib sterillanadi (so'ng sovuting)";
   if (!s.d1.spread) return "Sovugan steril shpatel bilan 1-idishdagi agarga surting";
   if (!s.d2.spread) return "O'sha shpatel bilan (sterillamasdan) 2-idishga surting";
   if (!s.d3.spread) return "O'sha shpatel bilan 3-idishga surting";
@@ -99,6 +112,10 @@ export function Lab3Workbench() {
   const [hold, setHold] = useState<Hold | null>(null);
   const holdRef = useRef<Hold | null>(null);
   holdRef.current = hold;
+  const holdIv = useRef<number | null>(null);
+  // After a contact/sample action fires the tool stays in hand; lock the target
+  // so it doesn't re-fire until the pointer leaves it.
+  const lockTargetRef = useRef<Lab3ItemId | null>(null);
 
   const [fx, setFx] = useState<Fx | null>(null);
   const fxKey = useRef(0);
@@ -237,13 +254,37 @@ export function Lab3Workbench() {
   }, []);
 
   function cancelHold() {
+    if (holdIv.current) {
+      window.clearInterval(holdIv.current);
+      holdIv.current = null;
+    }
     holdRef.current = null;
     setHold(null);
   }
 
-  /** Is this (tool → slide) a gradual rub (the smear)? */
-  function isRub(d: DragState, target: Lab3ItemId | null, intent: DrigalskiIntent | null) {
-    return d.id === "loop" && target === "slide" && intent === "make-smear";
+  /** Fired once a timed/rub action completes; the tool stays in hand. */
+  function completeAction(intent: DrigalskiIntent, target: Lab3ItemId) {
+    perform(intent);
+    cancelHold();
+    lockTargetRef.current = target;
+  }
+
+  function startTimed(target: Lab3ItemId, intent: DrigalskiIntent, duration: number) {
+    cancelHold();
+    const h: Hold = { kind: "sample", target, intent, progress: 0 };
+    holdRef.current = h;
+    setHold(h);
+    let p = 0;
+    holdIv.current = window.setInterval(() => {
+      p += TICK / duration;
+      if (p >= 1) {
+        completeAction(intent, target);
+        return;
+      }
+      const nh: Hold = { ...h, progress: p };
+      holdRef.current = nh;
+      setHold(nh);
+    }, TICK);
   }
 
   useEffect(() => {
@@ -262,26 +303,49 @@ export function Lab3Workbench() {
       const validIncubate = tg === "incubator" && d.id.startsWith("dish-") && canIncubate(drigRef.current);
       setHoverTarget(intent || validIncubate ? tg : null);
 
-      // Smear is a gradual rub — accumulate progress from pointer movement.
-      if (isRub(d, tg, intent)) {
-        const h = holdRef.current;
-        if (!h || h.target !== tg) {
-          const nh: Hold = { intent: "make-smear", target: tg as Lab3ItemId, progress: 0 };
+      const h = holdRef.current;
+      // Release the lock once the pointer leaves that target.
+      if (lockTargetRef.current && tg !== lockTargetRef.current) lockTargetRef.current = null;
+
+      if (!intent || !tg) {
+        if (h && h.kind !== "rub") cancelHold(); // timed needs continuous contact
+        return;
+      }
+      // Spreading plate 1 needs a sterile spreader.
+      if (intent === "spread-1" && !drigRef.current.spatulaSterile) {
+        if (h) cancelHold();
+        return;
+      }
+      if (lockTargetRef.current === tg) return; // already fired, tool still in hand
+
+      const kind = actionKind(intent);
+      if (kind === "contact") {
+        if (h) cancelHold();
+        perform(intent);
+        lockTargetRef.current = tg;
+        return;
+      }
+      if (kind === "instant") {
+        if (h) cancelHold();
+        return; // fires on release
+      }
+      if (kind === "sample") {
+        if (!h || h.target !== tg || h.kind !== "sample") startTimed(tg, intent, SAMPLE_DUR);
+        return;
+      }
+      // rub — accumulate from movement
+      if (!h || h.target !== tg || h.kind !== "rub") {
+        const nh: Hold = { kind: "rub", target: tg, intent, progress: 0 };
+        holdRef.current = nh;
+        setHold(nh);
+      } else {
+        const np = h.progress + Math.hypot(dx, dy) * RUB_K;
+        if (np >= 1) completeAction(intent, tg);
+        else {
+          const nh: Hold = { ...h, progress: np };
           holdRef.current = nh;
           setHold(nh);
-        } else {
-          const np = h.progress + Math.hypot(dx, dy) * RUB_K;
-          if (np >= 1) {
-            perform("make-smear");
-            cancelHold();
-          } else {
-            const nh: Hold = { ...h, progress: np };
-            holdRef.current = nh;
-            setHold(nh);
-          }
         }
-      } else if (holdRef.current) {
-        cancelHold();
       }
     }
     function onUp(e: PointerEvent) {
@@ -312,8 +376,8 @@ export function Lab3Workbench() {
   }
 
   function resolveDrop(e: PointerEvent) {
-    const wasRub = holdRef.current != null;
     cancelHold();
+    lockTargetRef.current = null;
     const d = dragRef.current;
     const rect = tableRef.current?.getBoundingClientRect();
     if (!d || !rect) {
@@ -358,21 +422,9 @@ export function Lab3Workbench() {
     if (target) {
       const intent = intentFor(d.id, target, drigRef.current);
       if (intent) {
-        // The smear rub already fired mid-drag; just lay the loop back down.
-        if (intent === "make-smear") {
-          if (!wasRub && drigRef.current.colonyPicked && !drigRef.current.smeared) {
-            // A quick tap without rubbing — nudge them to rub.
-            showToast("Halqani oyna ustida yurgizib surting");
-          }
-        } else {
-          if (intent === "spread-1" && !drigRef.current.spatulaSterile) {
-            showToast("Avval shpatelni sterillang");
-            endDrag();
-            return;
-          }
-          perform(intent);
-        }
-        // Lay the tool down (snap to its station) — never vanish.
+        // Instant actions fire on release; contact/sample/rub already fired
+        // mid-drag. Either way the tool is laid back down (never vanishes).
+        if (actionKind(intent) === "instant") perform(intent);
         const fx = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
         const fy = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
         const pos = snapPos(d.id, rect, { x: fx, y: fy });
@@ -432,6 +484,7 @@ export function Lab3Workbench() {
     setReaction(null);
     setReactionProg(1);
     cancelHold();
+    lockTargetRef.current = null;
     setScopeOpen(false);
     setReveal(false);
     setExamPhase("planning");
@@ -439,12 +492,23 @@ export function Lab3Workbench() {
   }
 
   const placedSet = new Set(Object.keys(placed).filter((k) => !inIncubator.has(k))) as Set<Lab3ItemId>;
+  // Dishes inside the incubator are still "in use" — keep them out of the tray.
+  const sidebarPlaced = new Set([...placedSet, ...inIncubator]) as Set<Lab3ItemId>;
   const draggingDef = drag ? LAB3_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(drig);
   const develop = reaction ? reactionProg : 1;
   const trayColors = drig.gram.fuchsin ? TRAY_PINK : TRAY_VIOLET;
-  const renderOpts = { spatulaHot, incubatorRunning: inc != null, develop, trayStained, trayColors };
+  const sampling = hold?.kind === "sample";
+  const renderOpts = {
+    spatulaHot,
+    incubatorRunning: inc != null,
+    develop,
+    trayStained,
+    trayColors,
+    suspensionPlugOff: sampling && hold?.intent === "load-pipette",
+  };
   const slidePos = placed["slide"];
+  const dish3Pos = placed["dish-3"];
   // Seated-on-station detection (drives the loop's vertical pose + the 3-layer
   // occlusion overlays so the loop/tube read as *inside* their stations).
   const loopOnStand = !!placed["loop"] && !!placed["loop-stand"] && Math.abs(placed["loop"].x - placed["loop-stand"].x) < 2;
@@ -491,7 +555,7 @@ export function Lab3Workbench() {
 
       <div className="flex flex-1 overflow-hidden">
         {sidebarOpen && !(isExam && examPhase === "planning") && (
-          <Lab3Sidebar state={drig} placed={placedSet} draggingId={drag?.id ?? null} onStartDrag={startDrag} showHints={!isExam} />
+          <Lab3Sidebar state={drig} placed={sidebarPlaced} draggingId={drag?.id ?? null} onStartDrag={startDrag} showHints={!isExam} />
         )}
 
         <div ref={tableRef} className="relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
@@ -577,6 +641,39 @@ export function Lab3Workbench() {
             </div>
           )}
 
+          {/* Spreading: a wet glossy sheen + raking streaks build on the plate */}
+          {hold?.kind === "rub" && hold.intent.startsWith("spread-") && placed[hold.target] && (
+            <div className="pointer-events-none absolute z-20" style={{ left: `${placed[hold.target].x}%`, top: `${placed[hold.target].y}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="132" height="132" viewBox="0 0 132 132">
+                <circle cx="66" cy="66" r="50" fill="#f0eece" opacity={0.3 * hold.progress} />
+                {[0, 1, 2].map((i) => (
+                  <path
+                    key={i}
+                    d={`M 26 ${50 + i * 16} Q 66 ${40 + i * 16} 106 ${50 + i * 16}`}
+                    stroke="#f4f1cf"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={84}
+                    strokeDashoffset={84 * (1 - Math.max(0, Math.min(1, hold.progress * 1.5 - i * 0.22)))}
+                    opacity="0.85"
+                  />
+                ))}
+                <ellipse cx="48" cy="52" rx="22" ry="8" fill="#ffffff" opacity={0.32 * hold.progress} />
+              </svg>
+            </div>
+          )}
+
+          {/* Colony pick: a touch ring pulses on the isolated colony in plate 3 */}
+          {hold?.kind === "sample" && hold.intent === "pick-colony" && dish3Pos && (
+            <div className="pointer-events-none absolute z-20" style={{ left: `${dish3Pos.x}%`, top: `${dish3Pos.y}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="132" height="132" viewBox="0 0 132 132">
+                <circle cx="44.9" cy="47.5" r={6 + hold.progress * 5} fill="none" stroke="#e0573f" strokeWidth="2" opacity={0.9 - hold.progress * 0.4} />
+                <circle cx="44.9" cy="47.5" r="3.4" fill="#f8f8da" />
+              </svg>
+            </div>
+          )}
+
           {/* Drips */}
           {fx && fx.kind.startsWith("drip") && (
             <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 8}%` }}>
@@ -610,10 +707,14 @@ export function Lab3Workbench() {
             </div>
           )}
 
-          {/* Drag ghost */}
+          {/* Drag ghost — the loop dips as it picks a colony / rubs a smear */}
           {drag && draggingDef && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
-              {draggingDef.render(drig, renderOpts)}
+              {drag.id === "loop" && hold ? (
+                <div style={{ transform: `translateY(${hold.progress * 10}px)`, transition: "transform 0.1s ease" }}>{draggingDef.render(drig, renderOpts)}</div>
+              ) : (
+                draggingDef.render(drig, renderOpts)
+              )}
             </div>
           )}
 
