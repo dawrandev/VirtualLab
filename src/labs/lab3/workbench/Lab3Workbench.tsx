@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
+import { AlcoholJar } from "../components2d/items/AlcoholJar";
 import { MicroscopeModal } from "@/labs/lab2/components2d/MicroscopeModal";
 import { LAB3_ITEMS, LAB3_ITEM_BY_ID, intentFor, canIncubate, type Lab3ItemId } from "./items";
 import { freshDrigalskiState, applyDrigalskiStep, type DrigalskiState, type DrigalskiIntent } from "../state";
@@ -371,7 +372,7 @@ export function Lab3Workbench() {
     const p = placedRef.current;
     if (id === "suspension" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
     if (id === "loop" && p["loop-stand"]) return { x: p["loop-stand"].x, y: p["loop-stand"].y + (-55 / rect.height) * 100 };
-    if (id === "spatula" && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y - 22 };
+    if (id === "spatula" && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-47 / rect.height) * 100 };
     if (id === "slide" && p["bridge"]) return { x: p["bridge"].x, y: p["bridge"].y - 4 };
     return fallback;
   }
@@ -514,6 +515,7 @@ export function Lab3Workbench() {
   // occlusion overlays so the loop/tube read as *inside* their stations).
   const loopOnStand = !!placed["loop"] && !!placed["loop-stand"] && Math.abs(placed["loop"].x - placed["loop-stand"].x) < 2;
   const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
+  const spatulaInJar = !!placed["spatula"] && !!placed["alcohol-jar"] && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
 
   const validTargets = new Set<Lab3ItemId>();
   if (drag) {
@@ -611,6 +613,8 @@ export function Lab3Workbench() {
                 >
                   {it.id === "loop" && loopOnStand ? (
                     <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(drig, renderOpts)}</div>
+                  ) : it.id === "spatula" && spatulaInJar ? (
+                    <div style={{ transform: "rotate(82deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
                   ) : (
                     it.render(drig, renderOpts)
                   )}
@@ -630,6 +634,13 @@ export function Lab3Workbench() {
           {loopOnStand && placed["loop-stand"] && (
             <div className="pointer-events-none absolute" style={{ left: `${placed["loop-stand"].x}%`, top: `${placed["loop-stand"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
               <LoopStand width={200} front />
+            </div>
+          )}
+          {/* Front glass + alcohol of the jar — painted over the dipped spreader
+              so its working end reads as submerged in the alcohol. */}
+          {spatulaInJar && placed["alcohol-jar"] && (
+            <div className="pointer-events-none absolute" style={{ left: `${placed["alcohol-jar"].x}%`, top: `${placed["alcohol-jar"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+              <AlcoholJar width={110} front />
             </div>
           )}
 
