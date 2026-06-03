@@ -50,7 +50,7 @@ function actionKind(intent: DrigalskiIntent): Kind {
 
 const SAMPLE_DUR = 1500;
 interface Fx {
-  kind: "drip-mat" | "drip-gv" | "drip-lugol" | "drip-alcohol" | "drip-fuchsin" | "wash";
+  kind: "drip-mat" | "drip-gv" | "drip-lugol" | "drip-alcohol" | "drip-fuchsin" | "wash" | "dip";
   x: number;
   y: number;
   key: number;
@@ -200,7 +200,8 @@ export function Lab3Workbench() {
       const p = placedRef.current[id];
       return { x: p?.x ?? 50, y: p?.y ?? 50 };
     };
-    if (intent === "sterilize-spatula") setSpatulaHot(true);
+    if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    else if (intent === "sterilize-spatula") setSpatulaHot(true);
     else if (intent === "drop-material") flashAt("drip-mat", at("dish-1").x, at("dish-1").y);
     else if (intent === "apply-gv" || intent === "apply-lugol" || intent === "apply-alcohol" || intent === "apply-fuchsin") {
       const { x, y } = at("slide");
@@ -678,6 +679,27 @@ export function Lab3Workbench() {
           {fx && fx.kind.startsWith("drip") && (
             <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 8}%` }}>
               <Drop trigger={fx.key} color={DRIP_COLOR[fx.kind]} fallHeight={60} />
+            </div>
+          )}
+          {/* Alcohol dip — expanding ripple rings on the jar's surface */}
+          {fx?.kind === "dip" && (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 18}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="90" height="40" viewBox="0 0 90 40">
+                {[0, 1, 2].map((i) => (
+                  <motion.ellipse
+                    key={i}
+                    cx="45"
+                    cy="20"
+                    initial={{ rx: 5, ry: 2, opacity: 0.7 }}
+                    animate={{ rx: 26, ry: 9, opacity: 0 }}
+                    transition={{ duration: 0.8, delay: i * 0.18, ease: "easeOut" }}
+                    fill="none"
+                    stroke="#bfe0ee"
+                    strokeWidth="1.6"
+                  />
+                ))}
+                <motion.circle cx="45" cy="18" r="2.5" initial={{ y: -10, opacity: 0.9 }} animate={{ y: 0, opacity: 0 }} transition={{ duration: 0.35 }} fill="#cfe6f0" />
+              </svg>
             </div>
           )}
           {/* Wash stream + coloured runoff toward the tray */}

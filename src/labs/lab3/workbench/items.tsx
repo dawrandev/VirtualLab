@@ -134,7 +134,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
     tipX: -85, // triangular spreading head (left end)
     tipY: 24,
     preview: 0.58,
-    render: (_s, o) => <DrigalskiSpatula width={220} hot={o.spatulaHot} />,
+    render: (s, o) => <DrigalskiSpatula width={220} hot={o.spatulaHot} wet={s.spatulaDipped} />,
   },
   {
     id: "pipette",

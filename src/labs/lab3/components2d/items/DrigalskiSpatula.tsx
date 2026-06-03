@@ -5,6 +5,8 @@ interface Props {
   /** Glows hot just after flaming (then cools). Only the working triangular
    *  end reaches red-hot — the handle stays cool, as in real sterilization. */
   hot?: boolean;
+  /** Working end freshly dipped in alcohol (glistening) — before flaming. */
+  wet?: boolean;
 }
 
 /**
@@ -14,7 +16,7 @@ interface Props {
  * working triangle reddens in the flame (dip in alcohol → flame); the handle
  * stays metallic.
  */
-export function DrigalskiSpatula({ width = 220, hot }: Props) {
+export function DrigalskiSpatula({ width = 220, hot, wet }: Props) {
   const w = width;
   const h = w * (96 / 220);
   const steel = "url(#dsSteel)";
@@ -56,6 +58,15 @@ export function DrigalskiSpatula({ width = 220, hot }: Props) {
       {!hot && <path d="M68 45 L18 69" stroke="#ffffff" strokeWidth="1.4" opacity="0.45" strokeLinecap="round" />}
       {/* Hot tip highlight */}
       {hot && <path d="M18 69 L60 71" stroke="#ffd9a0" strokeWidth="1.6" opacity="0.7" strokeLinecap="round" />}
+
+      {/* Alcohol-wet working end — glistening highlight + a couple of drips */}
+      {wet && !hot && (
+        <g>
+          <path d="M70 44 L16 70 L62 72 L70 44 Z" fill="none" stroke="#cfe6f0" strokeWidth="2.2" strokeLinejoin="round" opacity="0.85" />
+          <circle cx="20" cy="74" r="2.2" fill="#bfe0ee" opacity="0.85" />
+          <circle cx="44" cy="76" r="1.8" fill="#bfe0ee" opacity="0.8" />
+        </g>
+      )}
     </svg>
   );
 }
