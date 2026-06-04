@@ -6,6 +6,9 @@ import type { ExamResult, StepStatus } from "../exam/scoring";
 interface Props {
   result: ExamResult;
   onRestart: () => void;
+  /** Learn mode: softer framing + a "keep practising" close button. */
+  learn?: boolean;
+  onClose?: () => void;
 }
 
 function tier(pct: number): { label: string; color: string } {
@@ -29,7 +32,7 @@ function sensColor(label: string): string {
 }
 
 /** End-of-exam breakdown for Lab 4 — five PDF criteria + per-antibiotic calls. */
-export function Lab4ResultModal({ result, onRestart }: Props) {
+export function Lab4ResultModal({ result, onRestart, learn, onClose }: Props) {
   const pct = (result.total / result.max) * 100;
   const t = tier(pct);
 
@@ -45,7 +48,7 @@ export function Lab4ResultModal({ result, onRestart }: Props) {
           </div>
           <div>
             <p className="text-lg font-bold text-slate-800">{t.label}</p>
-            <p className="text-[13px] text-slate-500">Disk usuli — imtihon natijasi (PDF mezoni)</p>
+            <p className="text-[13px] text-slate-500">{learn ? "Disk usuli — o'rganish natijasi" : "Disk usuli — imtihon natijasi (PDF mezoni)"}</p>
           </div>
         </div>
 
@@ -84,8 +87,11 @@ export function Lab4ResultModal({ result, onRestart }: Props) {
           })}
         </div>
 
-        <div className="border-t border-slate-200 p-3">
-          <button onClick={onRestart} className="w-full rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">Qayta boshlash</button>
+        <div className="flex gap-2 border-t border-slate-200 p-3">
+          {learn && onClose && (
+            <button onClick={onClose} className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-200">Yopish</button>
+          )}
+          <button onClick={onRestart} className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">Qayta boshlash</button>
         </div>
       </motion.div>
     </motion.div>

@@ -127,6 +127,8 @@ export function Lab4Workbench() {
 
   const [measureOpen, setMeasureOpen] = useState(false);
   const [reveal, setReveal] = useState(false);
+  // Result summary in learn mode (exam uses examPhase === "result").
+  const [learnResult, setLearnResult] = useState<ExamResult | null>(null);
 
   const isExam = mode === "exam";
   const examActive = isExam && examPhase === "execution";
@@ -440,6 +442,7 @@ export function Lab4Workbench() {
     lockTargetRef.current = null;
     setMeasureOpen(false);
     setReveal(false);
+    setLearnResult(null);
     setExamPhase("planning");
     setMode(null);
   }
@@ -723,7 +726,10 @@ export function Lab4Workbench() {
         onClose={() => setMeasureOpen(false)}
         onFinish={() => {
           if (isExam) finishExam();
-          else setMeasureOpen(false);
+          else {
+            setMeasureOpen(false);
+            setLearnResult(scoreDiskExam(actionLog, diskRef.current));
+          }
         }}
       />
 
@@ -732,6 +738,13 @@ export function Lab4Workbench() {
       <AnimatePresence>
         {isExam && examPhase === "result" && examResult && (
           <Lab4ResultModal result={examResult} onRestart={restart} />
+        )}
+      </AnimatePresence>
+
+      {/* Learn-mode result — same breakdown, with a "continue practising" exit. */}
+      <AnimatePresence>
+        {!isExam && learnResult && (
+          <Lab4ResultModal result={learnResult} learn onRestart={restart} onClose={() => setLearnResult(null)} />
         )}
       </AnimatePresence>
     </div>
