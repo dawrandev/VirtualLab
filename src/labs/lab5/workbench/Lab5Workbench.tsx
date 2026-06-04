@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
+import { BacterialLoop } from "@/labs/lab1/components2d/items/BacterialLoop";
+import { FilterPaper } from "@/labs/lab1/components2d/items/FilterPaper";
 import { CoverSlip } from "../components2d/items/CoverSlip";
 import { LAB5_ITEMS, LAB5_ITEM_BY_ID, intentFor, type Lab5ItemId } from "./items";
 import { freshWetMountState, applyWetStep, canObserve, dropStage, SPECIMEN, type WetMountState, type WetIntent, type Motility } from "../state";
@@ -43,7 +45,11 @@ interface Fx {
   key: number;
 }
 
-const SAMPLE_INTENTS: WetIntent[] = ["charge-loop", "degrease-slide", "place-cover"];
+const SAMPLE_INTENTS: WetIntent[] = ["charge-loop", "degrease-slide", "place-cover", "blot-excess"];
+
+/** Render stacking on the bench: tray underneath → bridge → slide on top. */
+const Z_STACK: Partial<Record<Lab5ItemId, number>> = { tray: 0, bridge: 1, slide: 4 };
+const zOf = (id: Lab5ItemId) => Z_STACK[id] ?? 2;
 
 function actionKind(intent: WetIntent): Kind {
   if (intent === "mix-drop") return "rub";
@@ -88,7 +94,7 @@ export function Lab5Workbench() {
 
   const [fx, setFx] = useState<Fx | null>(null);
   const fxKey = useRef(0);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loopHot, setLoopHot] = useState(false);
 
@@ -98,7 +104,6 @@ export function Lab5Workbench() {
   const [examPhase, setExamPhase] = useState<ExamPhase>("planning");
   const [actionLog, setActionLog] = useState<ExamAction[]>([]);
   const [examResult, setExamResult] = useState<ExamResult | null>(null);
-  const [learnResult, setLearnResult] = useState<ExamResult | null>(null);
 
   const [scopeOpen, setScopeOpen] = useState(false);
   const [reveal, setReveal] = useState(false);
@@ -112,9 +117,9 @@ export function Lab5Workbench() {
     setFx({ kind, x, y, key: k });
     window.setTimeout(() => setFx((f) => (f && f.key === k ? null : f)), ms);
   }, []);
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 1900);
+  const showToast = useCallback((msg: string, ok = false, ms = 1900) => {
+    setToast({ msg, ok });
+    window.setTimeout(() => setToast(null), ms);
   }, []);
   const recordAction = useCallback((intent: string) => {
     setActionLog((log) => [...log, { intent, ts: Date.now() }]);
@@ -283,6 +288,7 @@ export function Lab5Workbench() {
 
   function snapPos(id: Lab5ItemId, rect: DOMRect, fallback: { x: number; y: number }): { x: number; y: number } {
     const p = placedRef.current;
+    if (id === "bridge" && p["tray"]) return { x: p["tray"].x, y: p["tray"].y };
     if (id === "slide" && p["bridge"]) return { x: p["bridge"].x, y: p["bridge"].y };
     if (id === "loop" && p["loop-stand"]) return { x: p["loop-stand"].x, y: p["loop-stand"].y + (-55 / rect.height) * 100 };
     if (id === "culture" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
@@ -363,8 +369,9 @@ export function Lab5Workbench() {
   }
   function closeScope() {
     setScopeOpen(false);
+    // Learn mode is for practice — no grade. Just a completion message.
     if (modeRef.current !== "exam" && wetRef.current.motilePick) {
-      setLearnResult(scoreWetMountExam(actionLog, wetRef.current));
+      showToast("✓ Preparat tayyor — ishni muvaffaqiyatli yakunladingiz!", true, 3600);
     }
   }
   function startExam() {
@@ -380,7 +387,6 @@ export function Lab5Workbench() {
     setPlaced({});
     setActionLog([]);
     setExamResult(null);
-    setLearnResult(null);
     setLoopHot(false);
     cancelHold();
     lockTargetRef.current = null;
@@ -397,6 +403,7 @@ export function Lab5Workbench() {
   const degreasing = hold?.kind === "sample" && hold.intent === "degrease-slide";
   const charging = hold?.kind === "sample" && hold.intent === "charge-loop";
   const covering = hold?.kind === "sample" && hold.intent === "place-cover";
+  const blotting = hold?.kind === "sample" && hold.intent === "blot-excess";
   const mixing = hold?.kind === "rub" && hold.intent === "mix-drop" ? hold : null;
 
   const renderOpts = { loopHeat: loopHot ? 1 : 0, slideWarming: degreasing, tubePlugOff: charging, filterWet: wet.blotted };
@@ -464,7 +471,7 @@ export function Lab5Workbench() {
             </div>
           )}
 
-          {LAB5_ITEMS.filter((it) => placedSet.has(it.id)).map((it) => {
+          {LAB5_ITEMS.filter((it) => placedSet.has(it.id)).sort((a, b) => zOf(a.id) - zOf(b.id)).map((it) => {
             const pos = placed[it.id];
             const isValid = validTargets.has(it.id);
             const isHover = hoverTarget === it.id;
@@ -531,10 +538,37 @@ export function Lab5Workbench() {
             </div>
           )}
 
-          {/* Charging the loop from the culture — plug lifts, badge shows */}
+          {/* Charging the loop — it swings VERTICAL and lowers its ring down
+              through the open tube mouth onto the slant-agar growth, then lifts. */}
           {charging && culturePos && (
-            <div className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2" style={{ left: `${culturePos.x}%`, top: `${culturePos.y - 18}%` }}>
-              <div className="rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🧫 Kulturadan olinyapti…</div>
+            <>
+              <div className="pointer-events-none absolute z-40" style={{ left: `${culturePos.x}%`, top: `${culturePos.y}%`, transform: "translate(-50%,-50%)" }}>
+                <motion.div
+                  style={{ transformOrigin: "center center" }}
+                  initial={{ rotate: -46, y: -150, opacity: 0 }}
+                  animate={{ rotate: -90, y: [-150, -40, -40, -150], opacity: 1 }}
+                  transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.32, 0.78, 1], ease: "easeInOut" }}
+                >
+                  <BacterialLoop heatLevel={0} />
+                </motion.div>
+              </div>
+              <div className="pointer-events-none absolute z-40 -translate-x-1/2 rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow" style={{ left: `${culturePos.x}%`, top: `${culturePos.y + 18}%` }}>
+                🧫 Kulturadan olinyapti…
+              </div>
+            </>
+          )}
+
+          {/* Blotting excess fluid — filter paper dabs the cover-slip edge */}
+          {blotting && slidePos && (
+            <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x + 10}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
+              <motion.div
+                initial={{ y: -30, opacity: 0 }}
+                animate={{ y: [-30, -6, -16, -6, -30], opacity: 1 }}
+                transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.25, 0.5, 0.75, 1], ease: "easeInOut" }}
+              >
+                <FilterPaper width={68} wet />
+              </motion.div>
+              <div className="absolute left-1/2 top-[-22px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🧻 Ortiqcha suyuqlik olinyapti…</div>
             </div>
           )}
 
@@ -552,8 +586,8 @@ export function Lab5Workbench() {
             </button>
           )}
 
-          {/* Drag ghost — hidden while the cover slip is lowering. */}
-          {drag && draggingDef && !covering && (
+          {/* Drag ghost — hidden while a dedicated dip/dab animation plays. */}
+          {drag && draggingDef && !covering && !charging && !blotting && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               {draggingDef.render(wet, renderOpts)}
             </div>
@@ -561,8 +595,8 @@ export function Lab5Workbench() {
 
           <AnimatePresence>
             {toast && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-rose-600/95 px-4 py-2 text-sm font-medium text-white shadow-lg">
-                {toast}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-lg" style={{ background: toast.ok ? "rgba(5,150,105,0.96)" : "rgba(225,29,72,0.95)" }}>
+                {toast.msg}
               </motion.div>
             )}
           </AnimatePresence>
@@ -585,12 +619,6 @@ export function Lab5Workbench() {
       <AnimatePresence>
         {isExam && examPhase === "result" && examResult && (
           <Lab5ResultModal result={examResult} onRestart={restart} />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {!isExam && learnResult && (
-          <Lab5ResultModal result={learnResult} learn onRestart={restart} onClose={() => setLearnResult(null)} />
         )}
       </AnimatePresence>
     </div>
