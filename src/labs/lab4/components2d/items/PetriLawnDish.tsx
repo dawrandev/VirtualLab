@@ -35,8 +35,8 @@ export function PetriLawnDish({ diameter = 230, stage, placedDisks = {}, highlig
   const lidOff = hasLawn || Object.values(placedDisks).some(Boolean);
 
   return (
-    <div style={{ position: "relative", width: w, height: h, filter: "drop-shadow(0 6px 7px rgba(0,0,0,0.22))" }}>
-      <svg width={w} height={h} viewBox="0 0 210 164">
+    <div style={{ position: "relative", width: w, height: h, overflow: "visible", filter: "drop-shadow(0 6px 7px rgba(0,0,0,0.22))" }}>
+      <svg width={w} height={h} viewBox="0 0 210 164" style={{ overflow: "visible" }}>
         <defs>
           <radialGradient id="pldAgar" cx="46%" cy="42%" r="62%">
             <stop offset="0%" stopColor="#eef0c2" />
