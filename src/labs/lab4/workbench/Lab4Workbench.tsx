@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
+import { CottonSwab } from "../components2d/items/CottonSwab";
 import { LAB4_ITEMS, LAB4_ITEM_BY_ID, intentFor, type Lab4ItemId } from "./items";
 import {
   freshDiskState,
@@ -579,11 +580,20 @@ export function Lab4Workbench() {
             );
           })()}
 
-          {/* Swab dipping into the culture tube — progress ring while charging */}
+          {/* Swab dipping into the open culture tube — it swings to vertical and
+              lowers its cotton tip down through the mouth onto the slant agar. */}
           {chargingSwab && culturePos && (
-            <div className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2" style={{ left: `${culturePos.x}%`, top: `${culturePos.y - 18}%` }}>
-              <div className="flex items-center gap-1.5 rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-                <span>💧 Tampon botirilyapti…</span>
+            <div className="pointer-events-none absolute z-40" style={{ left: `${culturePos.x}%`, top: `${culturePos.y}%`, transform: "translate(-50%,-50%)" }}>
+              <motion.div
+                style={{ transformOrigin: "center center" }}
+                initial={{ rotate: -42, y: -140, opacity: 0 }}
+                animate={{ rotate: -90, y: [-140, -18, -18, -140], opacity: 1 }}
+                transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.3, 0.8, 1], ease: "easeInOut" }}
+              >
+                <CottonSwab width={150} charged />
+              </motion.div>
+              <div className="absolute left-1/2 top-[-92px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+                💧 Tampon botirilyapti…
               </div>
             </div>
           )}
@@ -645,8 +655,9 @@ export function Lab4Workbench() {
             </button>
           )}
 
-          {/* Drag ghost — forceps carrying a disk shows a small disk at its tips */}
-          {drag && draggingDef && (
+          {/* Drag ghost — forceps carrying a disk shows a small disk at its tips.
+              Hidden while the swab is dipping (the vertical dip visual takes over). */}
+          {drag && draggingDef && !chargingSwab && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               <div className="relative">
                 {draggingDef.render(disk, renderOpts)}
