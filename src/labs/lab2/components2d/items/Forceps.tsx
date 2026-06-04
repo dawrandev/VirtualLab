@@ -2,6 +2,8 @@
 
 interface Props {
   width?: number;
+  /** Tips glowing red-hot just after flame sterilisation. */
+  hot?: boolean;
 }
 
 /**
@@ -9,12 +11,21 @@ interface Props {
  * top, tapering to fine tips. Used to lift the filter paper off the smear.
  * Drawn vertically (tips at the bottom) so it reads as held in the hand.
  */
-export function Forceps({ width = 40 }: Props) {
+export function Forceps({ width = 40, hot }: Props) {
   const w = width;
   const h = w * (150 / 40);
   return (
     <svg width={w} height={h} viewBox="0 0 40 150" style={{ overflow: "visible", filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.28))" }}>
       <defs>
+        <linearGradient id="fcHot" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#c8d0d6" />
+          <stop offset="55%" stopColor="#e8893a" />
+          <stop offset="100%" stopColor="#ff5a2c" />
+        </linearGradient>
+        <radialGradient id="fcGlow" cx="50%" cy="100%" r="70%">
+          <stop offset="0%" stopColor="#ff8a3d" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#ff8a3d" stopOpacity="0" />
+        </radialGradient>
         <linearGradient id="fcSteel" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#eef2f4" />
           <stop offset="35%" stopColor="#c3ccd2" />
@@ -49,9 +60,19 @@ export function Forceps({ width = 40 }: Props) {
       <path d="M16.4 14 L15 120" stroke="#ffffff" strokeWidth="0.8" opacity="0.5" strokeLinecap="round" />
       <path d="M23.6 14 L25 120" stroke="#ffffff" strokeWidth="0.8" opacity="0.45" strokeLinecap="round" />
 
+      {/* Hot glow halo around the tips */}
+      {hot && <ellipse cx="20" cy="146" rx="16" ry="12" fill="url(#fcGlow)" />}
+
       {/* Fine tips */}
-      <path d="M16 140 L17 148 L17.6 148 L18 140 Z" fill="#aeb7bd" stroke="#6c757b" strokeWidth="0.4" />
-      <path d="M24 140 L23 148 L22.4 148 L22 140 Z" fill="#aeb7bd" stroke="#6c757b" strokeWidth="0.4" />
+      <path d="M16 140 L17 148 L17.6 148 L18 140 Z" fill={hot ? "url(#fcHot)" : "#aeb7bd"} stroke={hot ? "#d2491f" : "#6c757b"} strokeWidth="0.4" />
+      <path d="M24 140 L23 148 L22.4 148 L22 140 Z" fill={hot ? "url(#fcHot)" : "#aeb7bd"} stroke={hot ? "#d2491f" : "#6c757b"} strokeWidth="0.4" />
+      {/* Lower arms tinged with heat */}
+      {hot && (
+        <>
+          <path d="M13 120 Q12.5 130 16 140 L18 140 Q15.5 130 16 122 Z" fill="url(#fcHot)" opacity="0.8" />
+          <path d="M27 120 Q27.5 130 24 140 L22 140 Q24.5 130 24 122 Z" fill="url(#fcHot)" opacity="0.8" />
+        </>
+      )}
     </svg>
   );
 }

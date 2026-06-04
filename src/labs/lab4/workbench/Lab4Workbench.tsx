@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
-import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { LAB4_ITEMS, LAB4_ITEM_BY_ID, intentFor, type Lab4ItemId } from "./items";
 import {
   freshDiskState,
@@ -14,6 +13,7 @@ import {
   allDisksPlaced,
   type DiskState,
   type DiskIntent,
+  type Sens,
 } from "../state";
 import { INCUBATE_MS, DISPLAY_INCUBATE_HOURS, type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreDiskExam, type ExamAction, type ExamResult } from "../exam/scoring";
@@ -25,8 +25,9 @@ import { MeasureModal } from "../components2d/MeasureModal";
 
 const DROP_PAD = 26;
 const GHOST_SCALE = 1.06;
-const SPATULA_COOL_MS = 3200;
-const TICK = 70;
+const FORCEPS_COOL_MS = 3200;
+const DRY_MS = 5000; // real ~5 min compressed
+const DISPLAY_DRY_MIN = 5;
 const RUB_K = 0.0016;
 
 type Kind = "rub" | "contact" | "instant";
@@ -60,12 +61,12 @@ function fmtHours(h: number): string {
 
 function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.dishPlaced) return "Oziqa muhitli Petri idishini stolga qo'ying";
-  if (!s.spatulaDipped && !s.spatulaSterile) return "Shpatel uchini spirt bankasiga botiring";
-  if (!s.spatulaSterile) return "Shpatelni olovda yoqing — spirt yonib sterillanadi (so'ng sovuting)";
-  if (!s.spreaderCharged && !s.lawnSpread) return "Sovugan shpatel bilan E. coli kulturasidan oling";
-  if (!s.lawnSpread) return "Kulturani Petri idishiga «gazon» (bir tekis) usulida surting";
+  if (!s.swabCharged && !s.lawnSpread) return "Steril paxta tampon bilan E. coli kulturasidan oling";
+  if (!s.lawnSpread) return "Tampon bilan kulturani Petri idishiga «gazon» (bir tekis) usulida eking";
+  if (!s.dried) return "Idish yuzasi singguncha ~5 daqiqa quriting";
+  if (!s.forcepsSterile) return "Pinsetni spirt bankasiga botirib, olovda sterillang";
   if (!allDisksPlaced(s)) return carrying ? "Pinsetdagi diskni agar yuzasiga qo'ying" : "Pinset bilan disklar to'plamidan antibiotik diskni oling";
-  if (!s.incubated) return "Idishni termostatga qo'ying (37°C, 24 soat)";
+  if (!s.incubated) return "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)";
   return "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang";
 }
 
@@ -94,7 +95,7 @@ export function Lab4Workbench() {
   const fxKey = useRef(0);
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [spatulaHot, setSpatulaHot] = useState(false);
+  const [forcepsHot, setForcepsHot] = useState(false);
   // Antibiotic disk currently held in the forceps.
   const [carrying, setCarrying] = useState<string | null>(null);
   const carryingRef = useRef<string | null>(null);
@@ -102,6 +103,8 @@ export function Lab4Workbench() {
 
   const [inc, setInc] = useState<{ start: number } | null>(null);
   const [incProg, setIncProg] = useState(0);
+  const [dry, setDry] = useState<{ start: number } | null>(null);
+  const [dryProg, setDryProg] = useState(0);
 
   const [mode, setMode] = useState<LabMode | null>(null);
   const modeRef = useRef<LabMode | null>(null);
@@ -131,10 +134,24 @@ export function Lab4Workbench() {
   }, []);
 
   useEffect(() => {
-    if (!spatulaHot) return;
-    const t = window.setTimeout(() => setSpatulaHot(false), SPATULA_COOL_MS);
+    if (!forcepsHot) return;
+    const t = window.setTimeout(() => setForcepsHot(false), FORCEPS_COOL_MS);
     return () => window.clearTimeout(t);
-  }, [spatulaHot]);
+  }, [forcepsHot]);
+
+  useEffect(() => {
+    if (!dry) return;
+    const iv = window.setInterval(() => {
+      const p = Math.min(1, (Date.now() - dry.start) / DRY_MS);
+      setDryProg(p);
+      if (p >= 1) {
+        window.clearInterval(iv);
+        setDisk((g) => ({ ...g, dried: true }));
+        setDry(null);
+      }
+    }, 90);
+    return () => window.clearInterval(iv);
+  }, [dry]);
 
   useEffect(() => {
     if (!inc) return;
@@ -172,9 +189,15 @@ export function Lab4Workbench() {
     }
     setDisk((g) => applyDiskStep(g, intent));
     recordAction(intent);
-    if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
-    else if (intent === "sterilize-spatula") setSpatulaHot(true);
-    else if (intent === "charge-spreader") flashAt("drip-mat", at("culture").x, at("culture").y, 800);
+    if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    else if (intent === "sterilize-forceps") setForcepsHot(true);
+    else if (intent === "charge-swab") flashAt("drip-mat", at("culture").x, at("culture").y, 800);
+    else if (intent === "spread-lawn") startDrying();
+  }
+
+  function startDrying() {
+    setDryProg(0);
+    setDry({ start: Date.now() });
   }
 
   function startIncubation() {
@@ -235,7 +258,7 @@ export function Lab4Workbench() {
       const { hx, hy } = hitPoint(d, e.clientX, e.clientY);
       const tg = targetAt(hx - rect.left, hy - rect.top, d.id);
       const intent = tg ? intentFor(d.id, tg, diskRef.current, carryingRef.current) : null;
-      const validIncubate = tg === "incubator" && d.id === "dish" && diskRef.current.lawnSpread && allDisksPlaced(diskRef.current) && !diskRef.current.incubated;
+      const validIncubate = tg === "incubator" && d.id === "dish" && diskRef.current.dried && allDisksPlaced(diskRef.current) && !diskRef.current.incubated;
       setHoverTarget(intent || validIncubate ? tg : null);
 
       const h = holdRef.current;
@@ -245,8 +268,8 @@ export function Lab4Workbench() {
         if (h) cancelHold();
         return;
       }
-      // Charging / spreading needs a sterile, cooled spreader.
-      if ((intent === "charge-spreader" || intent === "spread-lawn") && spatulaHot) {
+      // Picking up a paper disk needs the flamed forceps to cool first.
+      if (intent === "pick-disk" && forcepsHot) {
         if (h) cancelHold();
         return;
       }
@@ -284,7 +307,7 @@ export function Lab4Workbench() {
       window.removeEventListener("pointerup", onUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [drag?.id, spatulaHot]);
+  }, [drag?.id, forcepsHot]);
 
   function endDrag() {
     setDrag(null);
@@ -294,7 +317,6 @@ export function Lab4Workbench() {
   function snapPos(id: Lab4ItemId, rect: DOMRect, fallback: { x: number; y: number }): { x: number; y: number } {
     const p = placedRef.current;
     if (id === "culture" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
-    if (id === "spatula" && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-30 / rect.height) * 100 };
     return fallback;
   }
 
@@ -325,8 +347,8 @@ export function Lab4Workbench() {
 
     // Put the plate into the incubator → start incubation.
     if (target === "incubator" && d.id === "dish") {
-      if (diskRef.current.lawnSpread && allDisksPlaced(diskRef.current) && !diskRef.current.incubated) startIncubation();
-      else showToast("Avval gazon ekib, barcha disklarni qo'ying");
+      if (diskRef.current.dried && allDisksPlaced(diskRef.current) && !diskRef.current.incubated) startIncubation();
+      else showToast("Avval gazon ekib quriting va barcha disklarni qo'ying");
       endDrag();
       return;
     }
@@ -352,7 +374,7 @@ export function Lab4Workbench() {
     endDrag();
   }
 
-  function classify(diskId: string, sens: "high" | "low") {
+  function classify(diskId: string, sens: Sens) {
     setDisk((g) => ({ ...g, classified: { ...g.classified, [diskId]: sens } }));
     if (modeRef.current === "learn") setReveal(true);
   }
@@ -369,10 +391,12 @@ export function Lab4Workbench() {
     setPlaced({});
     setActionLog([]);
     setExamResult(null);
-    setSpatulaHot(false);
+    setForcepsHot(false);
     setCarrying(null);
     setInc(null);
     setIncProg(0);
+    setDry(null);
+    setDryProg(0);
     cancelHold();
     lockTargetRef.current = null;
     setMeasureOpen(false);
@@ -384,9 +408,8 @@ export function Lab4Workbench() {
   const placedSet = new Set(Object.keys(placed)) as Set<Lab4ItemId>;
   const draggingDef = drag ? LAB4_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(disk, carrying);
-  const renderOpts = { spatulaHot, incubatorRunning: inc != null, carrying };
+  const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying };
   const dishPos = placed["dish"];
-  const spatulaInJar = !!placed["spatula"] && !!placed["alcohol-jar"] && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
 
   const validTargets = new Set<Lab4ItemId>();
@@ -394,7 +417,7 @@ export function Lab4Workbench() {
     LAB4_ITEMS.forEach((it) => {
       if (!it.target || !placedSet.has(it.id) || it.id === drag.id) return;
       if (intentFor(drag.id, it.id, disk, carrying)) validTargets.add(it.id);
-      if (it.id === "incubator" && drag.id === "dish" && disk.lawnSpread && allDisksPlaced(disk) && !disk.incubated) validTargets.add(it.id);
+      if (it.id === "incubator" && drag.id === "dish" && disk.dried && allDisksPlaced(disk) && !disk.incubated) validTargets.add(it.id);
     });
   }
 
@@ -477,11 +500,7 @@ export function Lab4Workbench() {
                   style={{ cursor: "grab" }}
                   title={it.label}
                 >
-                  {it.id === "spatula" && spatulaInJar ? (
-                    <div style={{ transform: "rotate(90deg)", transition: "transform 0.15s ease" }}>{it.render(disk, renderOpts)}</div>
-                  ) : (
-                    it.render(disk, renderOpts)
-                  )}
+                  {it.render(disk, renderOpts)}
                 </div>
               </div>
             );
@@ -493,13 +512,6 @@ export function Lab4Workbench() {
               <TestTubeRack width={340} front />
             </div>
           )}
-          {/* Front of the alcohol jar over the dipped spreader */}
-          {spatulaInJar && placed["alcohol-jar"] && (
-            <div className="pointer-events-none absolute" style={{ left: `${placed["alcohol-jar"].x}%`, top: `${placed["alcohol-jar"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
-              <AlcoholJar width={110} front />
-            </div>
-          )}
-
           {/* Gazon spread visual building on the plate during the rub */}
           {hold?.intent === "spread-lawn" && dishPos && (
             <div className="pointer-events-none absolute z-20" style={{ left: `${dishPos.x}%`, top: `${dishPos.y}%`, transform: "translate(-50%,-50%)" }}>
@@ -525,6 +537,23 @@ export function Lab4Workbench() {
                   <motion.ellipse key={i} cx="45" cy="20" initial={{ rx: 5, ry: 2, opacity: 0.7 }} animate={{ rx: 26, ry: 9, opacity: 0 }} transition={{ duration: 0.8, delay: i * 0.18, ease: "easeOut" }} fill="none" stroke="#bfe0ee" strokeWidth="1.6" />
                 ))}
               </svg>
+            </div>
+          )}
+
+          {/* Drying countdown (~5 min) after the lawn is swabbed */}
+          {dry && (
+            <div className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2">
+              <div className="flex items-center gap-3 rounded-xl bg-slate-900/90 px-4 py-2.5 text-white shadow-lg">
+                <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#ffffff22" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" strokeDasharray={2 * Math.PI * 15} strokeDashoffset={2 * Math.PI * 15 * (1 - dryProg)} transform="rotate(-90 18 18)" style={{ transition: "stroke-dashoffset 0.1s linear" }} />
+                  <text x="18" y="22" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">≈</text>
+                </svg>
+                <div className="leading-tight">
+                  <p className="text-[13px] font-semibold">Idish quriyabdi…</p>
+                  <p className="text-[11px] text-slate-300">Qoldi: {Math.max(0, Math.ceil(DISPLAY_DRY_MIN * (1 - dryProg)))} daqiqa · inokulyat agarga singadi</p>
+                </div>
+              </div>
             </div>
           )}
 

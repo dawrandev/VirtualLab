@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { freshDiskState, applyDiskStep, ANTIBIOTICS, sensitivityOf, allDisksPlaced, plateStage, type DiskIntent } from "@/labs/lab4/state";
+import { freshDiskState, applyDiskStep, ANTIBIOTICS, interpret, allDisksPlaced, plateStage, type DiskIntent, type Sens, type Antibiotic } from "@/labs/lab4/state";
 import { scoreDiskExam, type ExamAction } from "@/labs/lab4/exam/scoring";
 import { MAX_SCORE } from "@/labs/lab4/exam/protocol";
+
+const other = (s: Sens): Sens => (s === "S" ? "R" : "S");
 
 function buildDone(correct: boolean) {
   let s = freshDiskState();
@@ -12,33 +14,37 @@ function buildDone(correct: boolean) {
     log.push({ intent: i, ts: (t += 100) });
   };
   s = { ...s, dishPlaced: true };
-  step("dip-spatula");
-  step("sterilize-spatula");
-  step("charge-spreader");
+  step("charge-swab");
   step("spread-lawn");
+  s = { ...s, dried: true };
+  step("dip-forceps");
+  step("sterilize-forceps");
   for (const a of ANTIBIOTICS) step("place-disk", a.id);
   step("incubate");
   // classify each
-  const classified: Record<string, "high" | "low"> = {};
+  const classified: Record<string, Sens> = {};
   for (const a of ANTIBIOTICS) {
-    const right = sensitivityOf(a.zoneMm);
-    classified[a.id] = correct ? right : right === "high" ? "low" : "high";
+    const right = interpret(a);
+    classified[a.id] = correct ? right : other(right);
   }
   s = { ...s, classified };
   return { s, log };
 }
 
 describe("Lab 4 — disk diffusion state", () => {
-  it("sensitivity breakpoint at 10 mm", () => {
-    expect(sensitivityOf(6)).toBe("low");
-    expect(sensitivityOf(10)).toBe("high");
-    expect(sensitivityOf(22)).toBe("high");
+  it("interprets zones with per-antibiotic breakpoints (S/I/R)", () => {
+    const mk = (zoneMm: number, sv: number, rv: number): Antibiotic => ({ id: "x", code: "X", name: "x", zoneMm, s: sv, r: rv, fx: 0.5, fy: 0.5 });
+    expect(interpret(mk(20, 15, 12))).toBe("S");
+    expect(interpret(mk(13, 15, 11))).toBe("I");
+    expect(interpret(mk(7, 17, 13))).toBe("R");
   });
-  it("plate stage progresses", () => {
+  it("plate stage progresses: empty → lawn-wet → lawn → grown", () => {
     let s = freshDiskState();
     expect(plateStage(s)).toBe("empty");
     s = applyDiskStep(s, "spread-lawn");
     expect(plateStage(s)).toBe("lawn-wet");
+    s = { ...s, dried: true };
+    expect(plateStage(s)).toBe("lawn");
     s = applyDiskStep(s, "incubate");
     expect(plateStage(s)).toBe("grown");
   });
@@ -47,6 +53,13 @@ describe("Lab 4 — disk diffusion state", () => {
     expect(allDisksPlaced(s)).toBe(false);
     for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     expect(allDisksPlaced(s)).toBe(true);
+  });
+  it("sterilize-forceps clears the dipped flag", () => {
+    let s = applyDiskStep(freshDiskState(), "dip-forceps");
+    expect(s.forcepsDipped).toBe(true);
+    s = applyDiskStep(s, "sterilize-forceps");
+    expect(s.forcepsSterile).toBe(true);
+    expect(s.forcepsDipped).toBe(false);
   });
 });
 
@@ -68,19 +81,26 @@ describe("Lab 4 — exam scoring", () => {
     expect(res.steps.find((x) => x.id === "measure")!.status).toBe("full");
   });
 
+  it("lawn without drying → lawn step partial", () => {
+    let s = freshDiskState();
+    s = { ...s, dishPlaced: true, lawnSpread: true };
+    const res = scoreDiskExam([], s);
+    expect(res.steps.find((x) => x.id === "lawn")!.status).toBe("partial");
+  });
+
   it("no incubation → incubate + downstream not credited", () => {
     let s = freshDiskState();
-    s = { ...s, dishPlaced: true, spatulaSterile: true, lawnSpread: true };
+    s = { ...s, dishPlaced: true, lawnSpread: true, dried: true, forcepsSterile: true };
     for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     const res = scoreDiskExam([], s);
     expect(res.steps.find((x) => x.id === "incubate")!.status).toBe("zero");
     expect(res.steps.find((x) => x.id === "measure")!.status).toBe("zero");
   });
 
-  it("partial disks → disks step partial", () => {
+  it("disks placed without sterile forceps → disks step partial", () => {
     let s = freshDiskState();
-    s = { ...s, dishPlaced: true, spatulaSterile: true, lawnSpread: true };
-    s = applyDiskStep(s, "place-disk", ANTIBIOTICS[0].id);
+    s = { ...s, dishPlaced: true, lawnSpread: true, dried: true };
+    for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     const res = scoreDiskExam([], s);
     expect(res.steps.find((x) => x.id === "disks")!.status).toBe("partial");
   });

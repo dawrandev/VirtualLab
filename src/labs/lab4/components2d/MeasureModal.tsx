@@ -1,14 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ANTIBIOTICS, BREAKPOINT_MM, sensitivityOf, type DiskState } from "../state";
+import { ANTIBIOTICS, interpret, SENS_LABEL, type DiskState, type Sens } from "../state";
 
 interface Props {
   open: boolean;
   state: DiskState;
   /** Learn mode reveals whether each call is right. */
   reveal: boolean;
-  onClassify: (diskId: string, sens: "high" | "low") => void;
+  onClassify: (diskId: string, sens: Sens) => void;
   onClose: () => void;
   onFinish: () => void;
   isExam: boolean;
@@ -39,10 +39,17 @@ function ZoneVisual({ zoneMm }: { zoneMm: number }) {
   );
 }
 
+const CATS: Array<{ key: Sens; color: string; bg: string }> = [
+  { key: "S", color: "#0f766e", bg: "#f0fdfa" },
+  { key: "I", color: "#b45309", bg: "#fffbeb" },
+  { key: "R", color: "#b91c1c", bg: "#fef2f2" },
+];
+
 /**
  * After incubation, the student measures the zone of inhibition around each
- * antibiotic disk (ruler reading shown) and classifies sensitivity using the
- * 10 mm breakpoint (≥10 mm = high, <10 mm = low).
+ * antibiotic disk (ruler reading shown) and interprets sensitivity using that
+ * antibiotic's own CLSI breakpoints: ≥ S mm = Sezgir, ≤ R mm = Chidamli, between
+ * = Oraliq.
  */
 export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinish, isExam }: Props) {
   const allDone = ANTIBIOTICS.every((a) => state.classified[a.id] != null);
@@ -55,42 +62,41 @@ export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinis
             <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" d="M5 5l10 10M15 5L5 15" /></svg>
           </button>
 
-          <motion.div initial={{ y: 18, scale: 0.98 }} animate={{ y: 0, scale: 1 }} className="flex max-h-[92vh] w-[min(96vw,760px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <motion.div initial={{ y: 18, scale: 0.98 }} animate={{ y: 0, scale: 1 }} className="flex max-h-[92vh] w-[min(96vw,820px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="border-b border-slate-200 px-6 py-4">
               <h2 className="text-lg font-bold text-slate-800">Tormozlanish zonasini o'lchang</h2>
-              <p className="text-[13px] text-slate-500">Har disk atrofidagi steril zona diametrini o'lchab, sezuvchanlikni aniqlang — zona ≥ {BREAKPOINT_MM} mm = yuqori, &lt; {BREAKPOINT_MM} mm = past.</p>
+              <p className="text-[13px] text-slate-500">Har disk atrofidagi steril zona diametrini o'lchab, har antibiotikning <b>o'z chegaralari</b> bilan baholang: Sezgir (≥ S) / Oraliq / Chidamli (≤ R).</p>
             </div>
 
             <div className="wb-tray grid flex-1 grid-cols-1 gap-3 overflow-y-auto px-5 py-4 sm:grid-cols-2">
               {ANTIBIOTICS.map((a) => {
                 const picked = state.classified[a.id];
-                const correct = sensitivityOf(a.zoneMm);
+                const correct = interpret(a);
                 const ok = picked === correct;
                 return (
                   <div key={a.id} className="flex items-center gap-3 rounded-2xl border border-slate-200 p-3">
                     <ZoneVisual zoneMm={a.zoneMm} />
                     <div className="min-w-0 flex-1">
                       <p className="text-[13px] font-bold text-slate-800">{a.name}</p>
-                      <p className="mb-2 text-[11px] text-slate-400">Disk: {a.code}</p>
+                      <p className="mb-1 text-[11px] text-slate-400">Disk: {a.code} · S ≥ {a.s} · R ≤ {a.r} mm</p>
                       <div className="flex flex-col gap-1.5">
-                        <button
-                          onClick={() => onClassify(a.id, "high")}
-                          className="rounded-lg border-2 px-2.5 py-1.5 text-[12px] font-semibold transition"
-                          style={{ borderColor: picked === "high" ? "#0d9488" : "#e2e8f0", background: picked === "high" ? "#f0fdfa" : "#fff", color: "#0f766e" }}
-                        >
-                          Yuqori sezuvchan (≥10 mm)
-                        </button>
-                        <button
-                          onClick={() => onClassify(a.id, "low")}
-                          className="rounded-lg border-2 px-2.5 py-1.5 text-[12px] font-semibold transition"
-                          style={{ borderColor: picked === "low" ? "#b45309" : "#e2e8f0", background: picked === "low" ? "#fffbeb" : "#fff", color: "#b45309" }}
-                        >
-                          Past sezuvchan (&lt;10 mm)
-                        </button>
+                        {CATS.map((c) => (
+                          <button
+                            key={c.key}
+                            onClick={() => onClassify(a.id, c.key)}
+                            className="rounded-lg border-2 px-2.5 py-1.5 text-left text-[12px] font-semibold transition"
+                            style={{ borderColor: picked === c.key ? c.color : "#e2e8f0", background: picked === c.key ? c.bg : "#fff", color: c.color }}
+                          >
+                            {SENS_LABEL[c.key]}
+                            {c.key === "S" && ` (≥ ${a.s} mm)`}
+                            {c.key === "R" && ` (≤ ${a.r} mm)`}
+                            {c.key === "I" && ` (${a.r + 1}–${a.s - 1} mm)`}
+                          </button>
+                        ))}
                       </div>
                       {reveal && picked && (
                         <p className="mt-1.5 text-[11px] font-semibold" style={{ color: ok ? "#059669" : "#dc2626" }}>
-                          {ok ? "✓ To'g'ri" : `✕ Noto'g'ri — to'g'risi: ${correct === "high" ? "yuqori" : "past"}`}
+                          {ok ? "✓ To'g'ri" : `✕ Noto'g'ri — to'g'risi: ${SENS_LABEL[correct]}`}
                         </p>
                       )}
                     </div>

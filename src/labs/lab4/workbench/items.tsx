@@ -7,17 +7,17 @@ import { SpiritLamp } from "@/labs/lab1/components2d/items/SpiritLamp";
 import { CultureTube } from "@/labs/lab1/components2d/items/CultureTube";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { Incubator } from "@/labs/lab3/components2d/items/Incubator";
-import { DrigalskiSpatula } from "@/labs/lab3/components2d/items/DrigalskiSpatula";
 import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
 import { PetriLawnDish } from "../components2d/items/PetriLawnDish";
 import { DiskCartridge } from "../components2d/items/DiskCartridge";
+import { CottonSwab } from "../components2d/items/CottonSwab";
 
 export type Lab4ItemId =
   | "dish"
   | "lamp"
   | "alcohol-jar"
-  | "spatula"
+  | "swab"
   | "rack"
   | "culture"
   | "cartridge"
@@ -40,7 +40,7 @@ export interface Lab4ItemDef {
   hitDY?: number;
   render: (
     state: DiskState,
-    opts: { spatulaHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null },
+    opts: { forcepsHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null },
   ) => ReactNode;
 }
 
@@ -79,16 +79,15 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     render: () => <AlcoholJar width={110} />,
   },
   {
-    id: "spatula",
-    label: "Drigalski shpateli",
+    id: "swab",
+    label: "Steril paxta tampon",
     apparatus: false,
     target: false,
-    w: 220,
-    h: 96,
-    tipX: -85,
-    tipY: 24,
-    preview: 0.58,
-    render: (s, o) => <DrigalskiSpatula width={220} hot={o.spatulaHot} wet={s.spatulaDipped} />,
+    w: 200,
+    h: 44,
+    tipX: -80, // cotton head (left end)
+    preview: 0.62,
+    render: (s) => <CottonSwab width={200} charged={s.swabCharged} />,
   },
   {
     id: "rack",
@@ -108,7 +107,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 70,
     h: 231,
     preview: 0.34,
-    render: (s) => <CultureTube sampled={s.spreaderCharged || s.lawnSpread} />,
+    render: (s) => <CultureTube sampled={s.swabCharged || s.lawnSpread} />,
   },
   {
     id: "cartridge",
@@ -129,7 +128,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     h: 150,
     tipY: 66,
     preview: 0.5,
-    render: () => <Forceps width={40} />,
+    render: (_s, o) => <Forceps width={40} hot={o.forcepsHot} />,
   },
   {
     id: "incubator",
@@ -150,15 +149,15 @@ export const LAB4_ITEM_BY_ID: Record<Lab4ItemId, Lab4ItemDef> = Object.fromEntri
 /** The intent a (tool → target) drop performs, or null if meaningless.
  *  `carrying` is the antibiotic id currently held in the forceps. */
 export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, carrying: string | null): DiskIntent | null {
-  if (tool === "spatula") {
-    if (target === "alcohol-jar") return !s.spatulaDipped && !s.spatulaSterile ? "dip-spatula" : null;
-    if (target === "lamp") return s.spatulaDipped ? "sterilize-spatula" : null;
-    if (target === "culture") return s.spatulaSterile && !s.spreaderCharged && !s.lawnSpread ? "charge-spreader" : null;
-    if (target === "dish") return s.spreaderCharged && !s.lawnSpread ? "spread-lawn" : null;
+  if (tool === "swab") {
+    if (target === "culture") return !s.swabCharged && !s.lawnSpread ? "charge-swab" : null;
+    if (target === "dish") return s.swabCharged && !s.lawnSpread ? "spread-lawn" : null;
   }
   if (tool === "forceps") {
-    if (target === "cartridge") return !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
-    if (target === "dish") return carrying && s.lawnSpread ? "place-disk" : null;
+    if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsSterile ? "dip-forceps" : null;
+    if (target === "lamp") return s.forcepsDipped ? "sterilize-forceps" : null;
+    if (target === "cartridge") return s.forcepsSterile && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
+    if (target === "dish") return carrying && s.dried ? "place-disk" : null;
   }
   return null;
 }
@@ -168,10 +167,9 @@ export type { DiskIntent };
 /** Next item the student should use (learn-mode highlight + hint). */
 export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId | null {
   if (!s.dishPlaced) return "dish";
-  if (!s.spatulaDipped && !s.spatulaSterile) return "spatula";
-  if (!s.spatulaSterile) return "spatula";
-  if (!s.spreaderCharged && !s.lawnSpread) return "spatula";
-  if (!s.lawnSpread) return "spatula";
+  if (!s.swabCharged && !s.lawnSpread) return "swab";
+  if (!s.lawnSpread) return "swab";
+  if (!s.forcepsSterile) return "forceps";
   if (!allDisksPlaced(s)) return "forceps";
   if (!s.incubated) return "incubator";
   return "dish";

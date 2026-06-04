@@ -23,7 +23,7 @@ export const MAIN_STEPS: MainStep[] = [
   {
     id: "lawn",
     card: "Kulturani gazon usulida ekish",
-    result: "Bakteriya kulturasini Petri idishiga shpatel bilan «gazon» usulida ekish",
+    result: "Steril paxta tampon bilan kulturani Petri idishiga «gazon» usulida ekib, ~5 daqiqa quritish",
     full: 10,
     partial: 5,
     requires: [],
@@ -39,7 +39,7 @@ export const MAIN_STEPS: MainStep[] = [
   {
     id: "incubate",
     card: "Termostat 37°C, 24 soat",
-    result: "Ekilgan idishni 37°C da 24 soat termostatda saqlash",
+    result: "Ekilgan idishni ag'darilgan holda 37°C da 24 soat termostatda saqlash",
     full: 22,
     partial: 11,
     requires: ["disks"],
@@ -55,7 +55,7 @@ export const MAIN_STEPS: MainStep[] = [
   {
     id: "classify",
     card: "Sezuvchanlikni aniqlash",
-    result: "Zona <10 mm — past, >10 mm — yuqori sezuvchanlik deb baholash",
+    result: "Zonani antibiotik chegaralari bilan baholash: Sezgir / Oraliq / Chidamli (CLSI)",
     full: 20,
     partial: 10,
     requires: ["measure"],

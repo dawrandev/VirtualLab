@@ -1,5 +1,5 @@
 import { MAIN_STEPS, MAX_SCORE } from "./protocol";
-import { ANTIBIOTICS, allDisksPlaced, sensitivityOf, type DiskState } from "../state";
+import { ANTIBIOTICS, allDisksPlaced, interpret, SENS_LABEL, type DiskState, type Sens } from "../state";
 
 export interface ExamAction {
   intent: string;
@@ -23,7 +23,7 @@ export interface ExamResult {
   max: number;
   steps: StepResult[];
   /** Per-antibiotic correctness for the breakdown. */
-  calls: Array<{ code: string; name: string; zoneMm: number; correct: "high" | "low"; picked: "high" | "low" | null; ok: boolean }>;
+  calls: Array<{ code: string; name: string; zoneMm: number; correct: string; picked: string | null; ok: boolean }>;
 }
 
 export function scoreDiskExam(log: ExamAction[], s: DiskState): ExamResult {
@@ -36,24 +36,28 @@ export function scoreDiskExam(log: ExamAction[], s: DiskState): ExamResult {
 
   const placedCount = ANTIBIOTICS.filter((a) => s.disks[a.id]).length;
   const classifiedCount = ANTIBIOTICS.filter((a) => s.classified[a.id] != null).length;
-  const correctCount = ANTIBIOTICS.filter((a) => s.classified[a.id] === sensitivityOf(a.zoneMm)).length;
+  const correctCount = ANTIBIOTICS.filter((a) => s.classified[a.id] === interpret(a)).length;
 
   const steps: StepResult[] = [];
 
-  // 1 — lawn (gazon) spread
+  // 1 — lawn (gazon) swab + drying
   {
     const notes: string[] = [];
     if (!s.lawnSpread) steps.push(grade("lawn", "zero", ["Kultura gazon usulida ekilmadi"]));
     else {
-      if (!s.spatulaSterile) notes.push("Shpatel sterillanmagan");
-      steps.push(grade("lawn", s.spatulaSterile ? "full" : "partial", notes));
+      if (!s.dried) notes.push("Idish ~5 daqiqa quritilmadi");
+      steps.push(grade("lawn", s.dried ? "full" : "partial", notes));
     }
   }
 
-  // 2 — antibiotic disks placed
+  // 2 — antibiotic disks placed (with flame-sterile forceps)
   if (placedCount === 0) steps.push(grade("disks", "zero", ["Antibiotik disklari qo'yilmadi"]));
-  else if (allDisksPlaced(s)) steps.push(grade("disks", "full", []));
-  else steps.push(grade("disks", "partial", [`Faqat ${placedCount}/${ANTIBIOTICS.length} disk qo'yildi`]));
+  else {
+    const notes: string[] = [];
+    if (!s.forcepsSterile) notes.push("Pinset sterillanmagan");
+    if (!allDisksPlaced(s)) notes.push(`Faqat ${placedCount}/${ANTIBIOTICS.length} disk qo'yildi`);
+    steps.push(grade("disks", allDisksPlaced(s) && s.forcepsSterile ? "full" : "partial", notes));
+  }
 
   // 3 — incubation
   steps.push(s.incubated ? grade("incubate", "full", []) : grade("incubate", "zero", ["Termostatga qo'yilmadi (24 soat inkubatsiya yo'q)"]));
@@ -69,14 +73,12 @@ export function scoreDiskExam(log: ExamAction[], s: DiskState): ExamResult {
   else steps.push(grade("classify", "partial", [`${correctCount}/${ANTIBIOTICS.length} to'g'ri aniqlandi`]));
 
   const total = steps.reduce((a, x) => a + x.earned, 0);
-  const calls = ANTIBIOTICS.map((a) => ({
-    code: a.code,
-    name: a.name,
-    zoneMm: a.zoneMm,
-    correct: sensitivityOf(a.zoneMm),
-    picked: s.classified[a.id] ?? null,
-    ok: s.classified[a.id] === sensitivityOf(a.zoneMm),
-  }));
+  const lab = (v: Sens | null) => (v ? SENS_LABEL[v] : null);
+  const calls = ANTIBIOTICS.map((a) => {
+    const correct = interpret(a);
+    const picked = s.classified[a.id] ?? null;
+    return { code: a.code, name: a.name, zoneMm: a.zoneMm, correct: SENS_LABEL[correct], picked: lab(picked), ok: picked === correct };
+  });
 
   return { total, max: MAX_SCORE, steps, calls };
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { ANTIBIOTICS, type PlateStage } from "../../state";
+import { ANTIBIOTICS, type PlateStage, type Sens } from "../../state";
 
 interface Props {
   diameter?: number;
   stage: PlateStage;
   placedDisks?: Record<string, boolean>;
   highlight?: string | null;
-  classified?: Record<string, "high" | "low" | null>;
+  classified?: Record<string, Sens | null>;
 }
 
 /** Agar surface ellipse (3/4 view) — disks/zones are placed on it. */

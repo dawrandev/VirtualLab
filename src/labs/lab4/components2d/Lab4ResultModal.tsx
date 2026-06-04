@@ -21,6 +21,13 @@ const MARK: Record<StepStatus, { icon: string; color: string; bg: string }> = {
   zero: { icon: "✕", color: "#dc2626", bg: "#fef2f2" },
 };
 
+/** Colour the CLSI interpretation label. */
+function sensColor(label: string): string {
+  if (label === "Sezgir") return "#0f766e";
+  if (label === "Chidamli") return "#b91c1c";
+  return "#b45309"; // Oraliq
+}
+
 /** End-of-exam breakdown for Lab 4 — five PDF criteria + per-antibiotic calls. */
 export function Lab4ResultModal({ result, onRestart }: Props) {
   const pct = (result.total / result.max) * 100;
@@ -52,7 +59,7 @@ export function Lab4ResultModal({ result, onRestart }: Props) {
                   <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold" style={{ color: c.ok ? "#059669" : "#dc2626", border: `1.5px solid ${c.ok ? "#059669" : "#dc2626"}` }}>{c.ok ? "✓" : "✕"}</span>
                   <span className="w-12 font-bold text-slate-600">{c.code}</span>
                   <span className="flex-1 text-slate-500">{c.name} — {c.zoneMm} mm</span>
-                  <span className="font-semibold" style={{ color: c.correct === "high" ? "#0f766e" : "#b45309" }}>{c.correct === "high" ? "yuqori" : "past"}</span>
+                  <span className="font-semibold" style={{ color: sensColor(c.correct) }}>{c.correct}</span>
                 </div>
               ))}
             </div>
