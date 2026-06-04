@@ -54,13 +54,13 @@ export const LABS: LabEntry[] = [
   {
     id: 4,
     href: "/lab/4",
-    title: "Ziehl-Neelsen usuli",
-    subtitle: "Kislotaga chidamli bo'yash",
-    description: "Karbol fuksin, kislota va metilen ko'ki bilan sil tayoqchasini (KCHB) aniqlash.",
-    accent: { from: "#ec4899", to: "#be185d", ring: "#f9a8d4", soft: "#fdf2f8" },
+    title: "Antibiotiklarga sezuvchanlik",
+    subtitle: "Qog'oz disk usuli (disk-diffuziya)",
+    description: "Kulturani gazon ekib, antibiotik disklarini qo'yib, tormozlanish zonalarini o'lchab sezuvchanlikni aniqlash.",
+    accent: { from: "#0ea5e9", to: "#0369a1", ring: "#7dd3fc", soft: "#f0f9ff" },
     paths:
-      "M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zM12 6v6M9 9h6",
-    available: false,
+      "M4 9a8 4 0 1 0 16 0 8 4 0 1 0-16 0zM9 7.5a1.4 1.4 0 1 0 0 2.8M14 8a1.6 1.6 0 1 0 0 3M11 11a1.3 1.3 0 1 0 0 2.6",
+    available: true,
   },
   {
     id: 5,
@@ -76,12 +76,12 @@ export const LABS: LabEntry[] = [
   {
     id: 6,
     href: "/lab/6",
-    title: "Antibiotiklarga sezgirlik",
-    subtitle: "Disk-diffuziya usuli",
-    description: "Muller-Hinton agariga antibiotik disklarini qo'yib, tormozlanish zonalarini o'lchash.",
-    accent: { from: "#0ea5e9", to: "#0369a1", ring: "#7dd3fc", soft: "#f0f9ff" },
+    title: "Ziehl-Neelsen usuli",
+    subtitle: "Kislotaga chidamli bo'yash",
+    description: "Karbol fuksin, kislota va metilen ko'ki bilan sil tayoqchasini (KChB) aniqlash.",
+    accent: { from: "#ec4899", to: "#be185d", ring: "#f9a8d4", soft: "#fdf2f8" },
     paths:
-      "M4 9a8 4 0 1 0 16 0 8 4 0 1 0-16 0zM12 5v8M9 6.5l6 5M15 6.5l-6 5",
+      "M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zM12 6v6M9 9h6",
     available: false,
   },
 ];
