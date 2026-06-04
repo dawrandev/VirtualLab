@@ -7,6 +7,7 @@ import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { BacterialLoop } from "@/labs/lab1/components2d/items/BacterialLoop";
 import { FilterPaper } from "@/labs/lab1/components2d/items/FilterPaper";
+import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
 import { CoverSlip } from "../components2d/items/CoverSlip";
 import { LAB5_ITEMS, LAB5_ITEM_BY_ID, intentFor, type Lab5ItemId } from "./items";
 import { freshWetMountState, applyWetStep, canObserve, dropStage, SPECIMEN, type WetMountState, type WetIntent, type Motility } from "../state";
@@ -47,8 +48,10 @@ interface Fx {
 
 const SAMPLE_INTENTS: WetIntent[] = ["charge-loop", "degrease-slide", "place-cover", "blot-excess"];
 
-/** Render stacking on the bench: tray underneath → bridge → slide on top. */
-const Z_STACK: Partial<Record<Lab5ItemId, number>> = { tray: 0, bridge: 1, slide: 4 };
+/** Render stacking on the bench. Stations (tray/bridge/rack/loop-stand) sit
+ *  under the pieces they hold; the seated tube/loop render in FRONT of their
+ *  stand's back but BEHIND its front overlay (z5). */
+const Z_STACK: Partial<Record<Lab5ItemId, number>> = { tray: 0, bridge: 1, rack: 1, "loop-stand": 1, culture: 3, loop: 3, slide: 4 };
 const zOf = (id: Lab5ItemId) => Z_STACK[id] ?? 2;
 
 function actionKind(intent: WetIntent): Kind {
@@ -410,6 +413,7 @@ export function Lab5Workbench() {
   const slidePos = placed["slide"];
   const culturePos = placed["culture"];
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
+  const loopOnStand = !!placed["loop"] && !!placed["loop-stand"] && Math.abs(placed["loop"].x - placed["loop-stand"].x) < 2;
 
   const validTargets = new Set<Lab5ItemId>();
   if (drag) {
@@ -499,16 +503,27 @@ export function Lab5Workbench() {
                   style={{ cursor: "grab" }}
                   title={it.label}
                 >
-                  {it.render(wet, renderOpts)}
+                  {it.id === "loop" && loopOnStand ? (
+                    <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(wet, renderOpts)}</div>
+                  ) : (
+                    it.render(wet, renderOpts)
+                  )}
                 </div>
               </div>
             );
           })}
 
-          {/* Front of the rack over the seated culture tube */}
+          {/* Front of the rack over the seated culture tube (3-layer occlusion) */}
           {tubeInRack && placed["rack"] && (
             <div className="pointer-events-none absolute" style={{ left: `${placed["rack"].x}%`, top: `${placed["rack"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
               <TestTubeRack width={340} front />
+            </div>
+          )}
+
+          {/* Front of the loop-stand sleeves over the seated (vertical) loop */}
+          {loopOnStand && placed["loop-stand"] && (
+            <div className="pointer-events-none absolute" style={{ left: `${placed["loop-stand"].x}%`, top: `${placed["loop-stand"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+              <LoopStand width={200} front />
             </div>
           )}
 
@@ -523,18 +538,18 @@ export function Lab5Workbench() {
             </div>
           )}
 
-          {/* Cover slip lowering onto the drop (placed on edge, tilts down flat) */}
+          {/* Cover slip lowering exactly onto the slide centre (tilts down flat) */}
           {covering && slidePos && (
-            <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x + 6}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
+            <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
               <motion.div
-                style={{ transformOrigin: "18% 92%" }}
-                initial={{ rotate: -40, y: -34, opacity: 0 }}
-                animate={{ rotate: [-40, 0, 0], y: [-34, -2, -2], opacity: 1 }}
-                transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.7, 1], ease: "easeInOut" }}
+                style={{ transformOrigin: "50% 100%" }}
+                initial={{ rotate: -32, y: -24, opacity: 0 }}
+                animate={{ rotate: [-32, 0, 0], y: [-24, 0, 0], opacity: 1 }}
+                transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.72, 1], ease: "easeInOut" }}
               >
-                <CoverSlip width={66} />
+                <CoverSlip width={42} />
               </motion.div>
-              <div className="absolute left-1/2 top-[-40px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🪟 Qoplag'ich oyna tushirilyapti…</div>
+              <div className="absolute left-1/2 top-[-38px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🪟 Qoplag'ich oyna tushirilyapti…</div>
             </div>
           )}
 
@@ -558,17 +573,18 @@ export function Lab5Workbench() {
             </>
           )}
 
-          {/* Blotting excess fluid — filter paper dabs the cover-slip edge */}
+          {/* Blotting excess — filter paper dabs down onto the slide centre */}
           {blotting && slidePos && (
-            <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x + 10}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
+            <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
               <motion.div
-                initial={{ y: -30, opacity: 0 }}
-                animate={{ y: [-30, -6, -16, -6, -30], opacity: 1 }}
+                style={{ transformOrigin: "50% 100%" }}
+                initial={{ y: -26, opacity: 0 }}
+                animate={{ y: [-26, -2, -12, -2, -26], opacity: 1 }}
                 transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.25, 0.5, 0.75, 1], ease: "easeInOut" }}
               >
-                <FilterPaper width={68} wet />
+                <FilterPaper width={56} wet />
               </motion.div>
-              <div className="absolute left-1/2 top-[-22px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🧻 Ortiqcha suyuqlik olinyapti…</div>
+              <div className="absolute left-1/2 top-[-30px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🧻 Ortiqcha suyuqlik olinyapti…</div>
             </div>
           )}
 
