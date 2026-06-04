@@ -294,7 +294,7 @@ export function Lab4Workbench() {
   function snapPos(id: Lab4ItemId, rect: DOMRect, fallback: { x: number; y: number }): { x: number; y: number } {
     const p = placedRef.current;
     if (id === "culture" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
-    if (id === "spatula" && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-47 / rect.height) * 100 };
+    if (id === "spatula" && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-30 / rect.height) * 100 };
     return fallback;
   }
 
@@ -478,7 +478,7 @@ export function Lab4Workbench() {
                   title={it.label}
                 >
                   {it.id === "spatula" && spatulaInJar ? (
-                    <div style={{ transform: "rotate(82deg)", transition: "transform 0.15s ease" }}>{it.render(disk, renderOpts)}</div>
+                    <div style={{ transform: "rotate(90deg)", transition: "transform 0.15s ease" }}>{it.render(disk, renderOpts)}</div>
                   ) : (
                     it.render(disk, renderOpts)
                   )}

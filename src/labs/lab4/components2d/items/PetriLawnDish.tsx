@@ -5,108 +5,116 @@ import { ANTIBIOTICS, type PlateStage } from "../../state";
 interface Props {
   diameter?: number;
   stage: PlateStage;
-  /** Which antibiotic disks are on the agar. */
   placedDisks?: Record<string, boolean>;
-  /** Highlight one disk's zone (while measuring / examining). */
   highlight?: string | null;
-  /** Show a ✓/✗ marker per classified disk. */
   classified?: Record<string, "high" | "low" | null>;
 }
 
-/** Real plate ≈ 90 mm — maps millimetres to pixels for the zones/disks. */
-const PLATE_MM = 90;
+/** Agar surface ellipse (3/4 view) — disks/zones are placed on it. */
+const CX = 105;
+const CY = 100;
+const RX = 76;
+const RY = 22;
+
+/** Map a top-down (fx,fy) position onto the foreshortened agar ellipse. */
+function onAgar(fx: number, fy: number) {
+  return { x: CX + (fx - 0.5) * 2 * 70, y: CY + (fy - 0.5) * 2 * 18 };
+}
 
 /**
- * Top-down nutrient-agar plate for disk diffusion. Shows the confluent
- * bacterial lawn ("gazon"), the antibiotic paper disks, and — after incubation
- * — the clear zones of inhibition around each disk (sized by the real mm),
- * drawn as realistic glassware.
+ * Glass Petri dish in a 3/4 (side) view — same realistic glassware as Lab 1:
+ * a shallow glass dish with a visible wall, nutrient agar, a clear glass lid
+ * that lifts off, and (for disk diffusion) a confluent bacterial lawn with the
+ * antibiotic paper disks and their clear zones of inhibition after incubation.
  */
 export function PetriLawnDish({ diameter = 230, stage, placedDisks = {}, highlight, classified = {} }: Props) {
-  const d = diameter;
-  const r = d / 2;
-  const mm = d / PLATE_MM; // px per mm
-  const uid = `lawn-${d}`;
-  const grown = stage === "grown";
+  const w = diameter;
+  const h = w * (164 / 210);
   const hasLawn = stage === "lawn" || stage === "lawn-wet" || stage === "grown";
+  const grown = stage === "grown";
+  const lidOff = hasLawn || Object.values(placedDisks).some(Boolean);
 
   return (
-    <div style={{ position: "relative", width: d, height: d * 1.04, filter: "drop-shadow(0 7px 9px rgba(0,0,0,0.28))" }}>
-      <svg width={d} height={d * 1.04} viewBox={`0 0 ${d} ${d * 1.04}`}>
+    <div style={{ position: "relative", width: w, height: h, filter: "drop-shadow(0 6px 7px rgba(0,0,0,0.22))" }}>
+      <svg width={w} height={h} viewBox="0 0 210 164">
         <defs>
-          <radialGradient id={`ag-${uid}`} cx="42%" cy="38%" r="74%">
-            <stop offset="0%" stopColor="#f3f0c0" />
-            <stop offset="62%" stopColor="#e2e2a0" />
-            <stop offset="100%" stopColor="#c2c97c" />
+          <radialGradient id="pldAgar" cx="46%" cy="42%" r="62%">
+            <stop offset="0%" stopColor="#eef0c2" />
+            <stop offset="70%" stopColor="#dfe2a4" />
+            <stop offset="100%" stopColor="#c7cd82" />
           </radialGradient>
-          <radialGradient id={`gl-${uid}`} cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#cdd8de" stopOpacity="0.4" />
+          <linearGradient id="pldWall" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#e8f1f0" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#bcd6d2" stopOpacity="0.6" />
+          </linearGradient>
+          <radialGradient id="pldLawn" cx="46%" cy="40%" r="62%">
+            <stop offset="0%" stopColor="#ecead9" />
+            <stop offset="100%" stopColor="#d6d4bd" />
           </radialGradient>
-          <radialGradient id={`lawn-${uid}`} cx="48%" cy="42%" r="62%">
-            <stop offset="0%" stopColor="#eceadb" />
-            <stop offset="100%" stopColor="#d8d6bf" />
-          </radialGradient>
-          {/* soft clip for the agar interior */}
-          <clipPath id={`clip-${uid}`}>
-            <circle cx={r} cy={r} r={r - 13} />
+          <clipPath id="pldClip">
+            <ellipse cx={CX} cy={CY} rx={RX} ry={RY} />
           </clipPath>
         </defs>
 
-        {/* side wall for depth */}
-        <ellipse cx={r} cy={r + d * 0.045} rx={r - 2} ry={r - 6} fill="#aab3b9" opacity="0.7" />
-        {/* glass rim */}
-        <circle cx={r} cy={r} r={r - 2} fill={`url(#gl-${uid})`} stroke="#8d9aa1" strokeWidth="1.4" />
-        {/* agar */}
-        <circle cx={r} cy={r} r={r - 13} fill={`url(#ag-${uid})`} stroke="#aeb46c" strokeWidth="1" />
+        {/* Ground shadow */}
+        <ellipse cx="105" cy="150" rx="92" ry="11" fill="#000" opacity="0.13" />
 
-        <g clipPath={`url(#clip-${uid})`}>
-          {/* Confluent lawn — turbid even growth */}
-          {hasLawn && <circle cx={r} cy={r} r={r - 13} fill={`url(#lawn-${uid})`} opacity={stage === "lawn-wet" ? 0.5 : 0.82} />}
-          {/* faint streaks of the spread */}
+        {/* Dish front wall + base */}
+        <path d="M16 96 A 89 27 0 0 0 194 96 L 194 116 A 89 27 0 0 1 16 116 Z" fill="url(#pldWall)" stroke="#9bbdb8" strokeWidth="1.2" />
+        <ellipse cx="105" cy="116" rx="89" ry="27" fill="#e3efed" opacity="0.5" stroke="#9bbdb8" strokeWidth="0.8" />
+
+        {/* Agar surface */}
+        <ellipse cx={CX} cy={CY} rx={RX} ry={RY} fill="url(#pldAgar)" stroke="#b7bd76" strokeWidth="1" />
+        <ellipse cx="86" cy="93" rx="26" ry="7" fill="#ffffff" opacity="0.2" />
+
+        <g clipPath="url(#pldClip)">
+          {/* Confluent lawn */}
+          {hasLawn && <ellipse cx={CX} cy={CY} rx={RX} ry={RY} fill="url(#pldLawn)" opacity={stage === "lawn-wet" ? 0.5 : 0.85} />}
           {hasLawn && (
-            <g stroke="#e7e4cf" strokeWidth={d * 0.01} opacity="0.5" fill="none">
-              <path d={`M ${r * 0.45} ${r * 0.7} Q ${r} ${r * 0.5} ${r * 1.55} ${r * 0.72}`} />
-              <path d={`M ${r * 0.4} ${r} Q ${r} ${r * 0.82} ${r * 1.6} ${r}`} />
-              <path d={`M ${r * 0.45} ${r * 1.3} Q ${r} ${r * 1.1} ${r * 1.55} ${r * 1.28}`} />
+            <g stroke="#e7e4cf" strokeWidth="1.4" opacity="0.5" fill="none">
+              <path d={`M 38 ${CY - 8} Q ${CX} ${CY - 14} 172 ${CY - 8}`} />
+              <path d={`M 36 ${CY} Q ${CX} ${CY - 6} 174 ${CY}`} />
+              <path d={`M 38 ${CY + 8} Q ${CX} ${CY + 2} 172 ${CY + 8}`} />
             </g>
           )}
-
-          {/* Zones of inhibition (clear agar, no lawn) — only after incubation */}
+          {/* Zones of inhibition (clear agar) after incubation */}
           {grown &&
             ANTIBIOTICS.filter((a) => placedDisks[a.id]).map((a) => {
-              const cx = a.fx * d;
-              const cy = a.fy * d;
-              const zr = (a.zoneMm * mm) / 2;
+              const { x, y } = onAgar(a.fx, a.fy);
+              const zx = a.zoneMm * 0.82;
+              const zy = a.zoneMm * 0.24;
               return (
                 <g key={`z-${a.id}`}>
-                  <circle cx={cx} cy={cy} r={zr} fill={`url(#ag-${uid})`} />
-                  <circle cx={cx} cy={cy} r={zr} fill="none" stroke={highlight === a.id ? "#0ea5a0" : "#b7bd76"} strokeWidth={highlight === a.id ? 2 : 1} strokeDasharray={highlight === a.id ? "4 3" : undefined} opacity="0.8" />
+                  <ellipse cx={x} cy={y} rx={zx} ry={zy} fill="url(#pldAgar)" />
+                  <ellipse cx={x} cy={y} rx={zx} ry={zy} fill="none" stroke={highlight === a.id ? "#0ea5a0" : "#b7bd76"} strokeWidth={highlight === a.id ? 1.6 : 0.8} strokeDasharray={highlight === a.id ? "3 2" : undefined} opacity="0.8" />
                 </g>
               );
             })}
         </g>
 
-        {/* Antibiotic paper disks on top */}
+        {/* Antibiotic paper disks on the surface */}
         {ANTIBIOTICS.filter((a) => placedDisks[a.id]).map((a) => {
-          const cx = a.fx * d;
-          const cy = a.fy * d;
-          const dr = 3.2 * mm; // ~6.4 mm disk
+          const { x, y } = onAgar(a.fx, a.fy);
           return (
             <g key={`d-${a.id}`}>
-              <circle cx={cx} cy={cy + 1} r={dr} fill="#000" opacity="0.12" />
-              <circle cx={cx} cy={cy} r={dr} fill="#fbfbf6" stroke="#cfcabd" strokeWidth="0.8" />
-              <text x={cx} y={cy + dr * 0.35} textAnchor="middle" fontFamily="sans-serif" fontSize={dr * 0.8} fontWeight="bold" fill="#5b6770">
-                {a.code}
-              </text>
-              {classified[a.id] && <circle cx={cx + dr * 1.1} cy={cy - dr * 1.1} r={dr * 0.45} fill="#10b981" />}
+              <ellipse cx={x} cy={y + 1} rx="7" ry="3.2" fill="#000" opacity="0.14" />
+              <ellipse cx={x} cy={y} rx="7" ry="3.2" fill="#fbfbf6" stroke="#cfcabd" strokeWidth="0.7" />
+              <text x={x} y={y + 2.2} textAnchor="middle" fontFamily="sans-serif" fontSize="4.4" fontWeight="bold" fill="#5b6770">{a.code}</text>
+              {classified[a.id] && <circle cx={x + 8} cy={y - 3} r="2.4" fill="#10b981" />}
             </g>
           );
         })}
 
-        {/* glass reflection */}
-        <path d={`M ${r * 0.35} ${r * 0.6} Q ${r * 0.7} ${r * 0.2} ${r * 1.25} ${r * 0.42} Q ${r * 0.8} ${r * 0.5} ${r * 0.55} ${r * 0.85} Z`} fill="#ffffff" opacity="0.22" />
-        <ellipse cx={r * 0.72} cy={r * 0.5} rx={r * 0.34} ry={r * 0.1} fill="#ffffff" opacity="0.3" />
+        {/* Rim opening */}
+        <ellipse cx="105" cy="96" rx="89" ry="27" fill="none" stroke="#a9c7bf" strokeWidth="2.4" />
+        <path d="M30 86 A 89 27 0 0 1 180 86" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.5" />
+
+        {/* Glass lid — lifts up and aside */}
+        <g style={{ transition: "transform 0.45s ease", transform: lidOff ? "translate(64px,-60px) rotate(-12deg)" : "none", transformOrigin: "105px 70px" }}>
+          <path d="M16 70 A 89 27 0 0 0 194 70 L 194 64 A 89 27 0 0 1 16 64 Z" fill="#dfeeec" opacity="0.55" stroke="#a9c7bf" strokeWidth="1" />
+          <ellipse cx="105" cy="64" rx="89" ry="27" fill="#eaf5f3" opacity="0.45" stroke="#a9c7bf" strokeWidth="1.6" />
+          <path d="M40 56 A 89 27 0 0 1 175 58" fill="none" stroke="#ffffff" strokeWidth="1.4" opacity="0.6" />
+        </g>
       </svg>
     </div>
   );

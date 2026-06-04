@@ -4,6 +4,8 @@ interface Props {
   width?: number;
   /** Dishes are inside and incubating (door shut, indicator lit). */
   running?: boolean;
+  /** How many plates are visible on the shelves (default 3). */
+  plates?: number;
 }
 
 /**
@@ -11,9 +13,10 @@ interface Props {
  * door, a digital 37 °C readout and a handle. Plates are placed inside to
  * incubate 18–24 h. A green indicator lights while running.
  */
-export function Incubator({ width = 200, running }: Props) {
+export function Incubator({ width = 200, running, plates = 3 }: Props) {
   const w = width;
   const h = w * (250 / 200);
+  const plateYs = [116, 164, 208];
   return (
     <svg width={w} height={h} viewBox="0 0 200 250" style={{ overflow: "visible", filter: "drop-shadow(0 8px 9px rgba(0,0,0,0.26))" }}>
       <defs>
@@ -64,12 +67,12 @@ export function Incubator({ width = 200, running }: Props) {
         <line x1="46" y1="120" x2="142" y2="120" />
         <line x1="46" y1="168" x2="142" y2="168" />
       </g>
-      {/* Plates stacked inside when running */}
+      {/* Plates stacked inside when running (one per shelf) */}
       {running && (
         <g opacity="0.85">
-          <ellipse cx="94" cy="116" rx="34" ry="7" fill="#e7e7bf" stroke="#b3b85a" strokeWidth="0.8" />
-          <ellipse cx="94" cy="164" rx="34" ry="7" fill="#e7e7bf" stroke="#b3b85a" strokeWidth="0.8" />
-          <ellipse cx="94" cy="208" rx="34" ry="7" fill="#e7e7bf" stroke="#b3b85a" strokeWidth="0.8" />
+          {plateYs.slice(0, Math.max(0, Math.min(3, plates))).map((y) => (
+            <ellipse key={y} cx="94" cy={y} rx="34" ry="7" fill="#e7e7bf" stroke="#b3b85a" strokeWidth="0.8" />
+          ))}
         </g>
       )}
       {/* Glass reflection */}

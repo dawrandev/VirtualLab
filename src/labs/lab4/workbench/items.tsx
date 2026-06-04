@@ -51,8 +51,8 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     apparatus: true,
     target: true,
     w: 230,
-    h: 240,
-    preview: 0.28,
+    h: 180,
+    preview: 0.3,
     render: (s, o) => <PetriLawnDish diameter={230} stage={plateStage(s)} placedDisks={s.disks} classified={s.classified} highlight={o.highlight} />,
   },
   {
@@ -139,7 +139,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 264,
     h: 330,
     preview: 0.26,
-    render: (_s, o) => <Incubator width={264} running={o.incubatorRunning} />,
+    render: (_s, o) => <Incubator width={264} running={o.incubatorRunning} plates={1} />,
   },
 ];
 
