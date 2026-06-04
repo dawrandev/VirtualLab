@@ -15,7 +15,9 @@ function buildDone(correct: boolean) {
   };
   s = { ...s, dishPlaced: true };
   step("charge-swab");
-  step("spread-lawn");
+  step("spread-1");
+  step("spread-2");
+  step("spread-3");
   s = { ...s, dried: true };
   step("dip-forceps");
   step("sterilize-forceps");
@@ -41,12 +43,23 @@ describe("Lab 4 — disk diffusion state", () => {
   it("plate stage progresses: empty → lawn-wet → lawn → grown", () => {
     let s = freshDiskState();
     expect(plateStage(s)).toBe("empty");
-    s = applyDiskStep(s, "spread-lawn");
+    s = applyDiskStep(s, "spread-1");
     expect(plateStage(s)).toBe("lawn-wet");
     s = { ...s, dried: true };
     expect(plateStage(s)).toBe("lawn");
     s = applyDiskStep(s, "incubate");
     expect(plateStage(s)).toBe("grown");
+  });
+
+  it("three streak passes complete the lawn", () => {
+    let s = freshDiskState();
+    s = applyDiskStep(s, "spread-1");
+    expect(s.lawnPasses).toBe(1);
+    expect(s.lawnSpread).toBe(false);
+    s = applyDiskStep(s, "spread-2");
+    s = applyDiskStep(s, "spread-3");
+    expect(s.lawnPasses).toBe(3);
+    expect(s.lawnSpread).toBe(true);
   });
   it("place-disk records each disk; allDisksPlaced when complete", () => {
     let s = freshDiskState();
@@ -83,14 +96,21 @@ describe("Lab 4 — exam scoring", () => {
 
   it("lawn without drying → lawn step partial", () => {
     let s = freshDiskState();
-    s = { ...s, dishPlaced: true, lawnSpread: true };
+    s = { ...s, dishPlaced: true, lawnPasses: 3, lawnSpread: true };
+    const res = scoreDiskExam([], s);
+    expect(res.steps.find((x) => x.id === "lawn")!.status).toBe("partial");
+  });
+
+  it("incomplete streaking (1/3) → lawn step partial", () => {
+    let s = freshDiskState();
+    s = { ...s, dishPlaced: true, lawnPasses: 1, dried: true };
     const res = scoreDiskExam([], s);
     expect(res.steps.find((x) => x.id === "lawn")!.status).toBe("partial");
   });
 
   it("no incubation → incubate + downstream not credited", () => {
     let s = freshDiskState();
-    s = { ...s, dishPlaced: true, lawnSpread: true, dried: true, forcepsSterile: true };
+    s = { ...s, dishPlaced: true, lawnPasses: 3, lawnSpread: true, dried: true, forcepsSterile: true };
     for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     const res = scoreDiskExam([], s);
     expect(res.steps.find((x) => x.id === "incubate")!.status).toBe("zero");
@@ -99,7 +119,7 @@ describe("Lab 4 — exam scoring", () => {
 
   it("disks placed without sterile forceps → disks step partial", () => {
     let s = freshDiskState();
-    s = { ...s, dishPlaced: true, lawnSpread: true, dried: true };
+    s = { ...s, dishPlaced: true, lawnPasses: 3, lawnSpread: true, dried: true };
     for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     const res = scoreDiskExam([], s);
     expect(res.steps.find((x) => x.id === "disks")!.status).toBe("partial");

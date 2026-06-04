@@ -40,7 +40,7 @@ export interface Lab4ItemDef {
   hitDY?: number;
   render: (
     state: DiskState,
-    opts: { forcepsHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null },
+    opts: { forcepsHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean },
   ) => ReactNode;
 }
 
@@ -53,7 +53,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 230,
     h: 180,
     preview: 0.3,
-    render: (s, o) => <PetriLawnDish diameter={230} stage={plateStage(s)} placedDisks={s.disks} classified={s.classified} highlight={o.highlight} />,
+    render: (s, o) => <PetriLawnDish diameter={230} stage={plateStage(s)} lawnPasses={s.lawnPasses} placedDisks={s.disks} classified={s.classified} highlight={o.highlight} />,
   },
   {
     id: "lamp",
@@ -107,7 +107,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 70,
     h: 231,
     preview: 0.34,
-    render: (s) => <CultureTube sampled={s.swabCharged || s.lawnSpread} />,
+    render: (s, o) => <CultureTube sampled={s.swabCharged || s.lawnPasses > 0} plugOff={o.tubePlugOff} />,
   },
   {
     id: "cartridge",
@@ -150,8 +150,12 @@ export const LAB4_ITEM_BY_ID: Record<Lab4ItemId, Lab4ItemDef> = Object.fromEntri
  *  `carrying` is the antibiotic id currently held in the forceps. */
 export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, carrying: string | null): DiskIntent | null {
   if (tool === "swab") {
-    if (target === "culture") return !s.swabCharged && !s.lawnSpread ? "charge-swab" : null;
-    if (target === "dish") return s.swabCharged && !s.lawnSpread ? "spread-lawn" : null;
+    if (target === "culture") return !s.swabCharged && s.lawnPasses === 0 ? "charge-swab" : null;
+    if (target === "dish" && s.swabCharged && !s.lawnSpread) {
+      if (s.lawnPasses === 0) return "spread-1";
+      if (s.lawnPasses === 1) return "spread-2";
+      if (s.lawnPasses === 2) return "spread-3";
+    }
   }
   if (tool === "forceps") {
     if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsSterile ? "dip-forceps" : null;
@@ -167,7 +171,7 @@ export type { DiskIntent };
 /** Next item the student should use (learn-mode highlight + hint). */
 export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId | null {
   if (!s.dishPlaced) return "dish";
-  if (!s.swabCharged && !s.lawnSpread) return "swab";
+  if (!s.swabCharged && s.lawnPasses === 0) return "swab";
   if (!s.lawnSpread) return "swab";
   if (!s.forcepsSterile) return "forceps";
   if (!allDisksPlaced(s)) return "forceps";

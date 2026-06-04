@@ -5,6 +5,8 @@ import { ANTIBIOTICS, type PlateStage, type Sens } from "../../state";
 interface Props {
   diameter?: number;
   stage: PlateStage;
+  /** Completed streak passes (0–3) — each one drawn in its own direction. */
+  lawnPasses?: number;
   placedDisks?: Record<string, boolean>;
   highlight?: string | null;
   classified?: Record<string, Sens | null>;
@@ -27,12 +29,15 @@ function onAgar(fx: number, fy: number) {
  * that lifts off, and (for disk diffusion) a confluent bacterial lawn with the
  * antibiotic paper disks and their clear zones of inhibition after incubation.
  */
-export function PetriLawnDish({ diameter = 230, stage, placedDisks = {}, highlight, classified = {} }: Props) {
+export function PetriLawnDish({ diameter = 230, stage, lawnPasses = 0, placedDisks = {}, highlight, classified = {} }: Props) {
   const w = diameter;
   const h = w * (164 / 210);
   const hasLawn = stage === "lawn" || stage === "lawn-wet" || stage === "grown";
   const grown = stage === "grown";
   const lidOff = hasLawn || Object.values(placedDisks).some(Boolean);
+  // After incubation the whole surface is confluent; otherwise show the
+  // individual directional streak passes the student has made so far.
+  const passes = grown ? 3 : lawnPasses;
 
   return (
     <div style={{ position: "relative", width: w, height: h, overflow: "visible", filter: "drop-shadow(0 6px 7px rgba(0,0,0,0.22))" }}>
@@ -68,14 +73,18 @@ export function PetriLawnDish({ diameter = 230, stage, placedDisks = {}, highlig
         <ellipse cx="86" cy="93" rx="26" ry="7" fill="#ffffff" opacity="0.2" />
 
         <g clipPath="url(#pldClip)">
-          {/* Confluent lawn */}
-          {hasLawn && <ellipse cx={CX} cy={CY} rx={RX} ry={RY} fill="url(#pldLawn)" opacity={stage === "lawn-wet" ? 0.5 : 0.85} />}
-          {hasLawn && (
-            <g stroke="#e7e4cf" strokeWidth="1.4" opacity="0.5" fill="none">
-              <path d={`M 38 ${CY - 8} Q ${CX} ${CY - 14} 172 ${CY - 8}`} />
-              <path d={`M 36 ${CY} Q ${CX} ${CY - 6} 174 ${CY}`} />
-              <path d={`M 38 ${CY + 8} Q ${CX} ${CY + 2} 172 ${CY + 8}`} />
-            </g>
+          {/* Confluent lawn — fills in as the passes accumulate */}
+          {hasLawn && <ellipse cx={CX} cy={CY} rx={RX} ry={RY} fill="url(#pldLawn)" opacity={grown ? 0.85 : 0.18 + 0.22 * passes} />}
+          {/* Directional streak sets: each completed pass streaks in a new
+              direction (foreshortened, so slopes stay inside the flat agar). */}
+          {[0, 0.26, -0.26].map((m, p) =>
+            passes > p ? (
+              <g key={`pass-${p}`} stroke="#e7e4cf" strokeWidth="1.3" opacity={grown ? 0.5 : 0.66} fill="none" strokeLinecap="round">
+                {[-13, -6.5, 0, 6.5, 13].map((dy) => (
+                  <path key={dy} d={`M ${CX - 66} ${CY + dy - m * 66} Q ${CX} ${CY + dy - 4} ${CX + 66} ${CY + dy + m * 66}`} />
+                ))}
+              </g>
+            ) : null,
           )}
           {/* Zones of inhibition (clear agar) after incubation */}
           {grown &&

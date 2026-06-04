@@ -23,7 +23,7 @@ export const MAIN_STEPS: MainStep[] = [
   {
     id: "lawn",
     card: "Kulturani gazon usulida ekish",
-    result: "Steril paxta tampon bilan kulturani Petri idishiga «gazon» usulida ekib, ~5 daqiqa quritish",
+    result: "Steril paxta tamponni kulturaga botirib, idishni ~60° aylantirib 3 yo'nalishda «gazon» eking va ~5 daqiqa quriting",
     full: 10,
     partial: 5,
     requires: [],

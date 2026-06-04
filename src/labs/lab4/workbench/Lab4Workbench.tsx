@@ -29,8 +29,10 @@ const FORCEPS_COOL_MS = 3200;
 const DRY_MS = 5000; // real ~5 min compressed
 const DISPLAY_DRY_MIN = 5;
 const RUB_K = 0.0016;
+const TICK = 70;
+const SAMPLE_DUR = 1400; // dipping the swab into the culture tube
 
-type Kind = "rub" | "contact" | "instant";
+type Kind = "rub" | "sample" | "contact" | "instant";
 interface DragState {
   id: Lab4ItemId;
   fromSidebar: boolean;
@@ -50,8 +52,14 @@ interface Fx {
   key: number;
 }
 
+const SPREAD_INTENTS: DiskIntent[] = ["spread-1", "spread-2", "spread-3"];
+function isSpread(i: DiskIntent): boolean {
+  return SPREAD_INTENTS.includes(i);
+}
+
 function actionKind(intent: DiskIntent): Kind {
-  if (intent === "spread-lawn") return "rub";
+  if (isSpread(intent)) return "rub";
+  if (intent === "charge-swab") return "sample"; // timed dip, plug lifts
   return "contact";
 }
 
@@ -61,8 +69,8 @@ function fmtHours(h: number): string {
 
 function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.dishPlaced) return "Oziqa muhitli Petri idishini stolga qo'ying";
-  if (!s.swabCharged && !s.lawnSpread) return "Steril paxta tampon bilan E. coli kulturasidan oling";
-  if (!s.lawnSpread) return "Tampon bilan kulturani Petri idishiga «gazon» (bir tekis) usulida eking";
+  if (!s.swabCharged && s.lawnPasses === 0) return "Steril paxta tamponni E. coli kulturasiga botiring";
+  if (!s.lawnSpread) return `Tampon bilan «gazon» usulida surting — ${s.lawnPasses + 1}/3-yo'nalish (idishni ~60° aylantirib)`;
   if (!s.dried) return "Idish yuzasi singguncha ~5 daqiqa quriting";
   if (!s.forcepsSterile) return "Pinsetni spirt bankasiga botirib, olovda sterillang";
   if (!allDisksPlaced(s)) return carrying ? "Pinsetdagi diskni agar yuzasiga qo'ying" : "Pinset bilan disklar to'plamidan antibiotik diskni oling";
@@ -89,6 +97,7 @@ export function Lab4Workbench() {
   const [hold, setHold] = useState<Hold | null>(null);
   const holdRef = useRef<Hold | null>(null);
   holdRef.current = hold;
+  const holdIv = useRef<number | null>(null);
   const lockTargetRef = useRef<Lab4ItemId | null>(null);
 
   const [fx, setFx] = useState<Fx | null>(null);
@@ -191,8 +200,8 @@ export function Lab4Workbench() {
     recordAction(intent);
     if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "sterilize-forceps") setForcepsHot(true);
-    else if (intent === "charge-swab") flashAt("drip-mat", at("culture").x, at("culture").y, 800);
-    else if (intent === "spread-lawn") startDrying();
+    else if (intent === "charge-swab") flashAt("dip", at("culture").x, at("culture").y - 22, 900);
+    else if (intent === "spread-3") startDrying();
   }
 
   function startDrying() {
@@ -236,6 +245,10 @@ export function Lab4Workbench() {
   }, []);
 
   function cancelHold() {
+    if (holdIv.current != null) {
+      window.clearInterval(holdIv.current);
+      holdIv.current = null;
+    }
     holdRef.current = null;
     setHold(null);
   }
@@ -243,6 +256,25 @@ export function Lab4Workbench() {
     perform(intent);
     cancelHold();
     lockTargetRef.current = target;
+  }
+
+  /** Timed action with continuous contact (dipping the swab into the tube). */
+  function startTimed(target: Lab4ItemId, intent: DiskIntent, duration: number) {
+    cancelHold();
+    const h: Hold = { kind: "sample", target, intent, progress: 0 };
+    holdRef.current = h;
+    setHold(h);
+    let p = 0;
+    holdIv.current = window.setInterval(() => {
+      p += TICK / duration;
+      if (p >= 1) {
+        completeAction(intent, target);
+        return;
+      }
+      const nh: Hold = { ...h, progress: p };
+      holdRef.current = nh;
+      setHold(nh);
+    }, TICK);
   }
 
   useEffect(() => {
@@ -280,6 +312,10 @@ export function Lab4Workbench() {
         if (h) cancelHold();
         perform(intent);
         lockTargetRef.current = tg;
+        return;
+      }
+      if (kind === "sample") {
+        if (!h || h.target !== tg || h.kind !== "sample") startTimed(tg, intent, SAMPLE_DUR);
         return;
       }
       // rub (gazon)
@@ -408,8 +444,12 @@ export function Lab4Workbench() {
   const placedSet = new Set(Object.keys(placed)) as Set<Lab4ItemId>;
   const draggingDef = drag ? LAB4_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(disk, carrying);
-  const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying };
+  // Lift the tube's cotton plug while the swab is being dipped into it.
+  const chargingSwab = hold?.kind === "sample" && hold.intent === "charge-swab";
+  const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSwab };
   const dishPos = placed["dish"];
+  const culturePos = placed["culture"];
+  const spreading = hold && isSpread(hold.intent) ? hold : null;
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
 
   const validTargets = new Set<Lab4ItemId>();
@@ -512,15 +552,39 @@ export function Lab4Workbench() {
               <TestTubeRack width={340} front />
             </div>
           )}
-          {/* Gazon spread visual building on the plate during the rub */}
-          {hold?.intent === "spread-lawn" && dishPos && (
-            <div className="pointer-events-none absolute z-20" style={{ left: `${dishPos.x}%`, top: `${dishPos.y}%`, transform: "translate(-50%,-50%)" }}>
-              <svg width="200" height="200" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="84" fill="#eceadb" opacity={0.55 * hold.progress} />
-                {[0, 1, 2, 3].map((i) => (
-                  <path key={i} d={`M 30 ${60 + i * 22} Q 100 ${48 + i * 22} 170 ${60 + i * 22}`} stroke="#e7e4cf" strokeWidth="4" fill="none" strokeLinecap="round" strokeDasharray={150} strokeDashoffset={150 * (1 - Math.max(0, Math.min(1, hold.progress * 1.6 - i * 0.18)))} opacity="0.7" />
-                ))}
-              </svg>
+          {/* Gazon streak building on the plate during the active pass —
+              drawn in this pass's own direction, aligned over the agar ellipse. */}
+          {spreading && dishPos && (() => {
+            const pass = Math.min(2, disk.lawnPasses); // 0,1,2 — the pass in progress
+            const slope = [0, 0.26, -0.26][pass];
+            const reveal = (i: number) => 150 * (1 - Math.max(0, Math.min(1, spreading.progress * 1.5 - i * 0.12)));
+            return (
+              <div className="pointer-events-none absolute z-20" style={{ left: `${dishPos.x}%`, top: `${dishPos.y}%`, transform: "translate(-50%,-50%)" }}>
+                <svg width={230} height={180} viewBox="0 0 210 164" style={{ overflow: "visible" }}>
+                  <defs>
+                    <clipPath id="lawnRubClip"><ellipse cx={105} cy={100} rx={76} ry={22} /></clipPath>
+                  </defs>
+                  <g clipPath="url(#lawnRubClip)">
+                    <ellipse cx={105} cy={100} rx={76} ry={22} fill="#eceadb" opacity={0.3 * spreading.progress} />
+                    {[-13, -6.5, 0, 6.5, 13].map((dy, i) => (
+                      <path key={dy} d={`M ${105 - 66} ${100 + dy - slope * 66} Q 105 ${100 + dy - 4} ${105 + 66} ${100 + dy + slope * 66}`} stroke="#dad7c2" strokeWidth="2.4" fill="none" strokeLinecap="round" strokeDasharray={150} strokeDashoffset={reveal(i)} opacity="0.8" />
+                    ))}
+                  </g>
+                </svg>
+                {/* pass counter + rotate-the-plate cue */}
+                <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+                  🔄 {disk.lawnPasses + 1}/3-yo'nalish
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Swab dipping into the culture tube — progress ring while charging */}
+          {chargingSwab && culturePos && (
+            <div className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2" style={{ left: `${culturePos.x}%`, top: `${culturePos.y - 18}%` }}>
+              <div className="flex items-center gap-1.5 rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+                <span>💧 Tampon botirilyapti…</span>
+              </div>
             </div>
           )}
 

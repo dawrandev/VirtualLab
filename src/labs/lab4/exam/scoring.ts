@@ -40,13 +40,14 @@ export function scoreDiskExam(log: ExamAction[], s: DiskState): ExamResult {
 
   const steps: StepResult[] = [];
 
-  // 1 — lawn (gazon) swab + drying
+  // 1 — lawn (gazon) swab in 3 directions + drying
   {
     const notes: string[] = [];
-    if (!s.lawnSpread) steps.push(grade("lawn", "zero", ["Kultura gazon usulida ekilmadi"]));
+    if (s.lawnPasses === 0) steps.push(grade("lawn", "zero", ["Kultura gazon usulida ekilmadi"]));
     else {
+      if (!s.lawnSpread) notes.push(`Gazon to'liq emas — faqat ${s.lawnPasses}/3 yo'nalishda surtildi`);
       if (!s.dried) notes.push("Idish ~5 daqiqa quritilmadi");
-      steps.push(grade("lawn", s.dried ? "full" : "partial", notes));
+      steps.push(grade("lawn", s.lawnSpread && s.dried ? "full" : "partial", notes));
     }
   }
 

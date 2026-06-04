@@ -45,7 +45,9 @@ export interface DiskState {
   dishPlaced: boolean;
   /** Cotton swab dipped in the culture (ready to spread). */
   swabCharged: boolean;
-  /** Confluent lawn swabbed over the agar. */
+  /** Number of completed streak passes (Kirby-Bauer streaks in 3 directions). */
+  lawnPasses: number;
+  /** Confluent lawn finished — all three streak passes done. */
   lawnSpread: boolean;
   /** Plate dried (~5 min) so the agar absorbed the inoculum. */
   dried: boolean;
@@ -58,10 +60,13 @@ export interface DiskState {
   classified: Record<string, Sens | null>;
 }
 
+export const LAWN_PASSES = 3;
+
 export function freshDiskState(): DiskState {
   return {
     dishPlaced: false,
     swabCharged: false,
+    lawnPasses: 0,
     lawnSpread: false,
     dried: false,
     forcepsDipped: false,
@@ -78,7 +83,9 @@ export function allDisksPlaced(s: DiskState): boolean {
 
 export type DiskIntent =
   | "charge-swab" // swab → culture
-  | "spread-lawn" // swab → dish (gazon)
+  | "spread-1" // swab → dish (1st direction)
+  | "spread-2" // swab → dish (rotate ~60°)
+  | "spread-3" // swab → dish (rotate ~60° again)
   | "dip-forceps" // forceps → alcohol jar
   | "sterilize-forceps" // forceps → flame
   | "pick-disk" // forceps → cartridge
@@ -89,7 +96,7 @@ export type DiskIntent =
 export type PlateStage = "empty" | "lawn-wet" | "lawn" | "grown";
 export function plateStage(s: DiskState): PlateStage {
   if (s.incubated) return "grown";
-  if (s.lawnSpread) return s.dried ? "lawn" : "lawn-wet";
+  if (s.lawnPasses > 0) return s.dried ? "lawn" : "lawn-wet";
   return "empty";
 }
 
@@ -99,7 +106,14 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
     case "charge-swab":
       s.swabCharged = true;
       break;
-    case "spread-lawn":
+    case "spread-1":
+      s.lawnPasses = Math.max(s.lawnPasses, 1);
+      break;
+    case "spread-2":
+      s.lawnPasses = Math.max(s.lawnPasses, 2);
+      break;
+    case "spread-3":
+      s.lawnPasses = LAWN_PASSES;
       s.lawnSpread = true;
       s.swabCharged = false;
       break;
