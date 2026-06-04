@@ -65,13 +65,13 @@ export const LABS: LabEntry[] = [
   {
     id: 5,
     href: "/lab/5",
-    title: "Bakteriya harakatchanligi",
-    subtitle: "Osma tomchi usuli",
-    description: "Tirik bakteriyalarni osma tomchida kuzatib, haqiqiy harakat va broun harakatini farqlash.",
+    title: "Tirik mikroorganizmlarni o'rganish",
+    subtitle: "«Ezilgan tomchi» preparati",
+    description: "Fiziologik eritmada tirik bakteriyalardan ezilgan tomchi preparati tayyorlab, qoplag'ich oyna bilan yopib, ×40 obyektivda harakatchanligini kuzatish.",
     accent: { from: "#f59e0b", to: "#b45309", ring: "#fcd34d", soft: "#fffbeb" },
     paths:
       "M12 3c3 4 5 6.5 5 9a5 5 0 0 1-10 0c0-2.5 2-5 5-9zM10.5 13a1.5 1.5 0 0 0 1.5 1.5",
-    available: false,
+    available: true,
   },
   {
     id: 6,
