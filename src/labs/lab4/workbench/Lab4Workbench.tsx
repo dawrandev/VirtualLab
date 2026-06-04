@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
+import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
+import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
 import { CottonSwab } from "../components2d/items/CottonSwab";
 import { LAB4_ITEMS, LAB4_ITEM_BY_ID, intentFor, type Lab4ItemId } from "./items";
 import {
@@ -60,7 +62,7 @@ function isSpread(i: DiskIntent): boolean {
 
 function actionKind(intent: DiskIntent): Kind {
   if (isSpread(intent)) return "rub";
-  if (intent === "charge-swab") return "sample"; // timed dip, plug lifts
+  if (intent === "charge-swab" || intent === "dip-forceps") return "sample"; // timed dip
   return "contact";
 }
 
@@ -447,9 +449,11 @@ export function Lab4Workbench() {
   const hint = nextHint(disk, carrying);
   // Lift the tube's cotton plug while the swab is being dipped into it.
   const chargingSwab = hold?.kind === "sample" && hold.intent === "charge-swab";
+  const dippingForceps = hold?.kind === "sample" && hold.intent === "dip-forceps";
   const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSwab };
   const dishPos = placed["dish"];
   const culturePos = placed["culture"];
+  const jarPos = placed["alcohol-jar"];
   const spreading = hold && isSpread(hold.intent) ? hold : null;
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
 
@@ -598,6 +602,33 @@ export function Lab4Workbench() {
             </div>
           )}
 
+          {/* Forceps dipping into the alcohol jar — tips lower below the alcohol
+              level (occluded by the jar's front glass) then lift back out.
+              3-layer: jar back (placed) → forceps → jar front. */}
+          {dippingForceps && jarPos && (
+            <>
+              <div className="pointer-events-none absolute" style={{ left: `${jarPos.x}%`, top: `${jarPos.y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+                <motion.div initial={{ y: -82, opacity: 0 }} animate={{ y: [-82, -36, -36, -82], opacity: 1 }} transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.32, 0.78, 1], ease: "easeInOut" }}>
+                  <Forceps width={40} />
+                </motion.div>
+              </div>
+              <div className="pointer-events-none absolute" style={{ left: `${jarPos.x}%`, top: `${jarPos.y}%`, transform: "translate(-50%,-50%)", zIndex: 6 }}>
+                <AlcoholJar width={110} front />
+              </div>
+              {/* alcohol ripples at the surface */}
+              <div className="pointer-events-none absolute z-[7]" style={{ left: `${jarPos.x}%`, top: `${jarPos.y - 4}%`, transform: "translate(-50%,-50%)" }}>
+                <svg width="90" height="40" viewBox="0 0 90 40">
+                  {[0, 1, 2].map((i) => (
+                    <motion.ellipse key={i} cx="45" cy="20" initial={{ rx: 4, ry: 1.6, opacity: 0.6 }} animate={{ rx: 24, ry: 8, opacity: 0 }} transition={{ duration: 0.9, delay: 0.4 + i * 0.3, ease: "easeOut", repeat: 1 }} fill="none" stroke="#bcd9e2" strokeWidth="1.4" />
+                  ))}
+                </svg>
+              </div>
+              <div className="pointer-events-none absolute -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow" style={{ left: `${jarPos.x}%`, top: `${jarPos.y - 28}%` }}>
+                🧴 Pinset spirtga botirilyapti…
+              </div>
+            </>
+          )}
+
           {/* Effects */}
           {fx?.kind === "drip-mat" && (
             <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 8}%` }}>
@@ -656,8 +687,8 @@ export function Lab4Workbench() {
           )}
 
           {/* Drag ghost — forceps carrying a disk shows a small disk at its tips.
-              Hidden while the swab is dipping (the vertical dip visual takes over). */}
-          {drag && draggingDef && !chargingSwab && (
+              Hidden during a dip (the dedicated dip visual takes over). */}
+          {drag && draggingDef && !chargingSwab && !dippingForceps && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               <div className="relative">
                 {draggingDef.render(disk, renderOpts)}
