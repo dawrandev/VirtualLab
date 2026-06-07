@@ -51,5 +51,110 @@
       "subtitle": "Acid-fast staining",
       "desc": "Detect the tuberculosis bacillus (AFB) with carbol fuchsin, acid and methylene blue."
     }
+  },
+  "ui": {
+    "chooseMode": "Choose a mode",
+    "learnTitle": "Learn mode",
+    "learnDesc": "Guidance and the next tool are shown at every step. No score — practise freely.",
+    "examTitle": "Exam mode",
+    "examDescPdf": "First arrange the procedure, then perform it unaided. Scored by the PDF criteria (100 total).",
+    "examDescStages": "First arrange the procedure, then perform it unaided. Scored by stages (100 total).",
+    "start": "Start →",
+    "planTitle": "Arrange the procedure",
+    "planInstruction": "Place the steps in the correct order.",
+    "planConfirm": "Confirm the order and start →",
+    "planLocked": "Once confirmed, the order can't be changed.",
+    "planFirst": "First arrange the procedure in the right panel →",
+    "toolsTitle": "Laboratory tools",
+    "dragHintSidebar": "Drag the tools onto the bench and place them anywhere",
+    "onTable": "on bench",
+    "dragToTable": "Drag the tools from the left panel onto the bench",
+    "examBanner": "Exam — no help. Do it as best you can.",
+    "restart": "Restart",
+    "close": "Close",
+    "tierExcellent": "Excellent",
+    "tierGood": "Good",
+    "tierOk": "Satisfactory",
+    "tierPoor": "Unsatisfactory"
+  },
+  "lab5": {
+    "items": {
+      "slide": "Slide",
+      "coverslip": "Cover slip",
+      "lamp": "Spirit lamp",
+      "saline": "Physiological saline (NaCl)",
+      "loop": "Inoculation loop",
+      "loopStand": "Loop stand",
+      "culture": "E. coli culture",
+      "rack": "Tube rack",
+      "filter": "Filter paper",
+      "bridge": "Glass bridge",
+      "tray": "Tray",
+      "microscope": "Microscope"
+    },
+    "hint": {
+      "degrease": "Pass the slide through the spirit-lamp flame to degrease it",
+      "saline": "Place a drop of physiological saline (NaCl) on the centre of the slide",
+      "flame": "Sterilise the inoculation loop in the flame",
+      "charge": "With the cooled loop, lightly touch and take culture",
+      "mix": "Mix the culture into the drop until even",
+      "cover": "Cover the drop with the cover slip (lower it on edge)",
+      "blot": "Blot the excess fluid with filter paper",
+      "observe": "Take the prep to the microscope and view it with the ×40 objective",
+      "done": "Determine the bacterium's motility"
+    },
+    "toast": {
+      "needBridge": "First place the glass bridge on the bench",
+      "needPrep": "First prepare the slide and cover it with the cover slip",
+      "success": "✓ The prep is ready — you completed the task successfully!"
+    },
+    "act": {
+      "mixing": "🔄 Mixing…",
+      "covering": "🪟 Lowering the cover slip…",
+      "charging": "🧫 Taking culture…",
+      "blotting": "🧻 Blotting the excess…"
+    },
+    "btnObserve": "🔬 View under the microscope",
+    "btnObserveBig": "🔬 View under the microscope (×40)",
+    "steps": {
+      "degreaseCard": "Degrease the slide",
+      "degreaseResult": "Clean the slide and degrease it by passing it through the spirit-lamp flame",
+      "salineCard": "Drop of physiological saline",
+      "salineResult": "Place a drop of sterile physiological saline on the centre of the slide",
+      "loopCard": "Sterilise the loop, take culture",
+      "loopResult": "Flame the loop, cool it and lightly take culture",
+      "mixCard": "Mix into the drop",
+      "mixResult": "Mix the culture into the drop until an even (homogeneous) suspension",
+      "coverCard": "Cover with the cover slip",
+      "coverResult": "Cover the drop with the cover slip (lowered on edge, no bubbles) and blot the excess with filter paper",
+      "microCard": "View under the microscope (×40)",
+      "microResult": "Examine the prep with the ×40 objective and determine motility"
+    },
+    "score": {
+      "degreaseZero": "The slide was not flame-degreased",
+      "salineZero": "No physiological saline was applied",
+      "loopZero": "No culture was taken",
+      "loopPartial": "The loop was used without sterilising",
+      "mixZero": "The culture was not mixed into the drop",
+      "coverZero": "No cover slip was placed",
+      "coverPartial": "The excess fluid was not blotted with filter paper",
+      "microZero": "The prep was not viewed under the microscope",
+      "microNoPick": "Motility was not determined",
+      "microWrong": "Motility was determined incorrectly"
+    },
+    "resultLearn": "Crushed drop — learning result",
+    "resultExam": "Crushed drop — exam result",
+    "micro": {
+      "field": "×40 · living prep",
+      "question": "Is this bacterium motile?",
+      "motile": "Motile",
+      "motileSub": "swims directionally",
+      "nonmotile": "Non-motile",
+      "nonmotileSub": "only Brownian jitter",
+      "right": "✓ Correct! ",
+      "wrong": "✕ Incorrect. ",
+      "revealMotile": "The bacterium swims actively and directionally — this is true motility (via flagella), different from Brownian motion.",
+      "revealNonmotile": "The bacterium stays in place with only Brownian jitter — it is a non-motile species."
+    }
   }
 }

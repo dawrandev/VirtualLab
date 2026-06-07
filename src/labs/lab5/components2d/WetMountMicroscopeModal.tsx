@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type { Motility } from "../state";
 
 interface Props {
@@ -57,6 +58,7 @@ function rods(): Rod[] {
  */
 export function WetMountMicroscopeModal({ open, picked, reveal, correct, onClassify, onClose }: Props) {
   const cells = useMemo(() => rods(), []);
+  const t = useTranslations();
   const isRight = picked === correct;
 
   return (
@@ -90,36 +92,34 @@ export function WetMountMicroscopeModal({ open, picked, reveal, correct, onClass
                     }}
                   />
                 ))}
-                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md bg-black/40 px-2.5 py-1 text-[11px] font-bold tracking-wider text-white">×40 · tirik preparat</div>
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md bg-black/40 px-2.5 py-1 text-[11px] font-bold tracking-wider text-white">{t("lab5.micro.field")}</div>
               </div>
             </div>
 
             {/* Motility classification */}
             <div className="w-[min(90vw,460px)] rounded-2xl bg-white/95 p-4 text-center shadow-2xl">
-              <p className="mb-3 text-sm font-semibold text-slate-700">Bu bakteriya harakatchanmi?</p>
+              <p className="mb-3 text-sm font-semibold text-slate-700">{t("lab5.micro.question")}</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => onClassify("motile")}
                   className="flex-1 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition"
                   style={{ borderColor: picked === "motile" ? "#0d9488" : "#e2e8f0", background: picked === "motile" ? "#f0fdfa" : "#fff", color: "#0f766e" }}
                 >
-                  Harakatchan<br /><span className="text-[11px] font-normal text-slate-500">yo'nalishli suzadi</span>
+                  {t("lab5.micro.motile")}<br /><span className="text-[11px] font-normal text-slate-500">{t("lab5.micro.motileSub")}</span>
                 </button>
                 <button
                   onClick={() => onClassify("nonmotile")}
                   className="flex-1 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition"
                   style={{ borderColor: picked === "nonmotile" ? "#b45309" : "#e2e8f0", background: picked === "nonmotile" ? "#fffbeb" : "#fff", color: "#b45309" }}
                 >
-                  Harakatsiz<br /><span className="text-[11px] font-normal text-slate-500">faqat broun tebranishi</span>
+                  {t("lab5.micro.nonmotile")}<br /><span className="text-[11px] font-normal text-slate-500">{t("lab5.micro.nonmotileSub")}</span>
                 </button>
               </div>
 
               {reveal && picked && (
                 <div className="mt-3 rounded-lg px-3 py-2 text-[13px] font-medium" style={{ background: isRight ? "#ecfdf5" : "#fef2f2", color: isRight ? "#059669" : "#dc2626" }}>
-                  {isRight ? "✓ To'g'ri! " : "✕ Noto'g'ri. "}
-                  {correct === "motile"
-                    ? "Bakteriya yo'nalishli, faol suzadi — bu haqiqiy harakatchanlik (xivchinlar yordamida), broun tebranishidan farq qiladi."
-                    : "Bakteriya joyida turib faqat broun tebranishi qiladi — bu harakatsiz tur."}
+                  {isRight ? t("lab5.micro.right") : t("lab5.micro.wrong")}
+                  {correct === "motile" ? t("lab5.micro.revealMotile") : t("lab5.micro.revealNonmotile")}
                 </div>
               )}
             </div>

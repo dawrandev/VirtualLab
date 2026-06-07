@@ -64,15 +64,15 @@ function actionKind(intent: WetIntent): Kind {
 }
 
 function nextHint(s: WetMountState): string {
-  if (!s.slideDegreased) return "Buyum oynasini spirtovka olovidan o'tkazib yog'sizlantiring";
-  if (!s.salineApplied) return "Oyna markaziga fiziologik eritma (NaCl) tomchisini tomizing";
-  if (!s.loopFlamed && !s.loopCharged) return "Bakteriologik halqani olovda qizdirib sterillang";
-  if (!s.loopCharged && !s.mixed) return "Sovugan halqa bilan kulturadan yengil teginib oling";
-  if (!s.mixed) return "Halqadagi kulturani tomchiga bir tekis bo'lguncha aralashtiring";
-  if (!s.coverPlaced) return "Tomchini qoplag'ich oyna bilan yoping (qirrasidan asta tushiring)";
-  if (!s.blotted) return "Ortiqcha suyuqlikni filtr qog'oz bilan oling";
-  if (!s.observed) return "Preparatni mikroskopga olib borib ×40 obyektivda ko'ring";
-  return "Bakteriya harakatchanligini aniqlang";
+  if (!s.slideDegreased) return "lab5.hint.degrease";
+  if (!s.salineApplied) return "lab5.hint.saline";
+  if (!s.loopFlamed && !s.loopCharged) return "lab5.hint.flame";
+  if (!s.loopCharged && !s.mixed) return "lab5.hint.charge";
+  if (!s.mixed) return "lab5.hint.mix";
+  if (!s.coverPlaced) return "lab5.hint.cover";
+  if (!s.blotted) return "lab5.hint.blot";
+  if (!s.observed) return "lab5.hint.observe";
+  return "lab5.hint.done";
 }
 
 export function Lab5Workbench() {
@@ -329,7 +329,7 @@ export function Lab5Workbench() {
     // Slide → microscope: open the eyepiece view.
     if (target === "microscope" && d.id === "slide") {
       if (canObserve(wetRef.current)) perform("observe");
-      else if (!wetRef.current.coverPlaced) showToast("Avval preparatni tayyorlab, qoplag'ich oyna bilan yoping");
+      else if (!wetRef.current.coverPlaced) showToast(tg("lab5.toast.needPrep"));
       endDrag();
       return;
     }
@@ -356,7 +356,7 @@ export function Lab5Workbench() {
     const fyp = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
     let pos = snapPos(d.id, rect, { x: fxp, y: fyp });
     if (d.id === "slide" && !placedRef.current["bridge"]) {
-      showToast("Avval shisha ko'prikni stolga qo'ying");
+      showToast(tg("lab5.toast.needBridge"));
       pos = { x: fxp, y: fyp };
     }
     setPlaced((p) => ({ ...p, [d.id]: pos }));
@@ -377,7 +377,7 @@ export function Lab5Workbench() {
     setScopeOpen(false);
     // Learn mode is for practice — no grade. Just a completion message.
     if (modeRef.current !== "exam" && wetRef.current.motilePick) {
-      showToast("✓ Preparat tayyor — ishni muvaffaqiyatli yakunladingiz!", true, 3600);
+      showToast(tg("lab5.toast.success"), true, 3600);
     }
   }
   function startExam() {
@@ -439,19 +439,19 @@ export function Lab5Workbench() {
         {!isExam && (
           <div className="mx-auto flex max-w-[46%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
             <span className="text-amber-300">➜</span>
-            <span className="truncate">{hint}</span>
+            <span className="truncate">{tg(hint)}</span>
           </div>
         )}
         {examActive && (
           <div className="mx-auto flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 ring-1 ring-sky-200">
             <span>📝</span>
-            <span>Imtihon — yordam yo'q. Bilganingizcha bajaring.</span>
+            <span>{tg("ui.examBanner")}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2">
           {wet.coverPlaced && !wet.observed && (
-            <button onClick={() => perform("observe")} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-amber-500">🔬 Mikroskopda ko'rish</button>
+            <button onClick={() => perform("observe")} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-amber-500">{tg("lab5.btnObserve")}</button>
           )}
           <LanguageSwitcher />
           <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
@@ -470,12 +470,12 @@ export function Lab5Workbench() {
 
           {isExam && examPhase === "planning" && (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">
-              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">Avval o'ng paneldan ish tartibini tuzing →</p>
+              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
           {placedSet.size === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
-              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">Asboblarni chap paneldan ish stoliga sudrab oling</p>
+              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
           )}
 
@@ -505,7 +505,7 @@ export function Lab5Workbench() {
                   }}
                   onDoubleClick={() => setPlaced((p) => { const n = { ...p }; delete n[it.id]; return n; })}
                   style={{ cursor: "grab" }}
-                  title={it.label}
+                  title={tg(it.label)}
                 >
                   {it.id === "loop" && loopOnStand ? (
                     <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(wet, renderOpts)}</div>
@@ -538,7 +538,7 @@ export function Lab5Workbench() {
                 <ellipse cx="34" cy="24" rx={9 + 6 * mixing.progress} ry={7 + 4 * mixing.progress} fill="#d8d6bd" opacity={0.5 * mixing.progress} />
                 <path d={`M 34 24 m -8 0 a 8 6 0 1 0 16 0 a 6 4 0 1 0 -12 0`} stroke="#a9a884" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeDasharray={60} strokeDashoffset={60 * (1 - mixing.progress)} opacity="0.7" />
               </svg>
-              <div className="absolute left-1/2 top-[-26px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🔄 Aralashtirilyapti…</div>
+              <div className="absolute left-1/2 top-[-26px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">{tg("lab5.act.mixing")}</div>
             </div>
           )}
 
@@ -553,7 +553,7 @@ export function Lab5Workbench() {
               >
                 <CoverSlip width={42} />
               </motion.div>
-              <div className="absolute left-1/2 top-[-38px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🪟 Qoplag'ich oyna tushirilyapti…</div>
+              <div className="absolute left-1/2 top-[-38px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">{tg("lab5.act.covering")}</div>
             </div>
           )}
 
@@ -572,7 +572,7 @@ export function Lab5Workbench() {
                 </motion.div>
               </div>
               <div className="pointer-events-none absolute z-40 -translate-x-1/2 rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow" style={{ left: `${culturePos.x}%`, top: `${culturePos.y + 18}%` }}>
-                🧫 Kulturadan olinyapti…
+                {tg("lab5.act.charging")}
               </div>
             </>
           )}
@@ -588,7 +588,7 @@ export function Lab5Workbench() {
               >
                 <FilterPaper width={56} wet />
               </motion.div>
-              <div className="absolute left-1/2 top-[-30px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">🧻 Ortiqcha suyuqlik olinyapti…</div>
+              <div className="absolute left-1/2 top-[-30px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">{tg("lab5.act.blotting")}</div>
             </div>
           )}
 
@@ -602,7 +602,7 @@ export function Lab5Workbench() {
           {/* Microscope button (learn) after the cover slip is on */}
           {!isExam && wet.coverPlaced && !wet.observed && (
             <button onClick={() => perform("observe")} className="absolute bottom-5 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-amber-500">
-              🔬 Mikroskopda (×40) ko'rish
+              {tg("lab5.btnObserveBig")}
             </button>
           )}
 

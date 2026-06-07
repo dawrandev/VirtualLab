@@ -53,7 +53,7 @@ export interface Lab5ItemDef {
 export const LAB5_ITEMS: Lab5ItemDef[] = [
   {
     id: "slide",
-    label: "Buyum oynasi",
+    label: "lab5.items.slide",
     apparatus: false,
     target: true,
     w: 120,
@@ -63,7 +63,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "coverslip",
-    label: "Qoplag'ich oyna",
+    label: "lab5.items.coverslip",
     apparatus: false,
     target: false,
     w: 72,
@@ -73,7 +73,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "lamp",
-    label: "Spirt lampasi",
+    label: "lab5.items.lamp",
     apparatus: true,
     target: true,
     w: 160,
@@ -86,7 +86,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "saline",
-    label: "Fiziologik eritma (NaCl)",
+    label: "lab5.items.saline",
     apparatus: false,
     target: false,
     w: 54,
@@ -97,7 +97,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "loop",
-    label: "Bakteriologik halqa",
+    label: "lab5.items.loop",
     apparatus: false,
     target: false,
     w: 220,
@@ -108,7 +108,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "loop-stand",
-    label: "Halqa shtativi",
+    label: "lab5.items.loopStand",
     apparatus: true,
     target: false,
     w: 200,
@@ -118,7 +118,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "culture",
-    label: "E. coli kulturasi",
+    label: "lab5.items.culture",
     apparatus: true,
     target: true,
     w: 70,
@@ -128,7 +128,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "rack",
-    label: "Probirka shtativi",
+    label: "lab5.items.rack",
     apparatus: true,
     target: false,
     w: 340,
@@ -138,7 +138,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "filter",
-    label: "Filtr qog'oz",
+    label: "lab5.items.filter",
     apparatus: false,
     target: false,
     w: 84,
@@ -149,7 +149,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "bridge",
-    label: "Shisha ko'prik",
+    label: "lab5.items.bridge",
     apparatus: true,
     target: false,
     w: 150,
@@ -159,7 +159,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "tray",
-    label: "Lotok",
+    label: "lab5.items.tray",
     apparatus: true,
     target: false,
     w: 440,
@@ -169,7 +169,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
   },
   {
     id: "microscope",
-    label: "Mikroskop",
+    label: "lab5.items.microscope",
     apparatus: true,
     target: true,
     w: 204,

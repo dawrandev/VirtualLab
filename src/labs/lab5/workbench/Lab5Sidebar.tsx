@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { WetMountState } from "../state";
 import { LAB5_ITEMS, requiredItem, type Lab5ItemId } from "./items";
 
@@ -15,13 +16,14 @@ interface Props {
 /** Left tool tray for Lab 5 — same paradigm as Labs 1–4. */
 export function Lab5Sidebar({ state, placed, draggingId, onStartDrag, showHints = true }: Props) {
   const [hovered, setHovered] = useState<Lab5ItemId | null>(null);
+  const t = useTranslations();
   const required = showHints ? requiredItem(state) : null;
 
   return (
     <aside className="relative z-20 flex h-full w-[212px] shrink-0 flex-col border-r border-slate-300/70" style={{ background: "linear-gradient(180deg,#fbfbfc 0%,#eef0f3 100%)" }}>
       <div className="border-b border-slate-200 px-4 pb-2 pt-3">
-        <h2 className="text-sm font-bold tracking-wide text-slate-700">🔬 Laboratoriya asboblari</h2>
-        {showHints && <p className="mt-0.5 text-[11px] leading-snug text-slate-500">Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying</p>}
+        <h2 className="text-sm font-bold tracking-wide text-slate-700">🔬 {t("ui.toolsTitle")}</h2>
+        {showHints && <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{t("ui.dragHintSidebar")}</p>}
       </div>
 
       <div className="wb-tray grid flex-1 grid-cols-2 content-start gap-2 overflow-y-auto px-3 py-3">
@@ -50,11 +52,11 @@ export function Lab5Sidebar({ state, placed, draggingId, onStartDrag, showHints 
                 <div className="pointer-events-none flex h-[56px] w-full items-center justify-center overflow-hidden">
                   <div style={{ transform: `scale(${item.preview})` }}>{item.render(state, {})}</div>
                 </div>
-                <span className="pointer-events-none text-center text-[10px] font-medium leading-tight text-slate-600">{item.label}</span>
-                {isPlaced && <span className="pointer-events-none text-[8px] uppercase tracking-wider text-amber-600">stolda</span>}
+                <span className="pointer-events-none text-center text-[10px] font-medium leading-tight text-slate-600">{t(item.label)}</span>
+                {isPlaced && <span className="pointer-events-none text-[8px] uppercase tracking-wider text-amber-600">{t("ui.onTable")}</span>}
               </button>
               {hovered === item.id && (
-                <div className="pointer-events-none absolute left-1/2 top-[102%] z-50 w-36 -translate-x-1/2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-center text-[11px] text-white shadow-xl">{item.label}</div>
+                <div className="pointer-events-none absolute left-1/2 top-[102%] z-50 w-36 -translate-x-1/2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-center text-[11px] text-white shadow-xl">{t(item.label)}</div>
               )}
             </div>
           );

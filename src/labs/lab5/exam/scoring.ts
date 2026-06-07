@@ -35,28 +35,28 @@ export function scoreWetMountExam(_log: ExamAction[], s: WetMountState): ExamRes
   const steps: StepResult[] = [];
 
   // 1 — degrease the slide
-  steps.push(s.slideDegreased ? grade("degrease", "full", []) : grade("degrease", "zero", ["Buyum oynasi olovda yog'sizlantirilmadi"]));
+  steps.push(s.slideDegreased ? grade("degrease", "full", []) : grade("degrease", "zero", ["lab5.score.degreaseZero"]));
 
   // 2 — saline drop
-  steps.push(s.salineApplied ? grade("saline", "full", []) : grade("saline", "zero", ["Fiziologik eritma tomizilmadi"]));
+  steps.push(s.salineApplied ? grade("saline", "full", []) : grade("saline", "zero", ["lab5.score.salineZero"]));
 
   // 3 — sterilise loop + take culture
-  if (!s.loopCharged && !s.mixed) steps.push(grade("loop", "zero", ["Kulturadan olinmadi"]));
-  else if (!s.loopFlamed) steps.push(grade("loop", "partial", ["Halqa sterillanmagan holda ishlatildi"]));
+  if (!s.loopCharged && !s.mixed) steps.push(grade("loop", "zero", ["lab5.score.loopZero"]));
+  else if (!s.loopFlamed) steps.push(grade("loop", "partial", ["lab5.score.loopPartial"]));
   else steps.push(grade("loop", "full", []));
 
   // 4 — mix to an even suspension
-  steps.push(s.mixed ? grade("mix", "full", []) : grade("mix", "zero", ["Kultura tomchiga aralashtirilmadi"]));
+  steps.push(s.mixed ? grade("mix", "full", []) : grade("mix", "zero", ["lab5.score.mixZero"]));
 
   // 5 — cover slip + blot excess
-  if (!s.coverPlaced) steps.push(grade("cover", "zero", ["Qoplag'ich oyna qo'yilmadi"]));
-  else if (!s.blotted) steps.push(grade("cover", "partial", ["Ortiqcha suyuqlik filtr qog'oz bilan olinmadi"]));
+  if (!s.coverPlaced) steps.push(grade("cover", "zero", ["lab5.score.coverZero"]));
+  else if (!s.blotted) steps.push(grade("cover", "partial", ["lab5.score.coverPartial"]));
   else steps.push(grade("cover", "full", []));
 
   // 6 — microscopy + motility call
-  if (!s.observed) steps.push(grade("micro", "zero", ["Preparat mikroskopda ko'rilmadi"]));
-  else if (s.motilePick == null) steps.push(grade("micro", "partial", ["Harakatchanlik aniqlanmadi"]));
-  else if (s.motilePick !== SPECIMEN.motility) steps.push(grade("micro", "partial", ["Harakatchanlik noto'g'ri aniqlandi"]));
+  if (!s.observed) steps.push(grade("micro", "zero", ["lab5.score.microZero"]));
+  else if (s.motilePick == null) steps.push(grade("micro", "partial", ["lab5.score.microNoPick"]));
+  else if (s.motilePick !== SPECIMEN.motility) steps.push(grade("micro", "partial", ["lab5.score.microWrong"]));
   else steps.push(grade("micro", "full", []));
 
   const total = steps.reduce((a, x) => a + x.earned, 0);

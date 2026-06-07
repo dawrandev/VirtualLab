@@ -48,6 +48,111 @@
       "desc": "Karbol fuksin, kislota va metilen ko'ki bilan sil tayoqchasini (KChB) aniqlash."
     }
   },
+  "ui": {
+    "chooseMode": "Rejimni tanlang",
+    "learnTitle": "O'rganish rejimi",
+    "learnDesc": "Har qadamda yo'l-yo'riq va keyingi asbob ko'rsatiladi. Ball qo'yilmaydi — bemalol o'rganasiz.",
+    "examTitle": "Imtihon rejimi",
+    "examDescPdf": "Avval ish tartibini tuzasiz, so'ng yordamsiz bajarasiz. Ballar PDF mezoni bo'yicha (jami 100).",
+    "examDescStages": "Avval ish tartibini tuzasiz, so'ng yordamsiz bajarasiz. Ballar bosqichlar bo'yicha (jami 100).",
+    "start": "Boshlash →",
+    "planTitle": "Ish tartibini tuzing",
+    "planInstruction": "Qadamlarni to'g'ri ketma-ketlikda joylashtiring.",
+    "planConfirm": "Tartibni tasdiqlab boshlash →",
+    "planLocked": "Tasdiqlagach tartibni o'zgartirib bo'lmaydi.",
+    "planFirst": "Avval o'ng paneldan ish tartibini tuzing →",
+    "toolsTitle": "Laboratoriya asboblari",
+    "dragHintSidebar": "Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying",
+    "onTable": "stolda",
+    "dragToTable": "Asboblarni chap paneldan ish stoliga sudrab oling",
+    "examBanner": "Imtihon — yordam yo'q. Bilganingizcha bajaring.",
+    "restart": "Qayta boshlash",
+    "close": "Yopish",
+    "tierExcellent": "A'lo",
+    "tierGood": "Yaxshi",
+    "tierOk": "Qoniqarli",
+    "tierPoor": "Qoniqarsiz"
+  },
+  "lab5": {
+    "items": {
+      "slide": "Buyum oynasi",
+      "coverslip": "Qoplag'ich oyna",
+      "lamp": "Spirt lampasi",
+      "saline": "Fiziologik eritma (NaCl)",
+      "loop": "Bakteriologik halqa",
+      "loopStand": "Halqa shtativi",
+      "culture": "E. coli kulturasi",
+      "rack": "Probirka shtativi",
+      "filter": "Filtr qog'oz",
+      "bridge": "Shisha ko'prik",
+      "tray": "Lotok",
+      "microscope": "Mikroskop"
+    },
+    "hint": {
+      "degrease": "Buyum oynasini spirtovka olovidan o'tkazib yog'sizlantiring",
+      "saline": "Oyna markaziga fiziologik eritma (NaCl) tomchisini tomizing",
+      "flame": "Bakteriologik halqani olovda qizdirib sterillang",
+      "charge": "Sovugan halqa bilan kulturadan yengil teginib oling",
+      "mix": "Halqadagi kulturani tomchiga bir tekis bo'lguncha aralashtiring",
+      "cover": "Tomchini qoplag'ich oyna bilan yoping (qirrasidan asta tushiring)",
+      "blot": "Ortiqcha suyuqlikni filtr qog'oz bilan oling",
+      "observe": "Preparatni mikroskopga olib borib ×40 obyektivda ko'ring",
+      "done": "Bakteriya harakatchanligini aniqlang"
+    },
+    "toast": {
+      "needBridge": "Avval shisha ko'prikni stolga qo'ying",
+      "needPrep": "Avval preparatni tayyorlab, qoplag'ich oyna bilan yoping",
+      "success": "✓ Preparat tayyor — ishni muvaffaqiyatli yakunladingiz!"
+    },
+    "act": {
+      "mixing": "🔄 Aralashtirilyapti…",
+      "covering": "🪟 Qoplag'ich oyna tushirilyapti…",
+      "charging": "🧫 Kulturadan olinyapti…",
+      "blotting": "🧻 Ortiqcha suyuqlik olinyapti…"
+    },
+    "btnObserve": "🔬 Mikroskopda ko'rish",
+    "btnObserveBig": "🔬 Mikroskopda (×40) ko'rish",
+    "steps": {
+      "degreaseCard": "Buyum oynasini yog'sizlantirish",
+      "degreaseResult": "Buyum oynasini tozalab, spirtovka olovidan o'tkazib yog'sizlantirish",
+      "salineCard": "Fiziologik eritma tomchisi",
+      "salineResult": "Oyna markaziga steril fiziologik eritma tomchisini tomizish",
+      "loopCard": "Halqani sterillab, kultura olish",
+      "loopResult": "Halqani olovda qizdirib, sovutib, kulturadan yengil teginib olish",
+      "mixCard": "Tomchiga aralashtirish",
+      "mixResult": "Kulturani tomchiga bir tekis (gomogen) bo'lguncha aralashtirish",
+      "coverCard": "Qoplag'ich oyna bilan yopish",
+      "coverResult": "Tomchini qoplag'ich oyna bilan yopib (qirrasidan asta tushirib, pufaksiz), ortig'ini filtr qog'oz bilan olish",
+      "microCard": "Mikroskopda ko'rish (×40)",
+      "microResult": "Preparatni ×40 obyektivda ko'rib, harakatchanligini aniqlash"
+    },
+    "score": {
+      "degreaseZero": "Buyum oynasi olovda yog'sizlantirilmadi",
+      "salineZero": "Fiziologik eritma tomizilmadi",
+      "loopZero": "Kulturadan olinmadi",
+      "loopPartial": "Halqa sterillanmagan holda ishlatildi",
+      "mixZero": "Kultura tomchiga aralashtirilmadi",
+      "coverZero": "Qoplag'ich oyna qo'yilmadi",
+      "coverPartial": "Ortiqcha suyuqlik filtr qog'oz bilan olinmadi",
+      "microZero": "Preparat mikroskopda ko'rilmadi",
+      "microNoPick": "Harakatchanlik aniqlanmadi",
+      "microWrong": "Harakatchanlik noto'g'ri aniqlandi"
+    },
+    "resultLearn": "Ezilgan tomchi — o'rganish natijasi",
+    "resultExam": "Ezilgan tomchi — imtihon natijasi",
+    "micro": {
+      "field": "×40 · tirik preparat",
+      "question": "Bu bakteriya harakatchanmi?",
+      "motile": "Harakatchan",
+      "motileSub": "yo'nalishli suzadi",
+      "nonmotile": "Harakatsiz",
+      "nonmotileSub": "faqat broun tebranishi",
+      "right": "✓ To'g'ri! ",
+      "wrong": "✕ Noto'g'ri. ",
+      "revealMotile": "Bakteriya yo'nalishli, faol suzadi — bu haqiqiy harakatchanlik (xivchinlar yordamida), broun tebranishidan farq qiladi.",
+      "revealNonmotile": "Bakteriya joyida turib faqat broun tebranishi qiladi — bu harakatsiz tur."
+    }
+  },
   "common": {
     "appTitle": "Virtual Tibbiy Laboratoriya",
     "soundOn": "Ovoz yoqilgan",
