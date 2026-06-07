@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ANTIBIOTICS, interpret, SENS_LABEL, type DiskState, type Sens } from "../state";
+import { useTranslations } from "next-intl";
+import { ANTIBIOTICS, interpret, type DiskState, type Sens } from "../state";
 
 interface Props {
   open: boolean;
@@ -52,6 +53,7 @@ const CATS: Array<{ key: Sens; color: string; bg: string }> = [
  * = Oraliq.
  */
 export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinish, isExam }: Props) {
+  const t = useTranslations();
   const allDone = ANTIBIOTICS.every((a) => state.classified[a.id] != null);
 
   return (
@@ -64,8 +66,8 @@ export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinis
 
           <motion.div initial={{ y: 18, scale: 0.98 }} animate={{ y: 0, scale: 1 }} className="flex max-h-[92vh] w-[min(96vw,820px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="border-b border-slate-200 px-6 py-4">
-              <h2 className="text-lg font-bold text-slate-800">Tormozlanish zonasini o'lchang</h2>
-              <p className="text-[13px] text-slate-500">Har disk atrofidagi steril zona diametrini o'lchab, har antibiotikning <b>o'z chegaralari</b> bilan baholang: Sezgir (≥ S) / Oraliq / Chidamli (≤ R).</p>
+              <h2 className="text-lg font-bold text-slate-800">{t("lab4.measure.title")}</h2>
+              <p className="text-[13px] text-slate-500">{t("lab4.measure.instruction")}</p>
             </div>
 
             <div className="wb-tray grid flex-1 grid-cols-1 gap-3 overflow-y-auto px-5 py-4 sm:grid-cols-2">
@@ -77,8 +79,8 @@ export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinis
                   <div key={a.id} className="flex items-center gap-3 rounded-2xl border border-slate-200 p-3">
                     <ZoneVisual zoneMm={a.zoneMm} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-bold text-slate-800">{a.name}</p>
-                      <p className="mb-1 text-[11px] text-slate-400">Disk: {a.code} · S ≥ {a.s} · R ≤ {a.r} mm</p>
+                      <p className="text-[13px] font-bold text-slate-800">{t(`lab4.ab.${a.id}`)}</p>
+                      <p className="mb-1 text-[11px] text-slate-400">{t("lab4.measure.diskInfo", { code: a.code, s: a.s, r: a.r })}</p>
                       <div className="flex flex-col gap-1.5">
                         {CATS.map((c) => (
                           <button
@@ -87,16 +89,16 @@ export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinis
                             className="rounded-lg border-2 px-2.5 py-1.5 text-left text-[12px] font-semibold transition"
                             style={{ borderColor: picked === c.key ? c.color : "#e2e8f0", background: picked === c.key ? c.bg : "#fff", color: c.color }}
                           >
-                            {SENS_LABEL[c.key]}
-                            {c.key === "S" && ` (≥ ${a.s} mm)`}
-                            {c.key === "R" && ` (≤ ${a.r} mm)`}
-                            {c.key === "I" && ` (${a.r + 1}–${a.s - 1} mm)`}
+                            {t(`lab4.sens.${c.key}`)}
+                            {c.key === "S" && t("lab4.measure.sSuffix", { s: a.s })}
+                            {c.key === "R" && t("lab4.measure.rSuffix", { r: a.r })}
+                            {c.key === "I" && t("lab4.measure.iSuffix", { lo: a.r + 1, hi: a.s - 1 })}
                           </button>
                         ))}
                       </div>
                       {reveal && picked && (
                         <p className="mt-1.5 text-[11px] font-semibold" style={{ color: ok ? "#059669" : "#dc2626" }}>
-                          {ok ? "✓ To'g'ri" : `✕ Noto'g'ri — to'g'risi: ${SENS_LABEL[correct]}`}
+                          {ok ? t("lab4.measure.correct") : t("lab4.measure.wrong", { label: t(`lab4.sens.${correct}`) })}
                         </p>
                       )}
                     </div>
@@ -106,14 +108,14 @@ export function MeasureModal({ open, state, reveal, onClassify, onClose, onFinis
             </div>
 
             <div className="flex items-center justify-between gap-2 border-t border-slate-200 p-3">
-              <p className="pl-2 text-[12px] text-slate-400">{ANTIBIOTICS.filter((a) => state.classified[a.id]).length}/{ANTIBIOTICS.length} baholandi</p>
+              <p className="pl-2 text-[12px] text-slate-400">{t("lab4.measure.counted", { n: ANTIBIOTICS.filter((a) => state.classified[a.id]).length, total: ANTIBIOTICS.length })}</p>
               <button
                 onClick={onFinish}
                 disabled={!allDone}
                 className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ background: "#0ea5a0" }}
               >
-                {isExam ? "Yakunlash" : "Natijani ko'rish"}
+                {isExam ? t("lab4.measure.finish") : t("lab4.measure.viewResult")}
               </button>
             </div>
           </motion.div>

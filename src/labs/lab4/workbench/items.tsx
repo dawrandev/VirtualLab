@@ -47,7 +47,7 @@ export interface Lab4ItemDef {
 export const LAB4_ITEMS: Lab4ItemDef[] = [
   {
     id: "dish",
-    label: "Petri idishi (agar)",
+    label: "lab4.items.dish",
     apparatus: true,
     target: true,
     w: 230,
@@ -57,7 +57,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "lamp",
-    label: "Spirt lampasi",
+    label: "lab4.items.lamp",
     apparatus: true,
     target: true,
     w: 160,
@@ -70,7 +70,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "alcohol-jar",
-    label: "Spirt bankasi",
+    label: "lab4.items.alcoholJar",
     apparatus: true,
     target: true,
     w: 110,
@@ -80,7 +80,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "swab",
-    label: "Steril paxta tampon",
+    label: "lab4.items.swab",
     apparatus: false,
     target: false,
     w: 200,
@@ -91,7 +91,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "rack",
-    label: "Probirka shtativi",
+    label: "lab4.items.rack",
     apparatus: true,
     target: false,
     w: 340,
@@ -101,7 +101,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "culture",
-    label: "E. coli kulturasi",
+    label: "lab4.items.culture",
     apparatus: true,
     target: true,
     w: 70,
@@ -111,7 +111,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "cartridge",
-    label: "Antibiotik disklar",
+    label: "lab4.items.cartridge",
     apparatus: true,
     target: true,
     w: 150,
@@ -121,7 +121,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "forceps",
-    label: "Pinset",
+    label: "lab4.items.forceps",
     apparatus: false,
     target: false,
     w: 40,
@@ -132,7 +132,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
   },
   {
     id: "incubator",
-    label: "Termostat",
+    label: "lab4.items.incubator",
     apparatus: true,
     target: true,
     w: 264,

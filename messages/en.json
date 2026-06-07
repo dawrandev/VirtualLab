@@ -156,5 +156,86 @@
       "revealMotile": "The bacterium swims actively and directionally — this is true motility (via flagella), different from Brownian motion.",
       "revealNonmotile": "The bacterium stays in place with only Brownian jitter — it is a non-motile species."
     }
+  },
+  "lab4": {
+    "items": {
+      "dish": "Petri dish (agar)",
+      "lamp": "Spirit lamp",
+      "alcoholJar": "Alcohol jar",
+      "swab": "Sterile cotton swab",
+      "rack": "Tube rack",
+      "culture": "E. coli culture",
+      "cartridge": "Antibiotic disks",
+      "forceps": "Forceps",
+      "incubator": "Incubator"
+    },
+    "hint": {
+      "dish": "Place the nutrient Petri dish on the bench",
+      "charge": "Dip the sterile cotton swab into the E. coli culture",
+      "spread": "Swab the «lawn» — direction {n}/3 (rotate the dish ~60°)",
+      "dry": "Let the surface dry ~5 minutes until absorbed",
+      "forceps": "Dip the forceps in the alcohol jar and flame-sterilise",
+      "pickDisk": "With the forceps, take an antibiotic disk from the set",
+      "placeDisk": "Place the disk held in the forceps onto the agar",
+      "incubate": "Invert the dish and place it in the incubator (37°C, 24 h)",
+      "measure": "Measure the inhibition zones and determine sensitivity"
+    },
+    "toast": { "needLawn": "First swab the lawn, dry it and place all the disks" },
+    "act": {
+      "dir": "🔄 direction {n}/3",
+      "swab": "💧 Dipping the swab…",
+      "forceps": "🧴 Sterilising the forceps…"
+    },
+    "dry": { "title": "The dish is drying…", "remain": "Left: {m} min · the inoculum soaks into the agar" },
+    "inc": { "title": "Incubating…", "remain": "Left: {h} · real 24 h" },
+    "hours": "{h} h",
+    "btnMeasure": "🔍 Measure the zones",
+    "btnMeasureBig": "🔍 Measure the inhibition zones",
+    "steps": {
+      "lawnCard": "Lawn-inoculate the culture",
+      "lawnResult": "Dip the sterile swab in the culture, rotate the dish ~60° and swab a «lawn» in 3 directions, then dry ~5 min",
+      "disksCard": "Place the antibiotic disks",
+      "disksResult": "Place the antibiotic-impregnated paper disks onto the agar with forceps",
+      "incubateCard": "Thermostat 37°C, 24 h",
+      "incubateResult": "Keep the inoculated dish inverted at 37°C in the thermostat for 24 h",
+      "measureCard": "Measure the inhibition zone",
+      "measureResult": "Measure the diameter of the clear (no-growth) zone around the disk",
+      "classifyCard": "Determine sensitivity",
+      "classifyResult": "Interpret the zone with the antibiotic breakpoints: Susceptible / Intermediate / Resistant (CLSI)"
+    },
+    "score": {
+      "lawnZero": "The culture was not lawn-inoculated",
+      "lawnIncomplete": "The lawn was incomplete (3 directions needed)",
+      "notDried": "The dish was not dried ~5 min",
+      "disksZero": "No antibiotic disks were placed",
+      "forcepsNotSterile": "The forceps were not sterilised",
+      "disksIncomplete": "Not all the disks were placed",
+      "incubateZero": "Not placed in the thermostat (no 24 h incubation)",
+      "measureZero": "Zones were not measured / determined",
+      "measureIncomplete": "Not all the disks were assessed",
+      "classifyZero": "Sensitivity determined incorrectly",
+      "classifyPartial": "Some disks were determined incorrectly"
+    },
+    "sens": { "S": "Susceptible", "I": "Intermediate", "R": "Resistant" },
+    "ab": { "amp": "Ampicillin", "gen": "Gentamicin", "tet": "Tetracycline", "cip": "Ciprofloxacin" },
+    "measure": {
+      "title": "Measure the inhibition zone",
+      "instruction": "Measure the clear-zone diameter around each disk and judge it by each antibiotic's own breakpoints: Susceptible (≥ S) / Intermediate / Resistant (≤ R).",
+      "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
+      "sSuffix": " (≥ {s} mm)",
+      "rSuffix": " (≤ {r} mm)",
+      "iSuffix": " ({lo}–{hi} mm)",
+      "correct": "✓ Correct",
+      "wrong": "✕ Incorrect — correct: {label}",
+      "counted": "{n}/{total} assessed",
+      "finish": "Finish",
+      "viewResult": "See result"
+    },
+    "result": {
+      "learn": "Disk method — learning result",
+      "exam": "Disk method — exam result (PDF criteria)",
+      "abHeader": "Antibiotic assessment",
+      "zone": "{name} — {mm} mm"
+    }
   }
 }

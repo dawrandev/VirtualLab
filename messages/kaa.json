@@ -153,6 +153,87 @@
       "revealNonmotile": "Bakteriya joyida turib faqat broun tebranishi qiladi — bu harakatsiz tur."
     }
   },
+  "lab4": {
+    "items": {
+      "dish": "Petri idishi (agar)",
+      "lamp": "Spirt lampasi",
+      "alcoholJar": "Spirt bankasi",
+      "swab": "Steril paxta tampon",
+      "rack": "Probirka shtativi",
+      "culture": "E. coli kulturasi",
+      "cartridge": "Antibiotik disklar",
+      "forceps": "Pinset",
+      "incubator": "Termostat"
+    },
+    "hint": {
+      "dish": "Oziqa muhitli Petri idishini stolga qo'ying",
+      "charge": "Steril paxta tamponni E. coli kulturasiga botiring",
+      "spread": "Tampon bilan «gazon» usulida surting — {n}/3-yo'nalish (idishni ~60° aylantirib)",
+      "dry": "Idish yuzasi singguncha ~5 daqiqa quriting",
+      "forceps": "Pinsetni spirt bankasiga botirib, olovda sterillang",
+      "pickDisk": "Pinset bilan disklar to'plamidan antibiotik diskni oling",
+      "placeDisk": "Pinsetdagi diskni agar yuzasiga qo'ying",
+      "incubate": "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)",
+      "measure": "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang"
+    },
+    "toast": { "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying" },
+    "act": {
+      "dir": "🔄 {n}/3-yo'nalish",
+      "swab": "💧 Tampon botirilyapti…",
+      "forceps": "🧴 Pinset spirtga botirilyapti…"
+    },
+    "dry": { "title": "Idish quriyabdi…", "remain": "Qoldi: {m} daqiqa · inokulyat agarga singadi" },
+    "inc": { "title": "Termostatda inkubatsiya…", "remain": "Qoldi: {h} · real 24 soat" },
+    "hours": "{h} soat",
+    "btnMeasure": "🔍 Zonalarni o'lchash",
+    "btnMeasureBig": "🔍 Tormozlanish zonalarini o'lchash",
+    "steps": {
+      "lawnCard": "Kulturani gazon usulida ekish",
+      "lawnResult": "Steril paxta tamponni kulturaga botirib, idishni ~60° aylantirib 3 yo'nalishda «gazon» eking va ~5 daqiqa quriting",
+      "disksCard": "Antibiotik disklarini qo'yish",
+      "disksResult": "Antibiotik shimdirilgan qog'oz disklarni pinset bilan agar yuzasiga joylashtirish",
+      "incubateCard": "Termostat 37°C, 24 soat",
+      "incubateResult": "Ekilgan idishni ag'darilgan holda 37°C da 24 soat termostatda saqlash",
+      "measureCard": "Tormozlanish zonasini o'lchash",
+      "measureResult": "Disk atrofidagi steril (o'sishi to'xtagan) zona diametrini o'lchash",
+      "classifyCard": "Sezuvchanlikni aniqlash",
+      "classifyResult": "Zonani antibiotik chegaralari bilan baholash: Sezgir / Oraliq / Chidamli (CLSI)"
+    },
+    "score": {
+      "lawnZero": "Kultura gazon usulida ekilmadi",
+      "lawnIncomplete": "Gazon to'liq surtilmadi (3 yo'nalish kerak)",
+      "notDried": "Idish ~5 daqiqa quritilmadi",
+      "disksZero": "Antibiotik disklari qo'yilmadi",
+      "forcepsNotSterile": "Pinset sterillanmagan",
+      "disksIncomplete": "Disklar to'liq qo'yilmadi",
+      "incubateZero": "Termostatga qo'yilmadi (24 soat inkubatsiya yo'q)",
+      "measureZero": "Zonalar o'lchanmadi / aniqlanmadi",
+      "measureIncomplete": "Barcha disklar baholanmadi",
+      "classifyZero": "Sezuvchanlik noto'g'ri aniqlandi",
+      "classifyPartial": "Ba'zi disklar noto'g'ri aniqlandi"
+    },
+    "sens": { "S": "Sezgir", "I": "Oraliq", "R": "Chidamli" },
+    "ab": { "amp": "Ampitsillin", "gen": "Gentamitsin", "tet": "Tetratsiklin", "cip": "Tsiprofloksatsin" },
+    "measure": {
+      "title": "Tormozlanish zonasini o'lchang",
+      "instruction": "Har disk atrofidagi steril zona diametrini o'lchab, har antibiotikning o'z chegaralari bilan baholang: Sezgir (≥ S) / Oraliq / Chidamli (≤ R).",
+      "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
+      "sSuffix": " (≥ {s} mm)",
+      "rSuffix": " (≤ {r} mm)",
+      "iSuffix": " ({lo}–{hi} mm)",
+      "correct": "✓ To'g'ri",
+      "wrong": "✕ Noto'g'ri — to'g'risi: {label}",
+      "counted": "{n}/{total} baholandi",
+      "finish": "Yakunlash",
+      "viewResult": "Natijani ko'rish"
+    },
+    "result": {
+      "learn": "Disk usuli — o'rganish natijasi",
+      "exam": "Disk usuli — imtihon natijasi (PDF mezoni)",
+      "abHeader": "Antibiotiklar bahosi",
+      "zone": "{name} — {mm} mm"
+    }
+  },
   "common": {
     "appTitle": "Virtual Tibbiy Laboratoriya",
     "soundOn": "Ovoz yoqilgan",

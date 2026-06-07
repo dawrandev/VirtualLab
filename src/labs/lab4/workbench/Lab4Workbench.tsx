@@ -68,19 +68,15 @@ function actionKind(intent: DiskIntent): Kind {
   return "contact";
 }
 
-function fmtHours(h: number): string {
-  return `${Math.max(0, Math.ceil(h))} soat`;
-}
-
 function nextHint(s: DiskState, carrying: string | null): string {
-  if (!s.dishPlaced) return "Oziqa muhitli Petri idishini stolga qo'ying";
-  if (!s.swabCharged && s.lawnPasses === 0) return "Steril paxta tamponni E. coli kulturasiga botiring";
-  if (!s.lawnSpread) return `Tampon bilan «gazon» usulida surting — ${s.lawnPasses + 1}/3-yo'nalish (idishni ~60° aylantirib)`;
-  if (!s.dried) return "Idish yuzasi singguncha ~5 daqiqa quriting";
-  if (!s.forcepsSterile) return "Pinsetni spirt bankasiga botirib, olovda sterillang";
-  if (!allDisksPlaced(s)) return carrying ? "Pinsetdagi diskni agar yuzasiga qo'ying" : "Pinset bilan disklar to'plamidan antibiotik diskni oling";
-  if (!s.incubated) return "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)";
-  return "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang";
+  if (!s.dishPlaced) return "lab4.hint.dish";
+  if (!s.swabCharged && s.lawnPasses === 0) return "lab4.hint.charge";
+  if (!s.lawnSpread) return "lab4.hint.spread";
+  if (!s.dried) return "lab4.hint.dry";
+  if (!s.forcepsSterile) return "lab4.hint.forceps";
+  if (!allDisksPlaced(s)) return carrying ? "lab4.hint.placeDisk" : "lab4.hint.pickDisk";
+  if (!s.incubated) return "lab4.hint.incubate";
+  return "lab4.hint.measure";
 }
 
 export function Lab4Workbench() {
@@ -392,7 +388,7 @@ export function Lab4Workbench() {
     // Put the plate into the incubator → start incubation.
     if (target === "incubator" && d.id === "dish") {
       if (diskRef.current.dried && allDisksPlaced(diskRef.current) && !diskRef.current.incubated) startIncubation();
-      else showToast("Avval gazon ekib quriting va barcha disklarni qo'ying");
+      else showToast(tg("lab4.toast.needLawn"));
       endDrag();
       return;
     }
@@ -484,19 +480,19 @@ export function Lab4Workbench() {
         {!isExam && (
           <div className="mx-auto flex max-w-[46%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
             <span className="text-sky-300">➜</span>
-            <span className="truncate">{hint}</span>
+            <span className="truncate">{tg(hint, { n: disk.lawnPasses + 1 })}</span>
           </div>
         )}
         {examActive && (
           <div className="mx-auto flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 ring-1 ring-sky-200">
             <span>📝</span>
-            <span>Imtihon — yordam yo'q. Bilganingizcha bajaring.</span>
+            <span>{tg("ui.examBanner")}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2">
           {examActive && disk.incubated && (
-            <button onClick={() => { setReveal(false); setMeasureOpen(true); }} className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-sky-500">🔍 Zonalarni o'lchash</button>
+            <button onClick={() => { setReveal(false); setMeasureOpen(true); }} className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-sky-500">{tg("lab4.btnMeasure")}</button>
           )}
           <LanguageSwitcher />
           <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
@@ -515,12 +511,12 @@ export function Lab4Workbench() {
 
           {isExam && examPhase === "planning" && (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">
-              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">Avval o'ng paneldan ish tartibini tuzing →</p>
+              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
           {placedSet.size === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
-              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">Asboblarni chap paneldan ish stoliga sudrab oling</p>
+              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
           )}
 
@@ -550,7 +546,7 @@ export function Lab4Workbench() {
                   }}
                   onDoubleClick={() => setPlaced((p) => { const n = { ...p }; delete n[it.id]; return n; })}
                   style={{ cursor: "grab" }}
-                  title={it.label}
+                  title={tg(it.label)}
                 >
                   {it.render(disk, renderOpts)}
                 </div>
@@ -585,7 +581,7 @@ export function Lab4Workbench() {
                 </svg>
                 {/* pass counter + rotate-the-plate cue */}
                 <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-                  🔄 {disk.lawnPasses + 1}/3-yo'nalish
+                  {tg("lab4.act.dir", { n: disk.lawnPasses + 1 })}
                 </div>
               </div>
             );
@@ -604,7 +600,7 @@ export function Lab4Workbench() {
                 <CottonSwab width={150} charged />
               </motion.div>
               <div className="absolute left-1/2 top-[-92px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-                💧 Tampon botirilyapti…
+                {tg("lab4.act.swab")}
               </div>
             </div>
           )}
@@ -631,7 +627,7 @@ export function Lab4Workbench() {
                 </svg>
               </div>
               <div className="pointer-events-none absolute -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow" style={{ left: `${jarPos.x}%`, top: `${jarPos.y - 28}%` }}>
-                🧴 Pinset spirtga botirilyapti…
+                {tg("lab4.act.forceps")}
               </div>
             </>
           )}
@@ -662,8 +658,8 @@ export function Lab4Workbench() {
                   <text x="18" y="22" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">≈</text>
                 </svg>
                 <div className="leading-tight">
-                  <p className="text-[13px] font-semibold">Idish quriyabdi…</p>
-                  <p className="text-[11px] text-slate-300">Qoldi: {Math.max(0, Math.ceil(DISPLAY_DRY_MIN * (1 - dryProg)))} daqiqa · inokulyat agarga singadi</p>
+                  <p className="text-[13px] font-semibold">{tg("lab4.dry.title")}</p>
+                  <p className="text-[11px] text-slate-300">{tg("lab4.dry.remain", { m: Math.max(0, Math.ceil(DISPLAY_DRY_MIN * (1 - dryProg))) })}</p>
                 </div>
               </div>
             </div>
@@ -679,8 +675,8 @@ export function Lab4Workbench() {
                   <text x="18" y="22" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">37°</text>
                 </svg>
                 <div className="leading-tight">
-                  <p className="text-[13px] font-semibold">Termostatda inkubatsiya…</p>
-                  <p className="text-[11px] text-slate-300">Qoldi: {fmtHours(DISPLAY_INCUBATE_HOURS * (1 - incProg))} · real 24 soat</p>
+                  <p className="text-[13px] font-semibold">{tg("lab4.inc.title")}</p>
+                  <p className="text-[11px] text-slate-300">{tg("lab4.inc.remain", { h: tg("lab4.hours", { h: Math.max(0, Math.ceil(DISPLAY_INCUBATE_HOURS * (1 - incProg))) }) })}</p>
                 </div>
               </div>
             </div>
@@ -689,7 +685,7 @@ export function Lab4Workbench() {
           {/* Measure button (learn mode) after incubation */}
           {!isExam && disk.incubated && (
             <button onClick={() => { setReveal(false); setMeasureOpen(true); }} className="absolute bottom-5 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-500">
-              🔍 Tormozlanish zonalarini o'lchash
+              {tg("lab4.btnMeasureBig")}
             </button>
           )}
 
