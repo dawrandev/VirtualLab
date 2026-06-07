@@ -67,27 +67,23 @@ const DRIP_COLOR: Record<string, string> = {
   "drip-fuchsin": "#d4146a",
 };
 
-function fmtHours(h: number): string {
-  return `${Math.max(0, Math.ceil(h))} soat`;
-}
-
 function nextHint(s: DrigalskiState): string {
-  if (!s.dishes) return "Oziqa muhitli 3 ta Petri idishini stolga qo'ying";
-  if (!s.pipetteLoaded && !s.d1.material) return "Pipetka bilan suspenziyadan oling";
-  if (!s.d1.material) return "Pipetkadagi materialni 1-idishga tomizing";
-  if (!s.spatulaDipped && !s.spatulaSterile) return "Shpatel uchini spirt bankasiga botiring";
-  if (!s.spatulaSterile) return "Shpatelni olovda yoqing — spirt yonib sterillanadi (so'ng sovuting)";
-  if (!s.d1.spread) return "Sovugan steril shpatel bilan 1-idishdagi agarga surting";
-  if (!s.d2.spread) return "O'sha shpatel bilan (sterillamasdan) 2-idishga surting";
-  if (!s.d3.spread) return "O'sha shpatel bilan 3-idishga surting";
-  if (!s.incubated) return "3 ta idishni ham termostatga qo'ying (18-24 soat)";
-  if (!s.colonyPicked) return "3-idishdagi alohida koloniyani halqa bilan oling";
-  if (!s.smeared) return "Halqani oyna ustida yurgizib surtma tayyorlang";
-  if (!s.gram.gv) return "Gram bo'yash: gensianviolet tomizing";
-  if (!s.gram.lugol) return "Lyugol eritmasini tomizing";
-  if (!s.gram.alcohol) return "Etil spirti bilan rangsizlantiring";
-  if (!s.gram.fuchsin) return "Fuksin bilan bo'yang";
-  return "Oynani mikroskopga olib boring va natijani aniqlang";
+  if (!s.dishes) return "lab3.hint.dishes";
+  if (!s.pipetteLoaded && !s.d1.material) return "lab3.hint.loadPipette";
+  if (!s.d1.material) return "lab3.hint.dropMaterial";
+  if (!s.spatulaDipped && !s.spatulaSterile) return "lab3.hint.dipSpatula";
+  if (!s.spatulaSterile) return "lab3.hint.flameSpatula";
+  if (!s.d1.spread) return "lab3.hint.spread1";
+  if (!s.d2.spread) return "lab3.hint.spread2";
+  if (!s.d3.spread) return "lab3.hint.spread3";
+  if (!s.incubated) return "lab3.hint.incubate";
+  if (!s.colonyPicked) return "lab3.hint.pickColony";
+  if (!s.smeared) return "lab3.hint.smear";
+  if (!s.gram.gv) return "lab3.hint.gv";
+  if (!s.gram.lugol) return "lab3.hint.lugol";
+  if (!s.gram.alcohol) return "lab3.hint.alcohol";
+  if (!s.gram.fuchsin) return "lab3.hint.fuchsin";
+  return "lab3.hint.micro";
 }
 
 export function Lab3Workbench() {
@@ -408,7 +404,7 @@ export function Lab3Workbench() {
     // Put a spread plate into the incubator → hide it; all three in → incubate.
     if (target === "incubator" && d.id.startsWith("dish-")) {
       if (!canIncubate(drigRef.current)) {
-        showToast("Avval 3 ta idishga ham surting");
+        showToast(tg("lab3.toast.needAll3"));
         endDrag();
         return;
       }
@@ -444,7 +440,7 @@ export function Lab3Workbench() {
     const fyp = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
     let pos = snapPos(d.id, rect, { x: fxp, y: fyp });
     if (d.id === "slide" && !placedRef.current["bridge"]) {
-      showToast("Avval bo'yash ko'prigini stolga qo'ying");
+      showToast(tg("lab3.toast.needBridge"));
       pos = { x: fxp, y: fyp };
     }
     setPlaced((p) => {
@@ -541,13 +537,13 @@ export function Lab3Workbench() {
         {!isExam && (
           <div className="mx-auto flex max-w-[46%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
             <span className="text-teal-300">➜</span>
-            <span className="truncate">{hint}</span>
+            <span className="truncate">{tg(hint)}</span>
           </div>
         )}
         {examActive && (
           <div className="mx-auto flex items-center gap-2 rounded-xl bg-teal-50 px-3 py-1.5 text-xs font-medium text-teal-700 ring-1 ring-teal-200">
             <span>📝</span>
-            <span>Imtihon — yordam yo'q. Bilganingizcha bajaring.</span>
+            <span>{tg("ui.examBanner")}</span>
           </div>
         )}
 
@@ -572,12 +568,12 @@ export function Lab3Workbench() {
 
           {isExam && examPhase === "planning" && (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">
-              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">Avval o'ng paneldan ish tartibini tuzing →</p>
+              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
           {placedSet.size === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
-              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">Asboblarni chap paneldan ish stoliga sudrab oling</p>
+              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
           )}
 
@@ -613,7 +609,7 @@ export function Lab3Workbench() {
                     })
                   }
                   style={{ cursor: "grab" }}
-                  title={it.label}
+                  title={tg(it.label)}
                 >
                   {it.id === "loop" && loopOnStand ? (
                     <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(drig, renderOpts)}</div>
@@ -737,8 +733,8 @@ export function Lab3Workbench() {
                   <text x="18" y="22" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">37°</text>
                 </svg>
                 <div className="leading-tight">
-                  <p className="text-[13px] font-semibold">Termostatda inkubatsiya…</p>
-                  <p className="text-[11px] text-slate-300">Qoldi: {fmtHours(DISPLAY_INCUBATE_HOURS * (1 - incProg))} · real 18-24 soat</p>
+                  <p className="text-[13px] font-semibold">{tg("lab3.inc.title")}</p>
+                  <p className="text-[11px] text-slate-300">{tg("lab3.inc.remain", { h: tg("lab3.hours", { h: Math.max(0, Math.ceil(DISPLAY_INCUBATE_HOURS * (1 - incProg))) }) })}</p>
                 </div>
               </div>
             </div>

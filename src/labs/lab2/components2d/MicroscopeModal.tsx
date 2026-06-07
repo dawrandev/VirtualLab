@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 interface Props {
   open: boolean;
@@ -44,6 +45,7 @@ function clusters(): P[] {
  *  cocci. The student classifies the Gram type; in learn mode the answer is
  *  revealed with feedback. */
 export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onClassify, onClose }: Props) {
+  const t = useTranslations();
   const cells = useMemo(() => clusters(), []);
   const fill = cellColor === "violet" ? "#3b0a6b" : "#a8194f";
   const isRight = picked === correct;
@@ -87,13 +89,13 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onCl
                   />
                 ))}
                 {/* Centred at the bottom so the circular mask never clips it. */}
-                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md bg-black/40 px-2.5 py-1 text-[11px] font-bold tracking-wider text-white">100× · immersion</div>
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md bg-black/40 px-2.5 py-1 text-[11px] font-bold tracking-wider text-white">{t("gram.field")}</div>
               </div>
             </div>
 
             {/* Classification */}
             <div className="w-[min(90vw,460px)] rounded-2xl bg-white/95 p-4 text-center shadow-2xl">
-              <p className="mb-3 text-sm font-semibold text-slate-700">Bu bakteriya qaysi guruhga kiradi?</p>
+              <p className="mb-3 text-sm font-semibold text-slate-700">{t("gram.question")}</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => onClassify("positive")}
@@ -104,7 +106,7 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onCl
                     color: "#5b21b6",
                   }}
                 >
-                  Gram-musbat (+)<br /><span className="text-[11px] font-normal text-slate-500">binafsha</span>
+                  {t("gram.positive")}<br /><span className="text-[11px] font-normal text-slate-500">{t("gram.positiveSub")}</span>
                 </button>
                 <button
                   onClick={() => onClassify("negative")}
@@ -115,7 +117,7 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onCl
                     color: "#9d174d",
                   }}
                 >
-                  Gram-manfiy (−)<br /><span className="text-[11px] font-normal text-slate-500">qizil</span>
+                  {t("gram.negative")}<br /><span className="text-[11px] font-normal text-slate-500">{t("gram.negativeSub")}</span>
                 </button>
               </div>
 
@@ -124,10 +126,8 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onCl
                   className="mt-3 rounded-lg px-3 py-2 text-[13px] font-medium"
                   style={{ background: isRight ? "#ecfdf5" : "#fef2f2", color: isRight ? "#059669" : "#dc2626" }}
                 >
-                  {isRight ? "✓ To'g'ri! " : "✕ Noto'g'ri. "}
-                  {correct === "positive"
-                    ? "Bu Gram-musbat bakteriya — gentsianviolet-yod kompleksini saqlab qoladi, binafsha rangda."
-                    : "Bu Gram-manfiy bakteriya — spirtda rangsizlanadi, fuksin bilan qizil rangga bo'yaladi."}
+                  {isRight ? t("gram.right") : t("gram.wrong")}
+                  {correct === "positive" ? t("gram.revealPositive") : t("gram.revealNegative")}
                 </div>
               )}
             </div>

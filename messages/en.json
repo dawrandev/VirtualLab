@@ -237,5 +237,104 @@
       "abHeader": "Antibiotic assessment",
       "zone": "{name} — {mm} mm"
     }
+  },
+  "gram": {
+    "field": "100× · immersion",
+    "question": "Which group does this bacterium belong to?",
+    "positive": "Gram-positive (+)",
+    "positiveSub": "violet",
+    "negative": "Gram-negative (−)",
+    "negativeSub": "red",
+    "right": "✓ Correct! ",
+    "wrong": "✕ Incorrect. ",
+    "revealPositive": "This is a Gram-positive bacterium — it retains the crystal-violet–iodine complex and stays violet.",
+    "revealNegative": "This is a Gram-negative bacterium — it decolorizes in alcohol and is counterstained red by fuchsin."
+  },
+  "lab3": {
+    "items": {
+      "dish": "Nutrient dish",
+      "lamp": "Spirit lamp",
+      "alcoholJar": "Alcohol jar",
+      "spatula": "Drigalski spreader",
+      "pipette": "Pipette",
+      "rack": "Tube rack",
+      "suspension": "Bacterial suspension",
+      "incubator": "Incubator",
+      "loopStand": "Loop stand",
+      "loop": "Inoculation loop",
+      "tray": "Kidney tray",
+      "bridge": "Staining bridge",
+      "slide": "Slide",
+      "wash": "Distilled water",
+      "gv": "Crystal violet",
+      "lugol": "Lugol's solution",
+      "ethanol": "Ethyl alcohol",
+      "fuchsin": "Fuchsin",
+      "microscope": "Microscope"
+    },
+    "hint": {
+      "dishes": "Place 3 nutrient Petri dishes on the bench",
+      "loadPipette": "Draw from the suspension with the pipette",
+      "dropMaterial": "Drop the pipette material onto dish 1",
+      "dipSpatula": "Dip the spreader tip into the alcohol jar",
+      "flameSpatula": "Flame the spreader — the alcohol burns off (then cool it)",
+      "spread1": "Spread onto the agar of dish 1 with the cooled sterile spreader",
+      "spread2": "With the same spreader (without re-sterilising) spread onto dish 2",
+      "spread3": "With the same spreader spread onto dish 3",
+      "incubate": "Place all 3 dishes in the thermostat (18–24 h)",
+      "pickColony": "Pick a single colony from dish 3 with the loop",
+      "smear": "Make a smear by running the loop over the slide",
+      "gv": "Gram stain: apply crystal violet",
+      "lugol": "Apply Lugol's solution",
+      "alcohol": "Decolorize with ethyl alcohol",
+      "fuchsin": "Counterstain with fuchsin",
+      "micro": "Take the slide to the microscope and read the result"
+    },
+    "toast": {
+      "needAll3": "First spread onto all 3 dishes",
+      "needBridge": "First place the staining bridge on the bench"
+    },
+    "inc": { "title": "Incubating…", "remain": "Left: {h} · real 18–24 h" },
+    "hours": "{h} h",
+    "steps": {
+      "dishesCard": "Take 3 Petri dishes",
+      "dishesResult": "Take 3 Petri dishes with nutrient medium",
+      "spread1Card": "Material + spreader on dish 1",
+      "spread1Result": "Add material to dish 1 with the pipette and spread it onto the agar with the spreader",
+      "spread23Card": "Same spreader on dishes 2–3 + thermostat",
+      "spread23Result": "With the same spreader (without re-sterilising) spread onto dishes 2 and 3, then incubate",
+      "colonyCard": "Single colony → smear → Gram",
+      "colonyResult": "Take a pure culture from a single colony, make a smear and Gram-stain it",
+      "microCard": "Examine under the microscope",
+      "microResult": "View the smear under the microscope and determine the morphological and tinctorial properties"
+    },
+    "score": {
+      "dishesZero": "3 Petri dishes were not taken",
+      "d1Zero": "Dish 1 was not inoculated",
+      "spatulaNotSterile": "The spreader was not sterilised beforehand",
+      "noMaterial": "The test material was not added",
+      "spread23Zero": "Not spread onto dishes 2 and 3",
+      "spread2Zero": "Not spread onto dish 2",
+      "spread3Zero": "Not spread onto dish 3",
+      "incubateZero": "Not placed in the thermostat (no incubation)",
+      "respread": "The spreader was re-sterilised before dishes 2–3 — the dilution is broken",
+      "colonyZero": "No colony was picked / no smear was made",
+      "noColony": "No single colony was picked",
+      "noSmear": "No smear was made",
+      "gramIncomplete": "The Gram stain was not completed (4 reagents: crystal violet, Lugol, alcohol, fuchsin)",
+      "microZero": "Not viewed under the microscope",
+      "noMorph": "Morphological/tinctorial property not determined",
+      "gramWrong": "The Gram type was determined incorrectly"
+    },
+    "result": {
+      "subtitle": "Drigalski method — exam result (PDF criteria)",
+      "noMorph": "Morphology not determined",
+      "right": "The Gram type was determined correctly",
+      "wrong": "The Gram type was determined incorrectly",
+      "correctAnswer": "Correct answer: {ans}",
+      "ansPositive": "Gram-positive cocci",
+      "ansNegative": "Gram-negative",
+      "viewScope": "View the microscope"
+    }
   }
 }

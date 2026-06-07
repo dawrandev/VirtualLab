@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type { ExamResult, StepStatus } from "../exam/scoring";
 
 interface Props {
@@ -9,11 +10,11 @@ interface Props {
   onViewScope: () => void;
 }
 
-function tier(pct: number): { label: string; color: string } {
-  if (pct >= 85) return { label: "A'lo", color: "#10b981" };
-  if (pct >= 70) return { label: "Yaxshi", color: "#3b82f6" };
-  if (pct >= 50) return { label: "Qoniqarli", color: "#f59e0b" };
-  return { label: "Qoniqarsiz", color: "#ef4444" };
+function tier(pct: number): { key: string; color: string } {
+  if (pct >= 85) return { key: "ui.tierExcellent", color: "#10b981" };
+  if (pct >= 70) return { key: "ui.tierGood", color: "#3b82f6" };
+  if (pct >= 50) return { key: "ui.tierOk", color: "#f59e0b" };
+  return { key: "ui.tierPoor", color: "#ef4444" };
 }
 
 const MARK: Record<StepStatus, { icon: string; color: string; bg: string }> = {
@@ -24,6 +25,7 @@ const MARK: Record<StepStatus, { icon: string; color: string; bg: string }> = {
 
 /** End-of-exam breakdown for Lab 3 — five PDF criteria, full/partial/zero, /100. */
 export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
+  const tr = useTranslations();
   const pct = (result.total / result.max) * 100;
   const t = tier(pct);
 
@@ -38,8 +40,8 @@ export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
             </div>
           </div>
           <div>
-            <p className="text-lg font-bold text-slate-800">{t.label}</p>
-            <p className="text-[13px] text-slate-500">Drigalski usuli — imtihon natijasi (PDF mezoni)</p>
+            <p className="text-lg font-bold text-slate-800">{tr(t.key)}</p>
+            <p className="text-[13px] text-slate-500">{tr("lab3.result.subtitle")}</p>
           </div>
         </div>
 
@@ -48,9 +50,9 @@ export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
             <span className="text-xl">{result.classification.isRight ? "🔬" : "⚠️"}</span>
             <div className="text-[13px]">
               <p className="font-semibold" style={{ color: result.classification.isRight ? "#059669" : "#dc2626" }}>
-                {result.classification.picked == null ? "Morfologiya aniqlanmadi" : result.classification.isRight ? "Gram tegishliligi to'g'ri aniqlandi" : "Gram tegishliligi noto'g'ri aniqlandi"}
+                {result.classification.picked == null ? tr("lab3.result.noMorph") : result.classification.isRight ? tr("lab3.result.right") : tr("lab3.result.wrong")}
               </p>
-              <p className="text-slate-500">To'g'ri javob: {result.classification.correct === "positive" ? "Gram-musbat kokklar" : "Gram-manfiy"}</p>
+              <p className="text-slate-500">{tr("lab3.result.correctAnswer", { ans: result.classification.correct === "positive" ? tr("lab3.result.ansPositive") : tr("lab3.result.ansNegative") })}</p>
             </div>
           </div>
 
@@ -60,12 +62,12 @@ export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
               <div key={s.id} className="rounded-xl px-3 py-2.5" style={{ background: m.bg }}>
                 <div className="flex items-center gap-3">
                   <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-sm font-bold" style={{ color: m.color, border: `1.5px solid ${m.color}` }}>{m.icon}</span>
-                  <p className="flex-1 text-[13px] font-medium leading-snug text-slate-700">{s.label}</p>
+                  <p className="flex-1 text-[13px] font-medium leading-snug text-slate-700">{tr(s.label)}</p>
                   <span className="shrink-0 text-[12px] font-bold tabular-nums" style={{ color: m.color }}>{s.earned} / {s.full}</span>
                 </div>
                 {s.notes.length > 0 && (
                   <ul className="mt-1 list-inside list-disc pl-9 text-[11px]" style={{ color: m.color }}>
-                    {s.notes.map((n, i) => <li key={i}>{n}</li>)}
+                    {s.notes.map((n, i) => <li key={i}>{tr(n)}</li>)}
                   </ul>
                 )}
               </div>
@@ -74,8 +76,8 @@ export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
         </div>
 
         <div className="flex gap-2 border-t border-slate-200 p-3">
-          <button onClick={onViewScope} className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Mikroskopni ko'rish</button>
-          <button onClick={onRestart} className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">Qayta boshlash</button>
+          <button onClick={onViewScope} className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">{tr("lab3.result.viewScope")}</button>
+          <button onClick={onRestart} className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">{tr("ui.restart")}</button>
         </div>
       </motion.div>
     </motion.div>

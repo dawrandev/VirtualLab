@@ -43,16 +43,16 @@ export function scoreDrigalskiExam(
   const steps: StepResult[] = [];
 
   // 1 — three plates obtained
-  steps.push(s.dishes ? grade("get-dishes", "full", []) : grade("get-dishes", "zero", ["3 ta Petri idishi olinmadi"]));
+  steps.push(s.dishes ? grade("get-dishes", "full", []) : grade("get-dishes", "zero", ["lab3.score.dishesZero"]));
 
   // 2 — plate 1: sterile spreader + material + spread
   {
     const notes: string[] = [];
     if (!s.d1.spread) {
-      steps.push(grade("inoculate-1", "zero", ["1-idishga ekilmadi"]));
+      steps.push(grade("inoculate-1", "zero", ["lab3.score.d1Zero"]));
     } else {
-      if (!s.spatulaSterile) notes.push("Shpatel oldindan sterillanmagan");
-      if (!s.d1.material) notes.push("Tekshiriluvchi material solinmagan");
+      if (!s.spatulaSterile) notes.push("lab3.score.spatulaNotSterile");
+      if (!s.d1.material) notes.push("lab3.score.noMaterial");
       steps.push(grade("inoculate-1", s.spatulaSterile && s.d1.material ? "full" : "partial", notes));
     }
   }
@@ -62,13 +62,13 @@ export function scoreDrigalskiExam(
     const notes: string[] = [];
     const any = s.d2.spread || s.d3.spread;
     if (!any) {
-      steps.push(grade("spread-23", "zero", ["2 va 3-idishlarga surtilmadi"]));
+      steps.push(grade("spread-23", "zero", ["lab3.score.spread23Zero"]));
     } else {
-      if (!s.d2.spread) notes.push("2-idishga surtilmadi");
-      if (!s.d3.spread) notes.push("3-idishga surtilmadi");
-      if (!s.incubated) notes.push("Termostatga qo'yilmadi (inkubatsiya yo'q)");
+      if (!s.d2.spread) notes.push("lab3.score.spread2Zero");
+      if (!s.d3.spread) notes.push("lab3.score.spread3Zero");
+      if (!s.incubated) notes.push("lab3.score.incubateZero");
       const reSterilized = firstTs["sterilize-spatula"] != null && firstTs["spread-2"] != null && firstTs["sterilize-spatula"] > firstTs["spread-1"];
-      if (reSterilized) notes.push("Shpatel 2-3 idish oldidan qayta sterillangan — suyultirish buziladi");
+      if (reSterilized) notes.push("lab3.score.respread");
       steps.push(grade("spread-23", s.d2.spread && s.d3.spread && s.incubated && !reSterilized ? "full" : "partial", notes));
     }
   }
@@ -79,11 +79,11 @@ export function scoreDrigalskiExam(
     const g = s.gram;
     const gramDone = g.gv && g.lugol && g.alcohol && g.fuchsin;
     if (!s.colonyPicked && !s.smeared) {
-      steps.push(grade("pick-stain", "zero", ["Koloniya olinmadi / surtma tayyorlanmadi"]));
+      steps.push(grade("pick-stain", "zero", ["lab3.score.colonyZero"]));
     } else {
-      if (!s.colonyPicked) notes.push("Alohida koloniya olinmadi");
-      if (!s.smeared) notes.push("Surtma tayyorlanmadi");
-      if (!gramDone) notes.push("Gram bo'yash to'liq bajarilmadi (4 reaktiv: gensianviolet, lyugol, spirt, fuksin)");
+      if (!s.colonyPicked) notes.push("lab3.score.noColony");
+      if (!s.smeared) notes.push("lab3.score.noSmear");
+      if (!gramDone) notes.push("lab3.score.gramIncomplete");
       steps.push(grade("pick-stain", s.colonyPicked && s.smeared && gramDone ? "full" : "partial", notes));
     }
   }
@@ -91,13 +91,13 @@ export function scoreDrigalskiExam(
   // 5 — microscopy + identification
   {
     if (!s.microscopeOpen) {
-      steps.push(grade("microscopy", "zero", ["Mikroskopda ko'rilmadi"]));
+      steps.push(grade("microscopy", "zero", ["lab3.score.microZero"]));
     } else if (classification == null) {
-      steps.push(grade("microscopy", "partial", ["Morfologik/tinktorial xususiyat aniqlanmadi"]));
+      steps.push(grade("microscopy", "partial", ["lab3.score.noMorph"]));
     } else if (classification === SPECIMEN.gram) {
       steps.push(grade("microscopy", "full", []));
     } else {
-      steps.push(grade("microscopy", "partial", ["Gram tegishliligi noto'g'ri aniqlandi"]));
+      steps.push(grade("microscopy", "partial", ["lab3.score.gramWrong"]));
     }
   }
 

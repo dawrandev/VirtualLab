@@ -75,7 +75,7 @@ export interface Lab3ItemDef {
 function dishDef(n: 1 | 2 | 3): Lab3ItemDef {
   return {
     id: `dish-${n}` as Lab3ItemId,
-    label: `Oziqa muhitli idish ${n}`,
+    label: "lab3.items.dish",
     apparatus: true,
     target: true,
     w: 132,
@@ -103,7 +103,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   dishDef(3),
   {
     id: "lamp",
-    label: "Spirt lampasi",
+    label: "lab3.items.lamp",
     apparatus: true,
     target: true,
     w: 160,
@@ -116,7 +116,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "alcohol-jar",
-    label: "Spirt bankasi",
+    label: "lab3.items.alcoholJar",
     apparatus: true,
     target: true,
     w: 110,
@@ -126,7 +126,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "spatula",
-    label: "Drigalski shpateli",
+    label: "lab3.items.spatula",
     apparatus: false,
     target: false,
     w: 220,
@@ -138,7 +138,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "pipette",
-    label: "Pipetka",
+    label: "lab3.items.pipette",
     apparatus: false,
     target: false,
     w: 30,
@@ -149,7 +149,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "rack",
-    label: "Probirka shtativi",
+    label: "lab3.items.rack",
     apparatus: true,
     target: false,
     w: 340,
@@ -159,7 +159,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "suspension",
-    label: "Bakteriya suspenziyasi",
+    label: "lab3.items.suspension",
     apparatus: true,
     target: true,
     w: 56,
@@ -169,7 +169,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "incubator",
-    label: "Termostat",
+    label: "lab3.items.incubator",
     apparatus: true,
     target: true,
     w: 264,
@@ -179,7 +179,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "loop-stand",
-    label: "Halqa shtativi",
+    label: "lab3.items.loopStand",
     apparatus: true,
     target: false,
     w: 200,
@@ -189,7 +189,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "loop",
-    label: "Bakteriologik halqa",
+    label: "lab3.items.loop",
     apparatus: false,
     target: false,
     w: 220,
@@ -200,7 +200,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "tray",
-    label: "Buyraksimon lotok",
+    label: "lab3.items.tray",
     apparatus: true,
     target: false,
     w: 440,
@@ -210,7 +210,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "bridge",
-    label: "Bo'yash ko'prigi",
+    label: "lab3.items.bridge",
     apparatus: true,
     target: false,
     w: 150,
@@ -220,7 +220,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "slide",
-    label: "Buyum oynasi",
+    label: "lab3.items.slide",
     apparatus: false,
     target: true,
     w: 132,
@@ -230,7 +230,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "wash",
-    label: "Distillangan suv",
+    label: "lab3.items.wash",
     apparatus: false,
     target: false,
     w: 56,
@@ -240,7 +240,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "gv",
-    label: "Gensianviolet",
+    label: "lab3.items.gv",
     apparatus: false,
     target: false,
     w: 58,
@@ -250,7 +250,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "lugol",
-    label: "Lyugol eritmasi",
+    label: "lab3.items.lugol",
     apparatus: false,
     target: false,
     w: 58,
@@ -260,7 +260,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "ethanol",
-    label: "Etil spirti",
+    label: "lab3.items.ethanol",
     apparatus: false,
     target: false,
     w: 58,
@@ -270,7 +270,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "fuchsin",
-    label: "Fuksin",
+    label: "lab3.items.fuchsin",
     apparatus: false,
     target: false,
     w: 58,
@@ -280,7 +280,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
   },
   {
     id: "microscope",
-    label: "Mikroskop",
+    label: "lab3.items.microscope",
     apparatus: true,
     target: true,
     w: 204,
