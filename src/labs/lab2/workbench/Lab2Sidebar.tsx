@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { GramState } from "../state";
 import { LAB2_ITEMS, requiredItem, type Lab2ItemId } from "./items";
 
@@ -17,6 +18,7 @@ interface Props {
  *  and is dragged onto the bench. The next expected tool glows in learn mode. */
 export function Lab2Sidebar({ state, placed, draggingId, trayStained, onStartDrag, showHints = true }: Props) {
   const [hovered, setHovered] = useState<Lab2ItemId | null>(null);
+  const t = useTranslations();
   const required = showHints ? requiredItem(state) : null;
 
   return (
@@ -25,9 +27,9 @@ export function Lab2Sidebar({ state, placed, draggingId, trayStained, onStartDra
       style={{ background: "linear-gradient(180deg,#fbfbfc 0%,#eef0f3 100%)" }}
     >
       <div className="border-b border-slate-200 px-4 pb-2 pt-3">
-        <h2 className="text-sm font-bold tracking-wide text-slate-700">🧪 Laboratoriya asboblari</h2>
+        <h2 className="text-sm font-bold tracking-wide text-slate-700">🧪 {t("ui.toolsTitle")}</h2>
         {showHints && (
-          <p className="mt-0.5 text-[11px] leading-snug text-slate-500">Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying</p>
+          <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{t("ui.dragHintSidebar")}</p>
         )}
       </div>
 
@@ -57,13 +59,13 @@ export function Lab2Sidebar({ state, placed, draggingId, trayStained, onStartDra
                 <div className="pointer-events-none flex h-[58px] w-full items-center justify-center overflow-hidden">
                   <div style={{ transform: `scale(${item.preview})` }}>{item.render(state, { trayStained })}</div>
                 </div>
-                <span className="pointer-events-none text-center text-[10px] font-medium leading-tight text-slate-600">{item.label}</span>
-                {isPlaced && <span className="pointer-events-none text-[8px] uppercase tracking-wider text-violet-600">stolda</span>}
+                <span className="pointer-events-none text-center text-[10px] font-medium leading-tight text-slate-600">{t(item.label)}</span>
+                {isPlaced && <span className="pointer-events-none text-[8px] uppercase tracking-wider text-violet-600">{t("ui.onTable")}</span>}
               </button>
 
               {hovered === item.id && (
                 <div className="pointer-events-none absolute left-1/2 top-[102%] z-50 w-36 -translate-x-1/2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-center text-[11px] text-white shadow-xl">
-                  {item.label}
+                  {t(item.label)}
                 </div>
               )}
             </div>

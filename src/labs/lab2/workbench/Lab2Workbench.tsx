@@ -57,17 +57,17 @@ const DRIP_COLOR: Record<string, string> = {
 
 function nextHint(s: GramState): string {
   const sl = s.slide;
-  if (!sl.onBridge) return "Tayyor surtmani (oyna) bo'yash ko'prigiga qo'ying";
-  if (!sl.gv.applied) return sl.filterOn ? "Gensianviolet eritmasini filtr qog'oz ustidan tomizing" : "Surtma ustiga filtr qog'oz qo'ying";
-  if (!sl.gv.removed) return "1-2 daqiqadan so'ng pinset bilan filtr qog'ozni oling (bo'yoq to'kiladi)";
-  if (!sl.lugol.applied) return "Lyugol eritmasini tomizing (1-2 daqiqa)";
-  if (!sl.alcohol.applied) return "Etil spirti bilan rangsizlantiring (binafsha rang yo'qolguncha)";
-  if (!sl.alcohol.washed) return "Suv bilan yuving";
-  if (!sl.fuchsin.applied) return "Fuksin bilan bo'yang (1-2 daqiqa)";
-  if (!sl.fuchsin.washed) return "Suv bilan yuving";
-  if (!sl.fuchsin.blotted) return "Filtr qog'oz bilan quriting";
-  if (!sl.oilApplied) return "Immersion moyini tomizing";
-  return "Oynani mikroskopga olib boring va Gram tegishliligini aniqlang";
+  if (!sl.onBridge) return "lab2.hint.onBridge";
+  if (!sl.gv.applied) return sl.filterOn ? "lab2.hint.gvApply" : "lab2.hint.needFilter";
+  if (!sl.gv.removed) return "lab2.hint.gvRemove";
+  if (!sl.lugol.applied) return "lab2.hint.lugol";
+  if (!sl.alcohol.applied) return "lab2.hint.alcohol";
+  if (!sl.alcohol.washed) return "lab2.hint.wash";
+  if (!sl.fuchsin.applied) return "lab2.hint.fuchsin";
+  if (!sl.fuchsin.washed) return "lab2.hint.wash";
+  if (!sl.fuchsin.blotted) return "lab2.hint.blot";
+  if (!sl.oilApplied) return "lab2.hint.oil";
+  return "lab2.hint.micro";
 }
 
 export function Lab2Workbench() {
@@ -287,7 +287,7 @@ export function Lab2Workbench() {
         yPct = br.y - 4;
         if (!gramRef.current.slide.onBridge) setGram((g) => ({ ...g, slide: { ...g.slide, onBridge: true } }));
       } else {
-        showToast("Avval bo'yash ko'prigini stolga qo'ying");
+        showToast(tg("lab2.toast.needBridge"));
         endDrag();
         return;
       }
@@ -361,13 +361,13 @@ export function Lab2Workbench() {
         {!isExam && (
           <div className="mx-auto flex max-w-[44%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
             <span className="text-violet-300">➜</span>
-            <span className="truncate">{hint}</span>
+            <span className="truncate">{tg(hint)}</span>
           </div>
         )}
         {examActive && (
           <div className="mx-auto flex items-center gap-2 rounded-xl bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 ring-1 ring-violet-200">
             <span>📝</span>
-            <span>Imtihon — yordam yo'q. Bilganingizcha bajaring.</span>
+            <span>{tg("ui.examBanner")}</span>
           </div>
         )}
 
@@ -397,12 +397,12 @@ export function Lab2Workbench() {
 
           {isExam && examPhase === "planning" && (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">
-              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">Avval o'ng paneldan ish tartibini tuzing →</p>
+              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
           {placedSet.size === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
-              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">Asboblarni chap paneldan ish stoliga sudrab oling</p>
+              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
           )}
 
@@ -436,7 +436,7 @@ export function Lab2Workbench() {
                     })
                   }
                   style={{ cursor: "grab" }}
-                  title={it.label}
+                  title={tg(it.label)}
                 >
                   {it.render(gram, renderOpts)}
                 </div>
@@ -518,8 +518,8 @@ export function Lab2Workbench() {
                   </text>
                 </svg>
                 <div className="leading-tight">
-                  <p className="text-[12px] font-semibold">{reactionProg >= 1 ? "Tayyor — keyingi bosqich" : "Bo'yoq ta'sir qilmoqda…"}</p>
-                  <p className="text-[10px] text-slate-300">Real vaqt: 1–2 daqiqa</p>
+                  <p className="text-[12px] font-semibold">{reactionProg >= 1 ? tg("lab2.wait.ready") : tg("lab2.wait.developing")}</p>
+                  <p className="text-[10px] text-slate-300">{tg("lab2.wait.realTime")}</p>
                 </div>
               </div>
             </div>

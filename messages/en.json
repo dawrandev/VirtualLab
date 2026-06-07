@@ -336,5 +336,79 @@
       "ansNegative": "Gram-negative",
       "viewScope": "View the microscope"
     }
+  },
+  "lab2": {
+    "items": {
+      "tray": "Kidney tray",
+      "bridge": "Staining bridge",
+      "slide": "Prepared smear (slide)",
+      "gv": "Crystal violet",
+      "lugol": "Lugol's solution",
+      "ethanol": "Ethyl alcohol",
+      "fuchsin": "Fuchsin",
+      "wash": "Distilled water",
+      "filter": "Filter paper",
+      "forceps": "Forceps",
+      "oil": "Immersion oil",
+      "microscope": "Microscope"
+    },
+    "hint": {
+      "onBridge": "Place the prepared smear (slide) on the staining bridge",
+      "needFilter": "Place filter paper over the smear",
+      "gvApply": "Drip crystal violet over the filter paper",
+      "gvRemove": "After 1–2 min, lift the filter paper with the forceps (the dye drains off)",
+      "lugol": "Apply Lugol's solution (1–2 min)",
+      "alcohol": "Decolorize with ethyl alcohol (until the violet disappears)",
+      "wash": "Wash with water",
+      "fuchsin": "Counterstain with fuchsin (1–2 min)",
+      "blot": "Blot dry with filter paper",
+      "oil": "Apply immersion oil",
+      "micro": "Take the slide to the microscope and determine the Gram type"
+    },
+    "toast": { "needBridge": "First place the staining bridge on the bench" },
+    "wait": { "developing": "The dye is developing…", "ready": "Ready — next step", "realTime": "Real time: 1–2 min" },
+    "steps": {
+      "gvCard": "Stain with crystal violet",
+      "gvResult": "Crystal violet (over filter paper) — 1–2 min, remove the paper and drain the dye",
+      "lugolCard": "Lugol's solution",
+      "lugolResult": "Treat with Lugol's solution (1–2 min), drain the dye",
+      "alcoholCard": "Decolorize with alcohol",
+      "alcoholResult": "Decolorize with ethyl alcohol (30–60 s) and wash with water",
+      "fuchsinCard": "Counterstain with fuchsin",
+      "fuchsinResult": "Counterstain with fuchsin (1–2 min), wash and blot dry",
+      "classifyCard": "Determine the result",
+      "classifyResult": "Determine the Gram type under the microscope"
+    },
+    "score": {
+      "gvZero": "Crystal violet was not applied at all",
+      "noFilter": "Filter paper was not used (the dye must be dripped over the paper)",
+      "filterNotRemoved": "The filter paper was not removed / the dye was not drained",
+      "gvTooEarly": "Did not wait 1–2 min (removed too early)",
+      "lugolZero": "Lugol's solution was not applied",
+      "lugolOrder": "Wrong order (must come after crystal violet)",
+      "lugolTooShort": "Lugol was not held long enough (1–2 min)",
+      "alcoholZero": "Not decolorized with alcohol",
+      "alcoholOrder": "Wrong order (must come after Lugol)",
+      "noWashAfterAlcohol": "Not washed with water after alcohol",
+      "alcoholTooFast": "Washed too quickly — insufficient decolorization",
+      "alcoholTooLong": "Too long — over-decolorized (loses the Gram+ colour)",
+      "fuchsinZero": "Not counterstained with fuchsin",
+      "fuchsinOrder": "Wrong order (must come after decolorization)",
+      "fuchsinTooShort": "Fuchsin was not held long enough (1–2 min)",
+      "noWash": "Not washed with water",
+      "notBlotted": "Not blotted dry with filter paper",
+      "classifyZero": "Result not determined",
+      "classifyWrong": "Determined incorrectly"
+    },
+    "result": {
+      "subtitle": "Gram staining — exam result (PDF criteria)",
+      "noMorph": "Result not determined",
+      "right": "The Gram type was determined correctly",
+      "wrong": "The Gram type was determined incorrectly",
+      "correctAnswer": "Correct answer: {ans}",
+      "ansPositive": "Gram-positive (violet)",
+      "ansNegative": "Gram-negative (red)",
+      "viewScope": "View the microscope"
+    }
   }
 }

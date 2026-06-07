@@ -52,7 +52,7 @@ export interface Lab2ItemDef {
 export const LAB2_ITEMS: Lab2ItemDef[] = [
   {
     id: "tray",
-    label: "Buyraksimon lotok",
+    label: "lab2.items.tray",
     apparatus: true,
     target: false,
     w: 440,
@@ -62,7 +62,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "bridge",
-    label: "Bo'yash ko'prigi",
+    label: "lab2.items.bridge",
     apparatus: true,
     target: false,
     w: 150,
@@ -72,7 +72,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "slide",
-    label: "Tayyor surtma (oyna)",
+    label: "lab2.items.slide",
     apparatus: false,
     target: true,
     w: 132,
@@ -84,7 +84,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "gv",
-    label: "Gensianviolet",
+    label: "lab2.items.gv",
     apparatus: false,
     target: false,
     w: 58,
@@ -94,7 +94,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "lugol",
-    label: "Lyugol eritmasi",
+    label: "lab2.items.lugol",
     apparatus: false,
     target: false,
     w: 58,
@@ -104,7 +104,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "ethanol",
-    label: "Etil spirti",
+    label: "lab2.items.ethanol",
     apparatus: false,
     target: false,
     w: 58,
@@ -114,7 +114,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "fuchsin",
-    label: "Fuksin",
+    label: "lab2.items.fuchsin",
     apparatus: false,
     target: false,
     w: 58,
@@ -124,7 +124,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "wash",
-    label: "Distillangan suv",
+    label: "lab2.items.wash",
     apparatus: false,
     target: false,
     w: 56,
@@ -134,7 +134,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "filter",
-    label: "Filtr qog'oz",
+    label: "lab2.items.filter",
     apparatus: false,
     target: false,
     w: 60,
@@ -144,7 +144,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "forceps",
-    label: "Pinset",
+    label: "lab2.items.forceps",
     apparatus: false,
     target: false,
     w: 40,
@@ -155,7 +155,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "oil",
-    label: "Immersion moyi",
+    label: "lab2.items.oil",
     apparatus: false,
     target: false,
     w: 50,
@@ -165,7 +165,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
   },
   {
     id: "microscope",
-    label: "Mikroskop",
+    label: "lab2.items.microscope",
     apparatus: true,
     target: true,
     w: 204,
