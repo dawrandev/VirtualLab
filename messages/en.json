@@ -1,0 +1,55 @@
+{
+  "lang": {
+    "uz": "O'zbekcha",
+    "kaa": "Qaraqalpaqsha",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "common": {
+    "back": "Back",
+    "restart": "Restart",
+    "languageLabel": "Language"
+  },
+  "home": {
+    "badge": "Virtual microbiology",
+    "title": "Virtual Medical Laboratory",
+    "tagline": "Choose a lab. Complete each experiment step by step — practise or take the exam.",
+    "footer": "{done} of 6 labs ready · the rest are coming soon",
+    "comingSoon": "Coming soon",
+    "ready": "Ready",
+    "enter": "Open lab",
+    "unavailable": "Not available yet"
+  },
+  "labs": {
+    "1": {
+      "title": "Bacterial cell morphology",
+      "subtitle": "Simple stain — methylene blue",
+      "desc": "Prepare a smear, fix it and stain with methylene blue to study the cell shape under the microscope."
+    },
+    "2": {
+      "title": "Gram staining method",
+      "subtitle": "Differential staining",
+      "desc": "Use crystal violet, Lugol, alcohol and fuchsin to separate Gram-positive and Gram-negative bacteria."
+    },
+    "3": {
+      "title": "Drigalski plating",
+      "subtitle": "Spreader inoculation — pure culture",
+      "desc": "Spread the suspension across 3 plates in turn to isolate single colonies and obtain a pure culture, then Gram stain."
+    },
+    "4": {
+      "title": "Antibiotic sensitivity",
+      "subtitle": "Paper-disk (disk-diffusion) method",
+      "desc": "Lawn-inoculate the culture, place antibiotic disks, measure the zones of inhibition and determine sensitivity."
+    },
+    "5": {
+      "title": "Studying living microorganisms",
+      "subtitle": "«Crushed-drop» preparation",
+      "desc": "Prepare a crushed-drop mount of living bacteria in saline, cover it with a cover slip and observe motility at ×40."
+    },
+    "6": {
+      "title": "Ziehl-Neelsen method",
+      "subtitle": "Acid-fast staining",
+      "desc": "Detect the tuberculosis bacillus (AFB) with carbol fuchsin, acid and methylene blue."
+    }
+  }
+}

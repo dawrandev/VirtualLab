@@ -1,6 +1,6 @@
 import { getRequestConfig } from "next-intl/server";
 
-export const SUPPORTED_LOCALES = ["uz", "kaa", "ru"] as const;
+export const SUPPORTED_LOCALES = ["uz", "kaa", "ru", "en"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "uz";
 

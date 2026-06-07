@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
@@ -83,6 +85,7 @@ function nextHint(s: DiskState, carrying: string | null): string {
 
 export function Lab4Workbench() {
   const router = useRouter();
+  const tg = useTranslations();
   const [disk, setDisk] = useState<DiskState>(() => freshDiskState());
   const diskRef = useRef(disk);
   diskRef.current = disk;
@@ -474,8 +477,8 @@ export function Lab4Workbench() {
       <header className="z-30 flex items-center gap-3 border-b border-slate-300/70 bg-white/85 px-3 py-2 backdrop-blur">
         <button onClick={() => router.push("/")} className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">←</button>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-bold tracking-wide text-slate-800">Antibiotiklarga sezuvchanlik</span>
-          <span className="text-[11px] text-slate-500">Qog'oz disk usuli · Lab 4</span>
+          <span className="text-sm font-bold tracking-wide text-slate-800">{tg("labs.4.title")}</span>
+          <span className="text-[11px] text-slate-500">{tg("labs.4.subtitle")} · Lab 4</span>
         </div>
 
         {!isExam && (
@@ -495,7 +498,8 @@ export function Lab4Workbench() {
           {examActive && disk.incubated && (
             <button onClick={() => { setReveal(false); setMeasureOpen(true); }} className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-sky-500">🔍 Zonalarni o'lchash</button>
           )}
-          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ Qayta</button>
+          <LanguageSwitcher />
+          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
         </div>
       </header>
 

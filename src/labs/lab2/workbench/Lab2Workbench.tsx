@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LAB2_ITEMS, LAB2_ITEM_BY_ID, intentFor, type Lab2ItemId } from "./items";
 import { freshGramState, applyGramStep, type GramState, type GramIntent } from "../state";
 import { SPECIMEN, STAIN_WAIT_MS, DISPLAY_WAIT_SECONDS, type LabMode, type ExamPhase } from "../exam/protocol";
@@ -70,6 +72,7 @@ function nextHint(s: GramState): string {
 
 export function Lab2Workbench() {
   const router = useRouter();
+  const tg = useTranslations();
   const [gram, setGram] = useState<GramState>(() => freshGramState());
   const gramRef = useRef(gram);
   gramRef.current = gram;
@@ -351,8 +354,8 @@ export function Lab2Workbench() {
       <header className="z-30 flex items-center gap-3 border-b border-slate-300/70 bg-white/85 px-3 py-2 backdrop-blur">
         <button onClick={() => router.push("/")} className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">←</button>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-bold tracking-wide text-slate-800">Gram usulida bo'yash</span>
-          <span className="text-[11px] text-slate-500">Differensial bo'yash · Lab 2</span>
+          <span className="text-sm font-bold tracking-wide text-slate-800">{tg("labs.2.title")}</span>
+          <span className="text-[11px] text-slate-500">{tg("labs.2.subtitle")} · Lab 2</span>
         </div>
 
         {!isExam && (
@@ -374,7 +377,8 @@ export function Lab2Workbench() {
               ✓ Yakunlash
             </button>
           )}
-          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ Qayta</button>
+          <LanguageSwitcher />
+          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
         </div>
       </header>
 

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type Locale = "uz" | "kaa" | "ru";
+export type Locale = "uz" | "kaa" | "ru" | "en";
 
 interface SettingsState {
   locale: Locale;

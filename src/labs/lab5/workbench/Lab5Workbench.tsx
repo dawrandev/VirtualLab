@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { BacterialLoop } from "@/labs/lab1/components2d/items/BacterialLoop";
@@ -75,6 +77,7 @@ function nextHint(s: WetMountState): string {
 
 export function Lab5Workbench() {
   const router = useRouter();
+  const tg = useTranslations();
   const [wet, setWet] = useState<WetMountState>(() => freshWetMountState());
   const wetRef = useRef(wet);
   wetRef.current = wet;
@@ -429,8 +432,8 @@ export function Lab5Workbench() {
       <header className="z-30 flex items-center gap-3 border-b border-slate-300/70 bg-white/85 px-3 py-2 backdrop-blur">
         <button onClick={() => router.push("/")} className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">←</button>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-bold tracking-wide text-slate-800">Tirik mikroorganizmlarni o'rganish</span>
-          <span className="text-[11px] text-slate-500">«Ezilgan tomchi» preparati · Lab 5</span>
+          <span className="text-sm font-bold tracking-wide text-slate-800">{tg("labs.5.title")}</span>
+          <span className="text-[11px] text-slate-500">{tg("labs.5.subtitle")} · Lab 5</span>
         </div>
 
         {!isExam && (
@@ -450,7 +453,8 @@ export function Lab5Workbench() {
           {wet.coverPlaced && !wet.observed && (
             <button onClick={() => perform("observe")} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-amber-500">🔬 Mikroskopda ko'rish</button>
           )}
-          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ Qayta</button>
+          <LanguageSwitcher />
+          <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
         </div>
       </header>
 

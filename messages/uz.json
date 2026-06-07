@@ -1,4 +1,52 @@
 {
+  "lang": {
+    "uz": "O'zbekcha",
+    "kaa": "Qaraqalpaqsha",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "home": {
+    "badge": "Virtual mikrobiologiya",
+    "title": "Virtual Tibbiy Laboratoriya",
+    "tagline": "Laboratoriya ishini tanlang. Har bir tajribani bosqichma-bosqich bajaring — o'rganing yoki imtihon topshiring.",
+    "footer": "6 ta laboratoriyadan {done} tasi tayyor · qolganlari tez kunda qo'shiladi",
+    "comingSoon": "Tez kunda",
+    "ready": "Tayyor",
+    "enter": "Laboratoriyaga kirish",
+    "unavailable": "Hozircha mavjud emas"
+  },
+  "labs": {
+    "1": {
+      "title": "Bakterial hujayra morfologiyasi",
+      "subtitle": "Oddiy bo'yash — metilen ko'ki",
+      "desc": "Surtma tayyorlash, fiksatsiya va metilen ko'ki bilan bo'yab, hujayra shaklini mikroskopda o'rganish."
+    },
+    "2": {
+      "title": "Gram bo'yash usuli",
+      "subtitle": "Differensial bo'yash",
+      "desc": "Gen-violet, lyugol, spirt va fuksin bilan Gram-musbat va Gram-manfiy bakteriyalarni ajratish."
+    },
+    "3": {
+      "title": "Drigalski usulida ekish",
+      "subtitle": "Shpatel bilan ekish — toza kultura",
+      "desc": "Suspenziyani shpatel bilan 3 ta plastinkaga ketma-ket surtib, alohida koloniyalardan toza kultura ajratish va Gram bo'yash."
+    },
+    "4": {
+      "title": "Antibiotiklarga sezuvchanlik",
+      "subtitle": "Qog'oz disk usuli (disk-diffuziya)",
+      "desc": "Kulturani gazon ekib, antibiotik disklarini qo'yib, tormozlanish zonalarini o'lchab sezuvchanlikni aniqlash."
+    },
+    "5": {
+      "title": "Tirik mikroorganizmlarni o'rganish",
+      "subtitle": "«Ezilgan tomchi» preparati",
+      "desc": "Fiziologik eritmada tirik bakteriyalardan ezilgan tomchi preparati tayyorlab, qoplag'ich oyna bilan yopib, ×40 obyektivda harakatchanligini kuzatish."
+    },
+    "6": {
+      "title": "Ziehl-Neelsen usuli",
+      "subtitle": "Kislotaga chidamli bo'yash",
+      "desc": "Karbol fuksin, kislota va metilen ko'ki bilan sil tayoqchasini (KChB) aniqlash."
+    }
+  },
   "common": {
     "appTitle": "Virtual Tibbiy Laboratoriya",
     "soundOn": "Ovoz yoqilgan",
@@ -8,6 +56,8 @@
     "languageRu": "Русский",
     "loading": "Yuklanmoqda…",
     "reset": "Qayta boshlash",
+    "restart": "Qayta",
+    "languageLabel": "Til",
     "next": "Keyingi",
     "back": "Orqaga",
     "understand": "Tushundim, boshlang"

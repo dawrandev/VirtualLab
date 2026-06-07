@@ -7,11 +7,13 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import uzMessages from "../../messages/uz.json";
 import kaaMessages from "../../messages/kaa.json";
 import ruMessages from "../../messages/ru.json";
+import enMessages from "../../messages/en.json";
 
 const messagesByLocale = {
   uz: uzMessages,
   kaa: kaaMessages,
   ru: ruMessages,
+  en: enMessages,
 } as const;
 
 interface Props {

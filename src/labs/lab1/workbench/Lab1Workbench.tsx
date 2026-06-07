@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLab2DStore } from "@/stores/labStore2d";
 import type { Lab2DState, StepId } from "@/engine2d/types";
 import config from "../config2d";
@@ -118,6 +120,7 @@ function nextHint(s: Lab2DState): string {
 
 export function Lab1Workbench() {
   const router = useRouter();
+  const tg = useTranslations();
   const mountLab = useLab2DStore((s) => s.mountLab);
   const resetLab = useLab2DStore((s) => s.resetLab);
   const advanceStage = useLab2DStore((s) => s.advanceStage);
@@ -740,8 +743,8 @@ export function Lab1Workbench() {
           ←
         </button>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-bold tracking-wide text-slate-800">Bakterial hujayra morfologiyasi</span>
-          <span className="text-[11px] text-slate-500">Oddiy bo'yash — metilen ko'ki · Lab 1</span>
+          <span className="text-sm font-bold tracking-wide text-slate-800">{tg("labs.1.title")}</span>
+          <span className="text-[11px] text-slate-500">{tg("labs.1.subtitle")} · Lab 1</span>
         </div>
         {!isExam && (
           <div className="ml-3 hidden items-center gap-1.5 md:flex">
@@ -779,8 +782,9 @@ export function Lab1Workbench() {
               ✓ Yakunlash
             </button>
           )}
+          <LanguageSwitcher />
           <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">
-            ↻ Qayta
+            ↻ {tg("common.restart")}
           </button>
         </div>
       </header>
