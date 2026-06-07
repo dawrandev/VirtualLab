@@ -21,7 +21,6 @@ import type { ExamAction, ExamPhase, LabMode } from "../exam/protocol";
 import { scoreExam, type ExamResult } from "../exam/scoring";
 import { ITEMS, ITEM_BY_ID, intentFor, type ItemId } from "./items";
 
-const STAGE_IDS = ["stage-1", "stage-2", "stage-3", "stage-4"] as const;
 const DROP_PAD = 26;
 const TICK = 70;
 const HOLD_DUR = 1400; // sterilize / fix
@@ -64,57 +63,36 @@ function actionKind(tool: ItemId, target: ItemId): Kind {
   return "instant";
 }
 
-function holdLabel(h: Hold): string {
-  switch (h.intent) {
-    case "strike-match":
-      return "🔥 Yoqilmoqda…";
-    case "clean-slide":
-      return "🧼 Artilmoqda…";
-    case "smear-sample":
-      return "✦ Surtilmoqda…";
-    case "blot-filter":
-      return "📄 Quritilmoqda…";
-    case "flame-fix":
-      return "🔥 Fiksatsiya…";
-    case "take-sample":
-      return "🧫 Namuna olinmoqda…";
-    case "air-dry":
-      return `💨 Havoda quritilmoqda ${Math.ceil((1 - h.progress) * (AIRDRY_DUR / 1000))}s`;
-    default:
-      return "🔥 Qizimoqda…";
-  }
-}
-
 function nextHint(s: Lab2DState): string {
   switch (s.currentStageId) {
     case "stage-1":
-      if (!s.match.struck) return "Gugurtni gugurt qutisiga olib borib ishqalang";
-      if (!s.lamp.lit) return "Yonayotgan gugurtni lampaga olib boring";
-      if (!s.trash.match) return "Gugurtni biohazardga tashlang";
-      return "Bosqich tayyor";
+      if (!s.match.struck) return "lab1.hint.strikeMatch";
+      if (!s.lamp.lit) return "lab1.hint.lightLamp";
+      if (!s.trash.match) return "lab1.hint.discardMatch";
+      return "lab1.hint.stageReady";
     case "stage-2":
       // Slide is prepared FIRST (clean + NaCl), then the loop is sterilized
       // right before it is used — so it is freshly sterile when sampling.
-      if (!s.slide.onRack) return "Buyum oynasini bo'yash ko'prigiga qo'ying";
-      if (!s.slide.cleaned) return "Oynani spirtli salfetka bilan arting";
-      if (!s.slide.naclApplied) return "NaCl ni oynaga tomizing";
-      if (s.loop.sterilizePasses < 3) return "Halqani olovda qizdiring — avval vertikal, so'ng gorizontal (↻ tugma bilan buring)";
-      if (!s.loop.carriesSample) return "Halqa biroz sovugach kulturadan namuna oling (qizigan halqa bakteriyani o'ldiradi)";
-      if (!s.slide.smeared) return "Halqani oyna ustida yurgizib surtma qiling";
-      if (!s.loop.resterilized) return "Halqani qaytadan olovda qizdiring (vertikal + gorizontal)";
-      return "Bosqich tayyor";
+      if (!s.slide.onRack) return "lab1.hint.slideOnBridge";
+      if (!s.slide.cleaned) return "lab1.hint.cleanSlide";
+      if (!s.slide.naclApplied) return "lab1.hint.applyNacl";
+      if (s.loop.sterilizePasses < 3) return "lab1.hint.sterilizeLoop";
+      if (!s.loop.carriesSample) return "lab1.hint.takeSample";
+      if (!s.slide.smeared) return "lab1.hint.smear";
+      if (!s.loop.resterilized) return "lab1.hint.resterilize";
+      return "lab1.hint.stageReady";
     case "stage-3":
-      if (!s.slide.airDried) return "Oynani ko'tarib havoda ushlab quriting (~12s)";
-      if (s.slide.fixPasses < 3) return `Oynani olov ustidan 3 marta o'tkazing — fiksatsiya (${s.slide.fixPasses}/3)`;
-      return "Bosqich tayyor";
+      if (!s.slide.airDried) return "lab1.hint.airDry";
+      if (s.slide.fixPasses < 3) return "lab1.hint.fix";
+      return "lab1.hint.stageReady";
     case "stage-4":
-      if (!s.slide.methyleneBlue.applied) return "Metilen ko'kini oynaga olib boring";
-      if (!s.slide.methyleneBlue.washed) return "Suv bilan yuving";
-      if (!s.slide.blotted) return "Filtr qog'ozni oyna ustiga bosib qo'ying (ishqalamang)";
-      if (!s.slide.oilApplied) return "Immersion moyini tomizing";
-      return "Oynani mikroskopga olib boring";
+      if (!s.slide.methyleneBlue.applied) return "lab1.hint.applyMb";
+      if (!s.slide.methyleneBlue.washed) return "lab1.hint.wash";
+      if (!s.slide.blotted) return "lab1.hint.blot";
+      if (!s.slide.oilApplied) return "lab1.hint.applyOil";
+      return "lab1.hint.toMicroscope";
     default:
-      return "";
+      return "ui.empty";
   }
 }
 
@@ -593,9 +571,9 @@ export function Lab1Workbench() {
           // Allow every action; early/wrong ones are graded down, not blocked.
           performIntent(intent, target);
         } else if (intent === "wash-mb" && !mbReadyRef.current) {
-          showToast("Bo'yoq hali ta'sir qilmoqda — kuting");
+          showToast(tg("lab1.toast.dyeWait"));
         } else if (!performIntent(intent, target)) {
-          showToast("Hozir bo'lmaydi — ketma-ketlikni kuzating");
+          showToast(tg("lab1.toast.notNow"));
         }
         placeOrRemove(d.id, intent, e.clientX, e.clientY);
         endDrag();
@@ -646,7 +624,7 @@ export function Lab1Workbench() {
         xPct = br.x;
         yPct = br.y - 4;
       } else if (modeRef.current !== "exam") {
-        showToast("Avval bo'yash ko'prigini stolga qo'ying");
+        showToast(tg("lab1.toast.needBridge"));
       }
     }
     setPlaced((p) => ({ ...p, [d.id]: { x: xPct, y: yPct } }));
@@ -724,7 +702,6 @@ export function Lab1Workbench() {
 
   const placedSet = new Set(Object.keys(placed)) as Set<ItemId>;
   const draggingDef = drag ? ITEM_BY_ID[drag.id] : null;
-  const activeIdx = STAGE_IDS.indexOf(state.currentStageId as (typeof STAGE_IDS)[number]);
   const hint = nextHint(state);
   const slidePos = placed["slide"];
   const lampPos = placed["lamp"];
@@ -747,39 +724,21 @@ export function Lab1Workbench() {
           <span className="text-[11px] text-slate-500">{tg("labs.1.subtitle")} · Lab 1</span>
         </div>
         {!isExam && (
-          <div className="ml-3 hidden items-center gap-1.5 md:flex">
-            {STAGE_IDS.map((id, i) => (
-              <div key={id} className="flex items-center gap-1.5">
-                <div className="grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: i < activeIdx ? "#10b981" : i === activeIdx ? "#7c3aed" : "#cbd5e1" }}>
-                  {i < activeIdx ? "✓" : i + 1}
-                </div>
-                {i < STAGE_IDS.length - 1 && <div className="h-0.5 w-4 rounded bg-slate-300" />}
-              </div>
-            ))}
-          </div>
-        )}
-        {!isExam && (
-          <div className="mx-auto flex max-w-[40%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
+          <div className="mx-auto flex max-w-[46%] items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-1.5 text-xs font-medium text-white shadow">
             <span className="text-amber-300">➜</span>
-            <span className="truncate">{hint}</span>
+            <span className="truncate">{tg(hint, { n: state.slide.fixPasses })}</span>
           </div>
         )}
         {examActive && (
           <div className="mx-auto flex items-center gap-2 rounded-xl bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 ring-1 ring-violet-200">
             <span>📝</span>
-            <span>Imtihon — yordam yo'q. Bilganingizcha bajaring.</span>
+            <span>{tg("ui.examBanner")}</span>
           </div>
         )}
         <div className="flex items-center gap-2">
-          {!isExam && (
-            <div className="rounded-lg bg-gradient-to-br from-violet-600 to-indigo-700 px-3 py-1.5 text-center">
-              <span className="text-sm font-bold text-white">{state.score.outOfTen.toFixed(1)}</span>
-              <span className="text-[11px] text-violet-200">/10</span>
-            </div>
-          )}
           {examActive && (
             <button onClick={finishExam} className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">
-              ✓ Yakunlash
+              {tg("lab1.finish")}
             </button>
           )}
           <LanguageSwitcher />
@@ -798,25 +757,21 @@ export function Lab1Workbench() {
           {/* During planning the bench is idle — focus is on the right panel. */}
           {isExam && examPhase === "planning" && (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">
-              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">
-                Avval o'ng paneldan ish tartibini tuzing →
-              </p>
+              <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
           {/* Collapsible-tray toggle (‹ close / › open) */}
           <button
             onClick={() => setSidebarOpen((o) => !o)}
             className="absolute left-2 top-1/2 z-40 grid h-14 w-7 -translate-y-1/2 place-items-center rounded-lg bg-white/90 text-xl font-bold text-slate-600 shadow-md transition hover:bg-white"
-            title={sidebarOpen ? "Asboblar panelini yopish" : "Asboblar panelini ochish"}
+            title={sidebarOpen ? tg("lab1.sidebarClose") : tg("lab1.sidebarOpen")}
           >
             {sidebarOpen ? "‹" : "›"}
           </button>
 
           {placedSet.size === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
-              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">
-                Asboblarni chap paneldan ish stoliga sudrab oling
-              </p>
+              <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
           )}
 
@@ -865,7 +820,7 @@ export function Lab1Workbench() {
                     })
                   }
                   style={{ cursor: "grab" }}
-                  title={it.label}
+                  title={tg(it.label)}
                 >
                   {it.id === "loop" ? (
                     <div style={{ transform: `rotate(${loopDeg}deg)`, transition: "transform 0.12s ease" }}>
@@ -883,7 +838,7 @@ export function Lab1Workbench() {
                       e.stopPropagation();
                       extinguishLamp();
                     }}
-                    title="Spirtovkani qopqoq bilan o'chirish"
+                    title={tg("lab1.extinguish")}
                     className="absolute right-0 top-0 z-30 grid h-7 w-7 place-items-center rounded-full bg-slate-700/90 text-[13px] text-white shadow ring-1 ring-white/40 transition hover:bg-slate-800"
                   >
                     ✕
@@ -969,7 +924,7 @@ export function Lab1Workbench() {
               className="pointer-events-none absolute z-20 rounded-lg bg-blue-900/90 px-3 py-1.5 text-xs font-semibold text-white shadow-md"
               style={{ left: `${slidePos.x}%`, top: `${slidePos.y + 12}%`, transform: "translate(-50%,0)" }}
             >
-              {mbReady ? "Tayyor — endi yuving" : `Ta'sir vaqti: ${mbLeft}s`}
+              {mbReady ? tg("lab1.mb.ready") : tg("lab1.mb.waiting", { s: mbLeft })}
             </div>
           )}
           {/* Exam mode: no text — the dye just slowly deepens on the smear as it
@@ -1098,14 +1053,14 @@ export function Lab1Workbench() {
                   object. Air-dry keeps only a small countdown text label. */}
               {hold && hold.kind === "airdry" && (
                 <div className="absolute left-1/2 top-[120%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
-                  {holdLabel(hold)}
+                  {tg("lab1.airDryLabel", { s: Math.ceil((1 - hold.progress) * (AIRDRY_DUR / 1000)) })}
                 </div>
               )}
 
               {/* Loop orientation indicator (ring direction + R hint) */}
               {drag.id === "loop" && (
                 <div className="absolute left-1/2 top-[150%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[10px] font-medium text-white">
-                  {loopDeg === 270 ? "Boshi past" : loopDeg === 90 ? "Boshi tepa" : "Yonlama"} · <span className="text-amber-300">R</span>
+                  {loopDeg === 270 ? tg("lab1.loopDown") : loopDeg === 90 ? tg("lab1.loopUp") : tg("lab1.loopSide")} · <span className="text-amber-300">R</span>
                   {hold?.kind === "hold" && !isExam && ` · V ${heatV.current >= 1 ? "✓" : "…"} G ${heatH.current >= 1 ? "✓" : "…"}`}
                 </div>
               )}
@@ -1119,8 +1074,8 @@ export function Lab1Workbench() {
               className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-violet-500 active:scale-95"
             >
               <span className="inline-block" style={{ transform: `rotate(${loopDeg}deg)`, transition: "transform 0.15s ease" }}>↳</span>
-              Halqani burish · ↻ (yoki R) ·{" "}
-              {loopDeg === 270 ? "boshi past" : loopDeg === 90 ? "boshi tepa" : "yonlama"}
+              {tg("lab1.loopRotate")}{" "}
+              {loopDeg === 270 ? tg("lab1.loopDown") : loopDeg === 90 ? tg("lab1.loopUp") : tg("lab1.loopSide")}
             </button>
           )}
 

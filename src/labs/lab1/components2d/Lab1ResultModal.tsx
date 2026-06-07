@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useLab2DStore } from "@/stores/labStore2d";
 import { microscopeResult } from "../content/microscope";
 
@@ -35,6 +36,7 @@ function buildParticles(count: number, sizeRange: [number, number], opacity: num
  * quality.
  */
 export function Lab1ResultModal() {
+  const t = useTranslations();
   const open = useLab2DStore((s) => s.state.microscopeOpen);
   const setOpen = useLab2DStore((s) => s.setMicroscopeOpen);
   const state = useLab2DStore((s) => s.state);
@@ -106,13 +108,13 @@ export function Lab1ResultModal() {
 
             <div className="absolute -bottom-44 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 w-[440px]">
               <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-3 shadow-2xl text-center text-white">
-                <p className="text-[11px] uppercase tracking-widest opacity-80">Mikroskop natijasi</p>
+                <p className="text-[11px] uppercase tracking-widest opacity-80">{t("lab1.result.title")}</p>
                 <p className="text-3xl font-bold">{state.score.outOfTen.toFixed(1)} / 10</p>
               </div>
               <div className="rounded-xl bg-white/95 px-4 py-2 text-sm text-slate-800 shadow-md text-center">
                 {result.notes.map((n, i) => (
                   <p key={i} className={i === 0 ? "font-semibold" : "text-xs text-slate-600"}>
-                    {n}
+                    {t(n)}
                   </p>
                 ))}
               </div>
@@ -123,7 +125,7 @@ export function Lab1ResultModal() {
                 }}
                 className="rounded-xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 transition px-5 py-2.5 text-sm font-semibold text-white shadow-lg"
               >
-                Qayta boshlash
+                {t("ui.restart")}
               </button>
             </div>
           </div>

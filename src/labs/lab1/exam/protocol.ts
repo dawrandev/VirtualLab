@@ -40,20 +40,20 @@ export interface MainStep {
 }
 
 export const MAIN_STEPS: MainStep[] = [
-  { id: "light-lamp", card: "Spirtovkani yoqish", result: "Spirtovkani yoqish", points: 0.3, requires: [] },
-  { id: "clean-slide", card: "Oynani tozalash", result: "Buyum oynasini spirtli salfetka bilan tozalash", points: 0.4, requires: [] },
-  { id: "add-nacl", card: "NaCl tomizish", result: "Oynaga NaCl tomchisini tomizish", points: 0.4, requires: ["clean-slide"] },
-  { id: "sterilize-loop", card: "Halqani sterillash", result: "Bakteriologik halqani olovda sterillash", points: 0.5, requires: ["light-lamp", "add-nacl"] },
-  { id: "take-sample", card: "Namuna olish", result: "Kulturadan namuna olish", points: 0.5, requires: ["sterilize-loop"] },
-  { id: "smear-sample", card: "Surtma tayyorlash", result: "Surtma tayyorlash (NaCl bilan yoyish)", points: 0.7, requires: ["add-nacl", "take-sample"] },
-  { id: "resterilize-loop", card: "Halqani qayta sterillash", result: "Halqani qayta sterillash", points: 0.3, requires: ["smear-sample"] },
-  { id: "air-dry", card: "Havoda quritish", result: "Surtmani havoda quritish", points: 0.5, requires: ["smear-sample"] },
-  { id: "flame-fix", card: "Termik fiksatsiya", result: "Olov ustidan o'tkazib termik fiksatsiya", points: 0.5, requires: ["air-dry"] },
-  { id: "apply-mb", card: "Metilen ko'ki bilan bo'yash", result: "Metilen ko'ki bilan qoplab bo'yash", points: 0.5, requires: ["flame-fix"] },
-  { id: "wash-mb", card: "Suv bilan yuvish", result: "Distillangan suv bilan yuvish", points: 0.4, requires: ["apply-mb"] },
-  { id: "blot-filter", card: "Filtr bilan quritish", result: "Filtr qog'oz bilan bosib quritish", points: 0.3, requires: ["wash-mb"] },
-  { id: "apply-oil", card: "Immersion moyi", result: "Immersion moyini tomizish", points: 0.3, requires: ["blot-filter"] },
-  { id: "open-microscope", card: "Mikroskopda ko'rish", result: "Mikroskopda (100×) ko'rish", points: 0.4, requires: ["apply-oil"] },
+  { id: "light-lamp", card: "lab1.steps.lightLampCard", result: "lab1.steps.lightLampResult", points: 0.3, requires: [] },
+  { id: "clean-slide", card: "lab1.steps.cleanSlideCard", result: "lab1.steps.cleanSlideResult", points: 0.4, requires: [] },
+  { id: "add-nacl", card: "lab1.steps.addNaclCard", result: "lab1.steps.addNaclResult", points: 0.4, requires: ["clean-slide"] },
+  { id: "sterilize-loop", card: "lab1.steps.sterilizeLoopCard", result: "lab1.steps.sterilizeLoopResult", points: 0.5, requires: ["light-lamp", "add-nacl"] },
+  { id: "take-sample", card: "lab1.steps.takeSampleCard", result: "lab1.steps.takeSampleResult", points: 0.5, requires: ["sterilize-loop"] },
+  { id: "smear-sample", card: "lab1.steps.smearSampleCard", result: "lab1.steps.smearSampleResult", points: 0.7, requires: ["add-nacl", "take-sample"] },
+  { id: "resterilize-loop", card: "lab1.steps.resterilizeLoopCard", result: "lab1.steps.resterilizeLoopResult", points: 0.3, requires: ["smear-sample"] },
+  { id: "air-dry", card: "lab1.steps.airDryCard", result: "lab1.steps.airDryResult", points: 0.5, requires: ["smear-sample"] },
+  { id: "flame-fix", card: "lab1.steps.flameFixCard", result: "lab1.steps.flameFixResult", points: 0.5, requires: ["air-dry"] },
+  { id: "apply-mb", card: "lab1.steps.applyMbCard", result: "lab1.steps.applyMbResult", points: 0.5, requires: ["flame-fix"] },
+  { id: "wash-mb", card: "lab1.steps.washMbCard", result: "lab1.steps.washMbResult", points: 0.4, requires: ["apply-mb"] },
+  { id: "blot-filter", card: "lab1.steps.blotFilterCard", result: "lab1.steps.blotFilterResult", points: 0.3, requires: ["wash-mb"] },
+  { id: "apply-oil", card: "lab1.steps.applyOilCard", result: "lab1.steps.applyOilResult", points: 0.3, requires: ["blot-filter"] },
+  { id: "open-microscope", card: "lab1.steps.openMicroscopeCard", result: "lab1.steps.openMicroscopeResult", points: 0.4, requires: ["apply-oil"] },
 ];
 
 export const PLANNING_POINTS = 2.0;
@@ -90,19 +90,19 @@ export interface DetailRule {
 export const DETAIL_RULES: DetailRule[] = [
   {
     id: "discard-match",
-    label: "Ishlatilgan gugurtni biohazard idishiga tashlash",
+    label: "lab1.detail.discardMatch",
     points: 0.3,
     ok: (c) => c.state.trash.match === true,
   },
   {
     id: "loop-cooled",
-    label: "Halqani sterillagach sovutib namuna olish",
+    label: "lab1.detail.loopCooled",
     points: 0.3,
     ok: (c) => c.sampleLoopHeat != null && c.sampleLoopHeat <= LOOP_COOL_MAX,
   },
   {
     id: "waited-wash",
-    label: "Bo'yagach yetarlicha kutib yuvish (erta emas)",
+    label: "lab1.detail.waitedWash",
     points: 0.3,
     ok: (c) => {
       const a = c.firstTs["apply-mb"];
@@ -112,7 +112,7 @@ export const DETAIL_RULES: DetailRule[] = [
   },
   {
     id: "dry-before-stain",
-    label: "Oynani quritib (ho'l emas) bo'yash",
+    label: "lab1.detail.dryBeforeStain",
     points: 0.3,
     ok: (c) => {
       const d = c.firstTs["air-dry"];
@@ -122,25 +122,25 @@ export const DETAIL_RULES: DetailRule[] = [
   },
   {
     id: "loop-returned",
-    label: "Halqani ishlatib bo'lib shtativga qo'yish",
+    label: "lab1.detail.loopReturned",
     points: 0.2,
     ok: (c) => c.loopOnStand,
   },
   {
     id: "tube-returned",
-    label: "Probirkani ishlatib bo'lib shtativga qaytarish",
+    label: "lab1.detail.tubeReturned",
     points: 0.2,
     ok: (c) => c.tubeInRack,
   },
   {
     id: "lamp-extinguished",
-    label: "Spirtovkani oxirida qopqoq bilan o'chirish",
+    label: "lab1.detail.lampExtinguished",
     points: 0.2,
     ok: (c) => c.firstTs["light-lamp"] != null && c.state.lamp.lit === false,
   },
   {
     id: "fix-not-overheated",
-    label: "Fiksatsiyada olovda ushlamasdan o'tkazish (ortiqcha qizdirmaslik)",
+    label: "lab1.detail.fixNotOverheated",
     points: 0.2,
     ok: (c) => {
       const n = c.count["flame-fix"] ?? 0;

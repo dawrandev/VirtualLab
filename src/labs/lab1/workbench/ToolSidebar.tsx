@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Lab2DState } from "@/engine2d/types";
 import { ITEMS, requiredItem, type ItemId } from "./items";
 
@@ -22,6 +23,7 @@ interface Props {
  */
 export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag, showHints = true }: Props) {
   const [hovered, setHovered] = useState<ItemId | null>(null);
+  const t = useTranslations();
   const required = showHints ? requiredItem(state) : null;
 
   return (
@@ -30,11 +32,9 @@ export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag, s
       style={{ background: "linear-gradient(180deg,#fbfbfc 0%,#eef0f3 100%)" }}
     >
       <div className="px-4 pt-3 pb-2 border-b border-slate-200">
-        <h2 className="text-sm font-bold tracking-wide text-slate-700">🧪 Laboratoriya asboblari</h2>
+        <h2 className="text-sm font-bold tracking-wide text-slate-700">🧪 {t("ui.toolsTitle")}</h2>
         {showHints && (
-          <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-            Asboblarni ish stoliga sudrab, xohlagan joyga qo'ying
-          </p>
+          <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{t("ui.dragHintSidebar")}</p>
         )}
       </div>
 
@@ -67,16 +67,16 @@ export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag, s
                   <div style={{ transform: `scale(${item.preview})` }}>{item.render(state, { binBump })}</div>
                 </div>
                 <span className="pointer-events-none text-center text-[10px] font-medium leading-tight text-slate-600">
-                  {item.label}
+                  {t(item.label)}
                 </span>
                 {isPlaced && (
-                  <span className="pointer-events-none text-[8px] uppercase tracking-wider text-amber-600">stolda</span>
+                  <span className="pointer-events-none text-[8px] uppercase tracking-wider text-amber-600">{t("ui.onTable")}</span>
                 )}
               </button>
 
               {hovered === item.id && (
                 <div className="pointer-events-none absolute left-1/2 top-[102%] z-50 w-36 -translate-x-1/2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-center text-[11px] text-white shadow-xl">
-                  {item.label}
+                  {t(item.label)}
                 </div>
               )}
             </div>

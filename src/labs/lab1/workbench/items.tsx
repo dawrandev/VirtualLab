@@ -76,7 +76,7 @@ export interface ItemDef {
 export const ITEMS: ItemDef[] = [
   {
     id: "match",
-    label: "Gugurt",
+    label: "lab1.items.match",
     apparatus: false,
     target: false,
     w: 100,
@@ -87,7 +87,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "matchbox",
-    label: "Gugurt qutisi",
+    label: "lab1.items.matchbox",
     apparatus: true,
     target: true,
     w: 110,
@@ -97,7 +97,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "lamp",
-    label: "Spirt lampasi",
+    label: "lab1.items.lamp",
     apparatus: true,
     target: true,
     w: 160,
@@ -112,7 +112,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "tray",
-    label: "Buyraksimon lotok",
+    label: "lab1.items.tray",
     apparatus: true,
     target: false,
     w: 440,
@@ -122,7 +122,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "bridge",
-    label: "Bo'yash ko'prigi",
+    label: "lab1.items.bridge",
     apparatus: true,
     target: false,
     w: 150,
@@ -132,7 +132,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "slide",
-    label: "Buyum oynasi",
+    label: "lab1.items.slide",
     apparatus: false,
     target: true,
     w: 96,
@@ -153,7 +153,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "alcohol-pad",
-    label: "Spirtli salfetka",
+    label: "lab1.items.pad",
     apparatus: false,
     target: false,
     w: 74,
@@ -163,7 +163,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "nacl",
-    label: "NaCl 0.9%",
+    label: "lab1.items.nacl",
     apparatus: false,
     target: false,
     w: 54,
@@ -175,7 +175,7 @@ export const ITEMS: ItemDef[] = [
     // Drawn BEFORE the loop so the stand (back) sits behind a seated loop; the
     // workbench paints <LoopStand front /> on top to frost the handle.
     id: "loop-stand",
-    label: "Halqa shtativi",
+    label: "lab1.items.loopStand",
     apparatus: true,
     target: false,
     w: 200,
@@ -185,7 +185,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "loop",
-    label: "Bakteriologik halqa",
+    label: "lab1.items.loop",
     apparatus: false,
     target: false,
     w: 220,
@@ -196,7 +196,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "tube-rack",
-    label: "Probirka shtativi",
+    label: "lab1.items.rack",
     apparatus: true,
     target: false,
     w: 340,
@@ -206,7 +206,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "culture",
-    label: "Kultura probirkasi",
+    label: "lab1.items.culture",
     apparatus: true,
     target: true,
     w: 70,
@@ -216,7 +216,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "petri",
-    label: "Petri kosachasi",
+    label: "lab1.items.petri",
     apparatus: true,
     target: true,
     w: 210,
@@ -226,7 +226,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "mb",
-    label: "Metilen ko'ki",
+    label: "lab1.items.mb",
     apparatus: false,
     target: false,
     w: 58,
@@ -236,7 +236,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "wash",
-    label: "Distillangan suv",
+    label: "lab1.items.wash",
     apparatus: false,
     target: false,
     w: 56,
@@ -246,7 +246,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "filter",
-    label: "Filtr qog'oz",
+    label: "lab1.items.filter",
     apparatus: false,
     target: false,
     w: 60,
@@ -256,7 +256,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "oil",
-    label: "Immersion moyi",
+    label: "lab1.items.oil",
     apparatus: false,
     target: false,
     w: 50,
@@ -266,7 +266,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "bin",
-    label: "Biohazard idishi",
+    label: "lab1.items.bin",
     apparatus: true,
     target: true,
     w: 120,
@@ -276,7 +276,7 @@ export const ITEMS: ItemDef[] = [
   },
   {
     id: "microscope",
-    label: "Mikroskop",
+    label: "lab1.items.microscope",
     apparatus: true,
     target: true,
     w: 204,

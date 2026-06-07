@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Reorder, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { MAIN_STEPS } from "../exam/protocol";
 
 interface Props {
@@ -26,6 +27,7 @@ function shuffled<T>(arr: T[]): T[] {
  * feedback is shown here — the plan is graded silently and revealed at the end.
  */
 export function PlanningSidebar({ onStart }: Props) {
+  const t = useTranslations();
   const initial = useMemo(() => shuffled(MAIN_STEPS.map((s) => s.id)), []);
   const [order, setOrder] = useState<string[]>(initial);
 
@@ -36,11 +38,9 @@ export function PlanningSidebar({ onStart }: Props) {
     >
       <div className="border-b border-slate-200 px-4 pb-3 pt-3">
         <h2 className="flex items-center gap-2 text-sm font-bold tracking-wide text-slate-700">
-          <span>🧭</span> Ish tartibini tuzing
+          <span>🧭</span> {t("ui.planTitle")}
         </h2>
-        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-          Qadamlarni to'g'ri ketma-ketlikda joylashtiring — sudrab joyini almashtiring.
-        </p>
+        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{t("ui.planInstruction")}</p>
       </div>
 
       <Reorder.Group
@@ -61,7 +61,7 @@ export function PlanningSidebar({ onStart }: Props) {
               {i + 1}
             </span>
             <span className="flex-1 text-[13px] font-medium leading-tight text-slate-700">
-              {BY_ID[id]?.card}
+              {BY_ID[id] ? t(BY_ID[id].card) : id}
             </span>
             <span className="shrink-0 text-slate-300" aria-hidden>
               {/* drag handle */}
@@ -81,11 +81,9 @@ export function PlanningSidebar({ onStart }: Props) {
           onClick={() => onStart(order)}
           className="w-full rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 px-4 py-3 text-sm font-bold text-white shadow-lg transition hover:from-violet-500 hover:to-indigo-600"
         >
-          Tartibni tasdiqlab boshlash →
+          {t("ui.planConfirm")}
         </motion.button>
-        <p className="mt-2 text-center text-[10px] text-slate-400">
-          Tasdiqlagach tartibni o'zgartirib bo'lmaydi.
-        </p>
+        <p className="mt-2 text-center text-[10px] text-slate-400">{t("ui.planLocked")}</p>
       </div>
     </aside>
   );

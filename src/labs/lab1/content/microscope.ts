@@ -17,28 +17,22 @@ export function microscopeResult(state: Lab2DState): MicroscopeResult {
       cellsVisible: false,
       morphology: [],
       qualityTier: "low",
-      notes: [
-        "Preparat to'liq tayyorlanmagan (surtma / fiksatsiya / bo'yash yetishmaydi).",
-        "Mikroskop ostida hujayralar deyarli ko'rinmaydi.",
-      ],
+      notes: ["lab1.micro.incomplete1", "lab1.micro.incomplete2"],
     };
   }
 
   const score = state.score.outOfTen;
   const qualityTier = score >= 8 ? "high" : score >= 5 ? "medium" : "low";
   const oil = s.oilApplied;
-  const notes: string[] = [
-    "Barcha hujayralar bir xil ko'k rangga bo'yalgan — oddiy bo'yash usuli (metilen ko'ki).",
-    "Ko'rinadigan shakllar: kokklar (to'p-to'p) va tayoqchalar (batsillalar).",
-  ];
+  const notes: string[] = ["lab1.micro.note1", "lab1.micro.note2"];
   if (!oil) {
-    notes.push("Immersion moyisiz 100× obyektivda tasvir xira — moy qo'shilmagan.");
+    notes.push("lab1.micro.noOil");
   } else if (qualityTier === "high") {
-    notes.push("Immersion moyi bilan 100× da tasvir tiniq. Tayyorlash sifati a'lo.");
+    notes.push("lab1.micro.high");
   } else if (qualityTier === "medium") {
-    notes.push("Tasvir qoniqarli, ammo tayyorlashda biroz nuqson bor.");
+    notes.push("lab1.micro.medium");
   } else {
-    notes.push("Sifat past — protokol bosqichlarini qayta ko'rib chiqing.");
+    notes.push("lab1.micro.low");
   }
 
   return { cellsVisible: true, morphology: ["cocci", "rods"], qualityTier, notes };

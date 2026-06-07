@@ -71,7 +71,8 @@
     "tierExcellent": "A'lo",
     "tierGood": "Yaxshi",
     "tierOk": "Qoniqarli",
-    "tierPoor": "Qoniqarsiz"
+    "tierPoor": "Qoniqarsiz",
+    "empty": ""
   },
   "lab5": {
     "items": {
@@ -405,6 +406,116 @@
       "ansPositive": "Gram-musbat (binafsha)",
       "ansNegative": "Gram-manfiy (qizil)",
       "viewScope": "Mikroskopni ko'rish"
+    }
+  },
+  "lab1": {
+    "items": {
+      "match": "Gugurt",
+      "matchbox": "Gugurt qutisi",
+      "lamp": "Spirt lampasi",
+      "tray": "Buyraksimon lotok",
+      "bridge": "Bo'yash ko'prigi",
+      "slide": "Buyum oynasi",
+      "pad": "Spirtli salfetka",
+      "nacl": "NaCl 0.9%",
+      "loopStand": "Halqa shtativi",
+      "loop": "Bakteriologik halqa",
+      "rack": "Probirka shtativi",
+      "culture": "Kultura probirkasi",
+      "petri": "Petri kosachasi",
+      "mb": "Metilen ko'ki",
+      "wash": "Distillangan suv",
+      "filter": "Filtr qog'oz",
+      "oil": "Immersion moyi",
+      "bin": "Biohazard idishi",
+      "microscope": "Mikroskop"
+    },
+    "hint": {
+      "strikeMatch": "Gugurtni gugurt qutisiga olib borib ishqalang",
+      "lightLamp": "Yonayotgan gugurtni lampaga olib boring",
+      "discardMatch": "Gugurtni biohazardga tashlang",
+      "stageReady": "Bosqich tayyor",
+      "slideOnBridge": "Buyum oynasini bo'yash ko'prigiga qo'ying",
+      "cleanSlide": "Oynani spirtli salfetka bilan arting",
+      "applyNacl": "NaCl ni oynaga tomizing",
+      "sterilizeLoop": "Halqani olovda qizdiring — avval vertikal, so'ng gorizontal (↻ tugma bilan buring)",
+      "takeSample": "Halqa biroz sovugach kulturadan namuna oling (qizigan halqa bakteriyani o'ldiradi)",
+      "smear": "Halqani oyna ustida yurgizib surtma qiling",
+      "resterilize": "Halqani qaytadan olovda qizdiring (vertikal + gorizontal)",
+      "airDry": "Oynani ko'tarib havoda ushlab quriting (~12s)",
+      "fix": "Oynani olov ustidan 3 marta o'tkazing — fiksatsiya ({n}/3)",
+      "applyMb": "Metilen ko'kini oynaga olib boring",
+      "wash": "Suv bilan yuving",
+      "blot": "Filtr qog'ozni oyna ustiga bosib qo'ying (ishqalamang)",
+      "applyOil": "Immersion moyini tomizing",
+      "toMicroscope": "Oynani mikroskopga olib boring"
+    },
+    "mb": { "ready": "Tayyor — endi yuving", "waiting": "Ta'sir vaqti: {s}s" },
+    "finish": "✓ Yakunlash",
+    "sidebarClose": "Asboblar panelini yopish",
+    "sidebarOpen": "Asboblar panelini ochish",
+    "loopRotate": "Halqani burish · ↻ (yoki R) ·",
+    "loopDown": "Boshi past",
+    "loopUp": "Boshi tepa",
+    "loopSide": "Yonlama",
+    "extinguish": "Spirtovkani qopqoq bilan o'chirish",
+    "airDryLabel": "💨 Havoda quritilmoqda {s}s",
+    "toast": {
+      "dyeWait": "Bo'yoq hali ta'sir qilmoqda — kuting",
+      "notNow": "Hozir bo'lmaydi — ketma-ketlikni kuzating",
+      "needBridge": "Avval bo'yash ko'prigini stolga qo'ying"
+    },
+    "result": { "title": "Mikroskop natijasi" },
+    "micro": {
+      "incomplete1": "Preparat to'liq tayyorlanmagan (surtma / fiksatsiya / bo'yash yetishmaydi).",
+      "incomplete2": "Mikroskop ostida hujayralar deyarli ko'rinmaydi.",
+      "note1": "Barcha hujayralar bir xil ko'k rangga bo'yalgan — oddiy bo'yash usuli (metilen ko'ki).",
+      "note2": "Ko'rinadigan shakllar: kokklar (to'p-to'p) va tayoqchalar (batsillalar).",
+      "noOil": "Immersion moyisiz 100× obyektivda tasvir xira — moy qo'shilmagan.",
+      "high": "Immersion moyi bilan 100× da tasvir tiniq. Tayyorlash sifati a'lo.",
+      "medium": "Tasvir qoniqarli, ammo tayyorlashda biroz nuqson bor.",
+      "low": "Sifat past — protokol bosqichlarini qayta ko'rib chiqing."
+    },
+    "steps": {
+      "lightLampCard": "Spirtovkani yoqish", "lightLampResult": "Spirtovkani yoqish",
+      "cleanSlideCard": "Oynani tozalash", "cleanSlideResult": "Buyum oynasini spirtli salfetka bilan tozalash",
+      "addNaclCard": "NaCl tomizish", "addNaclResult": "Oynaga NaCl tomchisini tomizish",
+      "sterilizeLoopCard": "Halqani sterillash", "sterilizeLoopResult": "Bakteriologik halqani olovda sterillash",
+      "takeSampleCard": "Namuna olish", "takeSampleResult": "Kulturadan namuna olish",
+      "smearSampleCard": "Surtma tayyorlash", "smearSampleResult": "Surtma tayyorlash (NaCl bilan yoyish)",
+      "resterilizeLoopCard": "Halqani qayta sterillash", "resterilizeLoopResult": "Halqani qayta sterillash",
+      "airDryCard": "Havoda quritish", "airDryResult": "Surtmani havoda quritish",
+      "flameFixCard": "Termik fiksatsiya", "flameFixResult": "Olov ustidan o'tkazib termik fiksatsiya",
+      "applyMbCard": "Metilen ko'ki bilan bo'yash", "applyMbResult": "Metilen ko'ki bilan qoplab bo'yash",
+      "washMbCard": "Suv bilan yuvish", "washMbResult": "Distillangan suv bilan yuvish",
+      "blotFilterCard": "Filtr bilan quritish", "blotFilterResult": "Filtr qog'oz bilan bosib quritish",
+      "applyOilCard": "Immersion moyi", "applyOilResult": "Immersion moyini tomizish",
+      "openMicroscopeCard": "Mikroskopda ko'rish", "openMicroscopeResult": "Mikroskopda (100×) ko'rish"
+    },
+    "detail": {
+      "discardMatch": "Ishlatilgan gugurtni biohazard idishiga tashlash",
+      "loopCooled": "Halqani sterillagach sovutib namuna olish",
+      "waitedWash": "Bo'yagach yetarlicha kutib yuvish (erta emas)",
+      "dryBeforeStain": "Oynani quritib (ho'l emas) bo'yash",
+      "loopReturned": "Halqani ishlatib bo'lib shtativga qo'yish",
+      "tubeReturned": "Probirkani ishlatib bo'lib shtativga qaytarish",
+      "lampExtinguished": "Spirtovkani oxirida qopqoq bilan o'chirish",
+      "fixNotOverheated": "Fiksatsiyada olovda ushlamasdan o'tkazish (ortiqcha qizdirmaslik)"
+    },
+    "exam": {
+      "subtitle": "Imtihon natijasi — qayerda xato qilganingiz quyida",
+      "planning": "Ish tartibi (reja)",
+      "planningRow": "To'g'ri ketma-ketlikdagi qadamlar",
+      "planningNote": "{correct} / {total} to'g'ri tartibda",
+      "mainSteps": "Asosiy ishlar",
+      "details": "Mayda detallar",
+      "statusOk": "to'g'ri",
+      "statusOrder": "noto'g'ri tartibda",
+      "statusMissing": "bajarilmadi",
+      "detailDone": "bajarildi",
+      "detailIgnored": "e'tibor berilmadi",
+      "penalty": "Noo'rin amallar: −{p} ball",
+      "grossItem": "{g} — tayyorgarliksiz bajarildi"
     }
   },
   "common": {

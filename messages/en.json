@@ -75,7 +75,8 @@
     "tierExcellent": "Excellent",
     "tierGood": "Good",
     "tierOk": "Satisfactory",
-    "tierPoor": "Unsatisfactory"
+    "tierPoor": "Unsatisfactory",
+    "empty": ""
   },
   "lab5": {
     "items": {
@@ -409,6 +410,116 @@
       "ansPositive": "Gram-positive (violet)",
       "ansNegative": "Gram-negative (red)",
       "viewScope": "View the microscope"
+    }
+  },
+  "lab1": {
+    "items": {
+      "match": "Match",
+      "matchbox": "Matchbox",
+      "lamp": "Spirit lamp",
+      "tray": "Kidney tray",
+      "bridge": "Staining bridge",
+      "slide": "Slide",
+      "pad": "Alcohol pad",
+      "nacl": "NaCl 0.9%",
+      "loopStand": "Loop stand",
+      "loop": "Inoculation loop",
+      "rack": "Tube rack",
+      "culture": "Culture tube",
+      "petri": "Petri dish",
+      "mb": "Methylene blue",
+      "wash": "Distilled water",
+      "filter": "Filter paper",
+      "oil": "Immersion oil",
+      "bin": "Biohazard bin",
+      "microscope": "Microscope"
+    },
+    "hint": {
+      "strikeMatch": "Strike the match on the matchbox",
+      "lightLamp": "Bring the burning match to the lamp",
+      "discardMatch": "Discard the match into the biohazard bin",
+      "stageReady": "Stage ready",
+      "slideOnBridge": "Place the slide on the staining bridge",
+      "cleanSlide": "Wipe the slide with the alcohol pad",
+      "applyNacl": "Drop NaCl onto the slide",
+      "sterilizeLoop": "Heat the loop in the flame — first vertical, then horizontal (rotate with the ↻ button)",
+      "takeSample": "Once the loop has cooled a little, take a sample from the culture (a hot loop kills the bacteria)",
+      "smear": "Run the loop over the slide to make a smear",
+      "resterilize": "Re-heat the loop in the flame (vertical + horizontal)",
+      "airDry": "Lift the slide and air-dry it (~12 s)",
+      "fix": "Pass the slide through the flame 3 times — heat fixation ({n}/3)",
+      "applyMb": "Bring methylene blue to the slide",
+      "wash": "Wash with water",
+      "blot": "Press the filter paper onto the slide (don't rub)",
+      "applyOil": "Apply immersion oil",
+      "toMicroscope": "Take the slide to the microscope"
+    },
+    "mb": { "ready": "Ready — now wash", "waiting": "Reaction time: {s}s" },
+    "finish": "✓ Finish",
+    "sidebarClose": "Close the tools panel",
+    "sidebarOpen": "Open the tools panel",
+    "loopRotate": "Rotate the loop · ↻ (or R) ·",
+    "loopDown": "Ring down",
+    "loopUp": "Ring up",
+    "loopSide": "Sideways",
+    "extinguish": "Put out the lamp with the cap",
+    "airDryLabel": "💨 Air-drying {s}s",
+    "toast": {
+      "dyeWait": "The dye is still developing — wait",
+      "notNow": "Not now — follow the sequence",
+      "needBridge": "First place the staining bridge on the bench"
+    },
+    "result": { "title": "Microscope result" },
+    "micro": {
+      "incomplete1": "The preparation is incomplete (smear / fixation / staining missing).",
+      "incomplete2": "Almost no cells are visible under the microscope.",
+      "note1": "All cells are stained the same blue — a simple stain (methylene blue).",
+      "note2": "Visible shapes: cocci (in clusters) and rods (bacilli).",
+      "noOil": "Without immersion oil the 100× image is blurry — no oil added.",
+      "high": "With immersion oil the 100× image is sharp. Excellent preparation quality.",
+      "medium": "The image is satisfactory, but there are minor preparation flaws.",
+      "low": "Low quality — review the protocol steps."
+    },
+    "steps": {
+      "lightLampCard": "Light the lamp", "lightLampResult": "Light the spirit lamp",
+      "cleanSlideCard": "Clean the slide", "cleanSlideResult": "Clean the slide with an alcohol pad",
+      "addNaclCard": "Apply NaCl", "addNaclResult": "Place a drop of NaCl on the slide",
+      "sterilizeLoopCard": "Sterilise the loop", "sterilizeLoopResult": "Sterilise the loop in the flame",
+      "takeSampleCard": "Take a sample", "takeSampleResult": "Take a sample from the culture",
+      "smearSampleCard": "Make a smear", "smearSampleResult": "Make a smear (spread in the NaCl)",
+      "resterilizeLoopCard": "Re-sterilise the loop", "resterilizeLoopResult": "Re-sterilise the loop",
+      "airDryCard": "Air-dry", "airDryResult": "Air-dry the smear",
+      "flameFixCard": "Heat fixation", "flameFixResult": "Heat-fix by passing through the flame",
+      "applyMbCard": "Stain with methylene blue", "applyMbResult": "Flood and stain with methylene blue",
+      "washMbCard": "Wash with water", "washMbResult": "Wash with distilled water",
+      "blotFilterCard": "Blot with filter paper", "blotFilterResult": "Press dry with filter paper",
+      "applyOilCard": "Immersion oil", "applyOilResult": "Apply immersion oil",
+      "openMicroscopeCard": "View under the microscope", "openMicroscopeResult": "View under the microscope (100×)"
+    },
+    "detail": {
+      "discardMatch": "Discard the used match into the biohazard bin",
+      "loopCooled": "Cool the loop after sterilising before sampling",
+      "waitedWash": "Wait long enough after staining before washing (not too early)",
+      "dryBeforeStain": "Stain only after the slide is dry (not wet)",
+      "loopReturned": "Return the loop to its stand after use",
+      "tubeReturned": "Return the tube to its rack after use",
+      "lampExtinguished": "Put the lamp out with the cap at the end",
+      "fixNotOverheated": "Heat-fix by passing through the flame without holding (no overheating)"
+    },
+    "exam": {
+      "subtitle": "Exam result — where you lost points is below",
+      "planning": "Procedure plan",
+      "planningRow": "Steps in the correct order",
+      "planningNote": "{correct} / {total} in the correct order",
+      "mainSteps": "Main steps",
+      "details": "Fine details",
+      "statusOk": "correct",
+      "statusOrder": "wrong order",
+      "statusMissing": "not done",
+      "detailDone": "done",
+      "detailIgnored": "not observed",
+      "penalty": "Improper actions: −{p} points",
+      "grossItem": "{g} — done without preparation"
     }
   }
 }
