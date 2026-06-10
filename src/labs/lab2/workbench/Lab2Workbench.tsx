@@ -16,6 +16,7 @@ import { PlanningSidebar } from "./PlanningSidebar";
 import { Lab2ResultModal } from "../components2d/Lab2ResultModal";
 import { MicroscopeModal } from "../components2d/MicroscopeModal";
 import { Hourglass } from "../components2d/items/Hourglass";
+import { WaterRinse } from "../components2d/WaterRinse";
 
 const DROP_PAD = 26;
 const GHOST_SCALE = 1.06;
@@ -463,13 +464,8 @@ export function Lab2Workbench() {
             </div>
           )}
           {fx?.kind === "wash" && (
-            <div key={fx.key} className="pointer-events-none absolute z-30 overflow-hidden" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-30%)", width: 130, height: 180 }}>
-              <motion.div
-                initial={{ y: -90, opacity: 0.9 }}
-                animate={{ y: 60, opacity: 0 }}
-                transition={{ duration: 0.95, ease: "easeIn" }}
-                style={{ width: "100%", height: 60, background: "linear-gradient(180deg, rgba(150,200,225,0) 0%, rgba(150,200,225,0.9) 50%, rgba(150,200,225,0) 100%)" }}
-              />
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y}%`, width: 0, height: 0 }}>
+              <WaterRinse />
             </div>
           )}
           {fx?.kind === "blot" && (
@@ -550,8 +546,8 @@ export function Lab2Workbench() {
         picked={gram.classification}
         reveal={reveal && !isExam}
         correct={specimen}
-        cocciCount={specimen === "positive" ? 8 : 3}
-        redRods={specimen === "positive" ? 12 : 26}
+        cocciCount={specimen === "positive" ? 9 : 2}
+        redRods={specimen === "positive" ? 4 : 24}
         onClassify={classify}
         onClose={() => setScopeOpen(false)}
       />
