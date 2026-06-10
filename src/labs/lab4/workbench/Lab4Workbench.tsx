@@ -39,6 +39,8 @@ const TICK = 70;
 const SAMPLE_DUR = 1400; // dipping the swab into the culture tube
 
 type Kind = "rub" | "sample" | "contact" | "instant";
+/** The thermostat is a permanent bench fixture (top-right), never in the sidebar. */
+const FIXED_INCUBATOR = { x: 85, y: 24 };
 interface DragState {
   id: Lab4ItemId;
   fromSidebar: boolean;
@@ -52,7 +54,7 @@ interface Hold {
   progress: number;
 }
 interface Fx {
-  kind: "drip-mat" | "dip";
+  kind: "drip-mat" | "dip" | "spark";
   x: number;
   y: number;
   key: number;
@@ -74,6 +76,7 @@ function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.swabCharged && s.lawnPasses === 0) return "lab4.hint.charge";
   if (!s.lawnSpread) return "lab4.hint.spread";
   if (!s.dried) return "lab4.hint.dry";
+  if (!s.lamp.lit) return s.match.struck ? "lab4.hint.lightLamp" : "lab4.hint.strikeMatch";
   if (!s.forcepsSterile) return "lab4.hint.forceps";
   if (!allDisksPlaced(s)) return carrying ? "lab4.hint.placeDisk" : "lab4.hint.pickDisk";
   if (!s.incubated) return "lab4.hint.incubate";
@@ -88,7 +91,8 @@ export function Lab4Workbench() {
   diskRef.current = disk;
 
   const tableRef = useRef<HTMLDivElement | null>(null);
-  const [placed, setPlaced] = useState<Record<string, { x: number; y: number }>>({});
+  // The thermostat is always present at its fixed station.
+  const [placed, setPlaced] = useState<Record<string, { x: number; y: number }>>(() => ({ incubator: FIXED_INCUBATOR }));
   const placedRef = useRef(placed);
   placedRef.current = placed;
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -203,7 +207,8 @@ export function Lab4Workbench() {
     }
     setDisk((g) => applyDiskStep(g, intent));
     recordAction(intent);
-    if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    if (intent === "strike-match") flashAt("spark", at("matchbox").x, at("matchbox").y, 700);
+    else if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "sterilize-forceps") setForcepsHot(true);
     else if (intent === "charge-swab") flashAt("dip", at("culture").x, at("culture").y - 22, 900);
     else if (intent === "spread-3") startDrying();
@@ -244,6 +249,7 @@ export function Lab4Workbench() {
   }, []);
 
   const startDrag = useCallback((id: Lab4ItemId, e: React.PointerEvent) => {
+    if (LAB4_ITEM_BY_ID[id].fixed) return; // permanent fixtures can't be dragged
     const fromSidebar = !placedRef.current[id];
     lastPtr.current = { x: e.clientX, y: e.clientY };
     setDrag({ id, fromSidebar, px: e.clientX, py: e.clientY });
@@ -429,7 +435,7 @@ export function Lab4Workbench() {
   }
   function restart() {
     setDisk(freshDiskState());
-    setPlaced({});
+    setPlaced({ incubator: FIXED_INCUBATOR });
     setActionLog([]);
     setExamResult(null);
     setForcepsHot(false);
@@ -448,6 +454,9 @@ export function Lab4Workbench() {
   }
 
   const placedSet = new Set(Object.keys(placed)) as Set<Lab4ItemId>;
+  const movableCount = [...placedSet].filter((id) => !LAB4_ITEM_BY_ID[id].fixed).length;
+  // Fixed fixtures are never offered in the sidebar.
+  const sidebarPlaced = new Set([...placedSet, ...LAB4_ITEMS.filter((i) => i.fixed).map((i) => i.id)]) as Set<Lab4ItemId>;
   const draggingDef = drag ? LAB4_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(disk, carrying);
   // Lift the tube's cotton plug while the swab is being dipped into it.
@@ -502,7 +511,7 @@ export function Lab4Workbench() {
 
       <div className="flex flex-1 overflow-hidden">
         {sidebarOpen && !(isExam && examPhase === "planning") && (
-          <Lab4Sidebar state={disk} placed={placedSet} draggingId={drag?.id ?? null} carrying={carrying} onStartDrag={startDrag} showHints={!isExam} />
+          <Lab4Sidebar state={disk} placed={sidebarPlaced} draggingId={drag?.id ?? null} carrying={carrying} onStartDrag={startDrag} showHints={!isExam} />
         )}
 
         <div ref={tableRef} className="relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
@@ -515,7 +524,7 @@ export function Lab4Workbench() {
               <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
-          {placedSet.size === 0 && !drag && !isExam && (
+          {movableCount === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
@@ -541,12 +550,12 @@ export function Lab4Workbench() {
                   />
                 )}
                 <div
-                  onPointerDown={(e) => {
+                  onPointerDown={it.fixed ? undefined : (e) => {
                     e.preventDefault();
                     startDrag(it.id, e);
                   }}
-                  onDoubleClick={() => setPlaced((p) => { const n = { ...p }; delete n[it.id]; return n; })}
-                  style={{ cursor: "grab" }}
+                  onDoubleClick={it.fixed ? undefined : () => setPlaced((p) => { const n = { ...p }; delete n[it.id]; return n; })}
+                  style={{ cursor: it.fixed ? "default" : "grab" }}
                   title={tg(it.label)}
                 >
                   {it.render(disk, renderOpts)}
@@ -644,6 +653,15 @@ export function Lab4Workbench() {
               <svg width="90" height="40" viewBox="0 0 90 40">
                 {[0, 1, 2].map((i) => (
                   <motion.ellipse key={i} cx="45" cy="20" initial={{ rx: 5, ry: 2, opacity: 0.7 }} animate={{ rx: 26, ry: 9, opacity: 0 }} transition={{ duration: 0.8, delay: i * 0.18, ease: "easeOut" }} fill="none" stroke="#bfe0ee" strokeWidth="1.6" />
+                ))}
+              </svg>
+            </div>
+          )}
+          {fx?.kind === "spark" && (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <motion.line key={i} x1="30" y1="30" x2={30 + 16 * Math.cos((i / 6) * Math.PI * 2)} y2={30 + 16 * Math.sin((i / 6) * Math.PI * 2)} stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" initial={{ opacity: 0.9, pathLength: 0 }} animate={{ opacity: 0, pathLength: 1 }} transition={{ duration: 0.45, delay: i * 0.02 }} />
                 ))}
               </svg>
             </div>

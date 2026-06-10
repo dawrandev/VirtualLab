@@ -86,7 +86,9 @@
       "filter": "Filtr qog'oz",
       "bridge": "Shisha ko'prik",
       "tray": "Lotok",
-      "microscope": "Mikroskop"
+      "microscope": "Mikroskop",
+      "matchbox": "Gugurt qutisi",
+      "match": "Gugurt"
     },
     "hint": {
       "degrease": "Buyum oynasini spirtovka olovidan o'tkazib yog'sizlantiring",
@@ -97,7 +99,10 @@
       "cover": "Tomchini qoplag'ich oyna bilan yoping (qirrasidan asta tushiring)",
       "blot": "Ortiqcha suyuqlikni filtr qog'oz bilan oling",
       "observe": "Preparatni mikroskopga olib borib ×40 obyektivda ko'ring",
-      "done": "Bakteriya harakatchanligini aniqlang"
+      "done": "Bakteriya harakatchanligini aniqlang",
+      "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
+      "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
+      "reflame": "Surtmadan so'ng halqani qaytadan olovda sterillang"
     },
     "toast": {
       "needBridge": "Avval shisha ko'prikni stolga qo'ying",
@@ -163,7 +168,9 @@
       "culture": "E. coli kulturasi",
       "cartridge": "Antibiotik disklar",
       "forceps": "Pinset",
-      "incubator": "Termostat"
+      "incubator": "Termostat",
+      "matchbox": "Gugurt qutisi",
+      "match": "Gugurt"
     },
     "hint": {
       "dish": "Oziqa muhitli Petri idishini stolga qo'ying",
@@ -174,7 +181,9 @@
       "pickDisk": "Pinset bilan disklar to'plamidan antibiotik diskni oling",
       "placeDisk": "Pinsetdagi diskni agar yuzasiga qo'ying",
       "incubate": "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)",
-      "measure": "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang"
+      "measure": "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang",
+      "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
+      "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing"
     },
     "toast": {
       "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying"

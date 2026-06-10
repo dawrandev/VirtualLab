@@ -28,7 +28,7 @@ export function Lab4Sidebar({ state, placed, draggingId, carrying, onStartDrag, 
       </div>
 
       <div className="wb-tray grid flex-1 grid-cols-2 content-start gap-2 overflow-y-auto px-3 py-3">
-        {LAB4_ITEMS.map((item) => {
+        {LAB4_ITEMS.filter((item) => !item.fixed).map((item) => {
           const isPlaced = placed.has(item.id);
           const isRequired = required === item.id && !isPlaced;
           return (

@@ -87,7 +87,9 @@
       "filter": "Filtr qaǵaz",
       "bridge": "Shisha kópir",
       "tray": "Lotok",
-      "microscope": "Mikroskop"
+      "microscope": "Mikroskop",
+      "matchbox": "Gugurt qutısı",
+      "match": "Gugurt"
     },
     "hint": {
       "degrease": "Buyım aynasıın spirtovka jalınınan ótkerip maysızlandırıp alıń",
@@ -98,7 +100,10 @@
       "cover": "Tamshını qaplaǵısh ayna menen jawıń (párrelerinen asta túsiriń)",
       "blot": "Artıqsha suwıqlıqtı filtr qaǵaz menen alıń",
       "observe": "Preparattı mikroskopqa alıp barıp ×40 obyektivte kóriń",
-      "done": "Bakteriya háreketsheńligin anıqlań"
+      "done": "Bakteriya háreketsheńligin anıqlań",
+      "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
+      "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
+      "reflame": "Jaǵıwdan keyin isletilgen ilmekti qayta jalında sterilizaciyalań"
     },
     "toast": {
       "needBridge": "Dáslep shisha kópirdi stolǵa qoyıń",
@@ -164,7 +169,9 @@
       "culture": "E. coli kulturası",
       "cartridge": "Antibiotik diskler",
       "forceps": "Pinset",
-      "incubator": "Termostat"
+      "incubator": "Termostat",
+      "matchbox": "Gugurt qutısı",
+      "match": "Gugurt"
     },
     "hint": {
       "dish": "Azuqlıq ortalıqlı Petri ıdısın stolǵa qoyıń",
@@ -175,7 +182,9 @@
       "pickDisk": "Pinset menen diskler toplamınan antibiotik diskin alıń",
       "placeDisk": "Pinsettegi diskti agar júzesine qoyıń",
       "incubate": "Idıstı awdarılıp termostatqa qoyıń (37°C, 24 saat)",
-      "measure": "Tormozlanıw zonaların ólshep, sezgishlikti anıqlań"
+      "measure": "Tormozlanıw zonaların ólshep, sezgishlikti anıqlań",
+      "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
+      "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń"
     },
     "toast": {
       "needLawn": "Dáslep gazon egip qurıtıń hám barlıq disklerdi qoyıń"

@@ -20,6 +20,9 @@ export const SPECIMEN = {
 
 export interface WetMountState {
   slidePlaced: boolean;
+  /** Spirit lamp lit by hand (match struck on the box, then touched to wick). */
+  match: { struck: boolean; lit: boolean };
+  lamp: { lit: boolean };
   /** Passed through the flame to clean/degrease the glass. */
   slideDegreased: boolean;
   /** Drop of physiological saline on the slide. */
@@ -30,6 +33,8 @@ export interface WetMountState {
   loopCharged: boolean;
   /** Culture mixed into the drop to an even suspension. */
   mixed: boolean;
+  /** Loop re-sterilised in the flame after smearing (kills the leftover culture). */
+  loopResterilized: boolean;
   /** Cover slip lowered onto the drop. */
   coverPlaced: boolean;
   /** Excess fluid blotted with filter paper (no overflow past the cover slip). */
@@ -43,11 +48,14 @@ export interface WetMountState {
 export function freshWetMountState(): WetMountState {
   return {
     slidePlaced: false,
+    match: { struck: false, lit: false },
+    lamp: { lit: false },
     slideDegreased: false,
     salineApplied: false,
     loopFlamed: false,
     loopCharged: false,
     mixed: false,
+    loopResterilized: false,
     coverPlaced: false,
     blotted: false,
     observed: false,
@@ -56,9 +64,11 @@ export function freshWetMountState(): WetMountState {
 }
 
 export type WetIntent =
+  | "strike-match" // match → matchbox
+  | "light-lamp" // lit match → lamp
   | "degrease-slide" // slide → lamp
   | "apply-saline" // saline → slide
-  | "flame-loop" // loop → lamp
+  | "flame-loop" // loop → lamp (sterilise before use, then re-sterilise after smear)
   | "charge-loop" // loop → culture
   | "mix-drop" // loop → slide (rub)
   | "place-cover" // cover slip → slide
@@ -76,8 +86,15 @@ export function dropStage(s: WetMountState): DropStage {
 }
 
 export function applyWetStep(state: WetMountState, intent: WetIntent): WetMountState {
-  const s: WetMountState = { ...state };
+  const s: WetMountState = { ...state, match: { ...state.match }, lamp: { ...state.lamp } };
   switch (intent) {
+    case "strike-match":
+      s.match.struck = true;
+      s.match.lit = true;
+      break;
+    case "light-lamp":
+      s.lamp.lit = true;
+      break;
     case "degrease-slide":
       s.slidePlaced = true;
       s.slideDegreased = true;
@@ -86,7 +103,9 @@ export function applyWetStep(state: WetMountState, intent: WetIntent): WetMountS
       s.salineApplied = true;
       break;
     case "flame-loop":
-      s.loopFlamed = true;
+      // Before the smear it sterilises; afterwards it re-sterilises the used loop.
+      if (s.mixed) s.loopResterilized = true;
+      else s.loopFlamed = true;
       break;
     case "charge-loop":
       s.loopCharged = true;

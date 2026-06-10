@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { dropStage, canObserve, type WetMountState, type WetIntent } from "../state";
 
 import { SpiritLamp } from "@/labs/lab1/components2d/items/SpiritLamp";
+import { Match } from "@/labs/lab1/components2d/items/Match";
+import { Matchbox } from "@/labs/lab1/components2d/items/Matchbox";
 import { BacterialLoop } from "@/labs/lab1/components2d/items/BacterialLoop";
 import { MicroscopeIcon } from "@/labs/lab1/components2d/items/MicroscopeIcon";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
@@ -19,6 +21,8 @@ import { CoverSlip } from "../components2d/items/CoverSlip";
 export type Lab5ItemId =
   | "slide"
   | "coverslip"
+  | "matchbox"
+  | "match"
   | "lamp"
   | "saline"
   | "loop"
@@ -72,6 +76,27 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
     render: () => <CoverSlip width={72} />,
   },
   {
+    id: "matchbox",
+    label: "lab5.items.matchbox",
+    apparatus: true,
+    target: true,
+    w: 110,
+    h: 70,
+    preview: 0.62,
+    render: () => <Matchbox open={false} />,
+  },
+  {
+    id: "match",
+    label: "lab5.items.match",
+    apparatus: false,
+    target: false,
+    w: 100,
+    h: 32,
+    tipX: 42,
+    preview: 0.7,
+    render: (s) => <Match lit={s.match.lit} burnProgress={s.match.lit ? 0.2 : 0} burned={false} />,
+  },
+  {
     id: "lamp",
     label: "lab5.items.lamp",
     apparatus: true,
@@ -82,7 +107,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: () => <SpiritLamp uncapped lit />,
+    render: (s) => <SpiritLamp uncapped lit={s.lamp.lit} />,
   },
   {
     id: "saline",
@@ -185,29 +210,36 @@ export const LAB5_ITEM_BY_ID: Record<Lab5ItemId, Lab5ItemDef> = Object.fromEntri
 
 /** The intent a (tool → target) drop performs, or null if meaningless. */
 export function intentFor(tool: Lab5ItemId, target: Lab5ItemId, s: WetMountState): WetIntent | null {
+  if (tool === "match") {
+    if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
+    if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+  }
   if (tool === "slide") {
-    if (target === "lamp") return !s.slideDegreased ? "degrease-slide" : null;
+    if (target === "lamp") return !s.slideDegreased && s.lamp.lit ? "degrease-slide" : null;
     if (target === "microscope") return canObserve(s) ? "observe" : null;
   }
   if (tool === "saline" && target === "slide") return s.slideDegreased && !s.salineApplied && !s.coverPlaced ? "apply-saline" : null;
   if (tool === "loop") {
-    if (target === "lamp") return !s.loopCharged && !s.mixed ? "flame-loop" : null;
+    // Flame to sterilise before use; flame again to re-sterilise the used loop after the smear.
+    if (target === "lamp") return s.lamp.lit && ((!s.loopCharged && !s.mixed) || (s.mixed && !s.loopResterilized)) ? "flame-loop" : null;
     if (target === "culture") return s.loopFlamed && !s.loopCharged && !s.mixed ? "charge-loop" : null;
     if (target === "slide") return s.loopCharged && s.salineApplied && !s.mixed ? "mix-drop" : null;
   }
-  if (tool === "coverslip" && target === "slide") return s.mixed && !s.coverPlaced ? "place-cover" : null;
+  if (tool === "coverslip" && target === "slide") return s.mixed && s.loopResterilized && !s.coverPlaced ? "place-cover" : null;
   if (tool === "filter" && target === "slide") return s.coverPlaced && !s.blotted ? "blot-excess" : null;
   return null;
 }
 
 /** Next item the student is expected to use (learn-mode highlight + hint). */
 export function requiredItem(s: WetMountState): Lab5ItemId | null {
+  if (!s.lamp.lit) return "match";
   if (!s.slidePlaced) return "slide";
   if (!s.slideDegreased) return "slide";
   if (!s.salineApplied) return "saline";
   if (!s.loopFlamed && !s.loopCharged) return "loop";
   if (!s.loopCharged && !s.mixed) return "loop";
   if (!s.mixed) return "loop";
+  if (!s.loopResterilized) return "loop";
   if (!s.coverPlaced) return "coverslip";
   if (!s.blotted) return "filter";
   if (!s.observed) return "slide";

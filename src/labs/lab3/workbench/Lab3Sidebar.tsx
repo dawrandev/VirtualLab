@@ -27,7 +27,7 @@ export function Lab3Sidebar({ state, placed, draggingId, onStartDrag, showHints 
       </div>
 
       <div className="wb-tray grid flex-1 grid-cols-2 content-start gap-2 overflow-y-auto px-3 py-3">
-        {LAB3_ITEMS.map((item) => {
+        {LAB3_ITEMS.filter((item) => !item.fixed).map((item) => {
           const isPlaced = placed.has(item.id);
           const isRequired = required === item.id && !isPlaced;
           return (

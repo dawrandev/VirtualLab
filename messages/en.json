@@ -91,7 +91,9 @@
       "filter": "Filter paper",
       "bridge": "Glass bridge",
       "tray": "Tray",
-      "microscope": "Microscope"
+      "microscope": "Microscope",
+      "matchbox": "Matchbox",
+      "match": "Match"
     },
     "hint": {
       "degrease": "Pass the slide through the spirit-lamp flame to degrease it",
@@ -102,7 +104,10 @@
       "cover": "Cover the drop with the cover slip (lower it on edge)",
       "blot": "Blot the excess fluid with filter paper",
       "observe": "Take the prep to the microscope and view it with the ×40 objective",
-      "done": "Determine the bacterium's motility"
+      "done": "Determine the bacterium's motility",
+      "strikeMatch": "Strike the match on the box",
+      "lightLamp": "Light the spirit lamp with the burning match",
+      "reflame": "Re-sterilize the used loop in the flame after the smear"
     },
     "toast": {
       "needBridge": "First place the glass bridge on the bench",
@@ -168,7 +173,9 @@
       "culture": "E. coli culture",
       "cartridge": "Antibiotic disks",
       "forceps": "Forceps",
-      "incubator": "Incubator"
+      "incubator": "Incubator",
+      "matchbox": "Matchbox",
+      "match": "Match"
     },
     "hint": {
       "dish": "Place the nutrient Petri dish on the bench",
@@ -179,7 +186,9 @@
       "pickDisk": "With the forceps, take an antibiotic disk from the set",
       "placeDisk": "Place the disk held in the forceps onto the agar",
       "incubate": "Invert the dish and place it in the incubator (37°C, 24 h)",
-      "measure": "Measure the inhibition zones and determine sensitivity"
+      "measure": "Measure the inhibition zones and determine sensitivity",
+      "strikeMatch": "Strike the match on the box",
+      "lightLamp": "Light the spirit lamp with the burning match"
     },
     "toast": {
       "needLawn": "First swab the lawn, dry it and place all the disks"

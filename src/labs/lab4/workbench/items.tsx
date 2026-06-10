@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { plateStage, allDisksPlaced, type DiskState, type DiskIntent } from "../state";
 
 import { SpiritLamp } from "@/labs/lab1/components2d/items/SpiritLamp";
+import { Match } from "@/labs/lab1/components2d/items/Match";
+import { Matchbox } from "@/labs/lab1/components2d/items/Matchbox";
 import { CultureTube } from "@/labs/lab1/components2d/items/CultureTube";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { Incubator } from "@/labs/lab3/components2d/items/Incubator";
@@ -15,6 +17,8 @@ import { CottonSwab } from "../components2d/items/CottonSwab";
 
 export type Lab4ItemId =
   | "dish"
+  | "matchbox"
+  | "match"
   | "lamp"
   | "alcohol-jar"
   | "swab"
@@ -29,6 +33,8 @@ export interface Lab4ItemDef {
   label: string;
   apparatus: boolean;
   target: boolean;
+  /** Permanent bench fixture — auto-placed, not shown in the sidebar, can't move. */
+  fixed?: boolean;
   w: number;
   h: number;
   tipX?: number;
@@ -56,6 +62,27 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     render: (s, o) => <PetriLawnDish diameter={230} stage={plateStage(s)} lawnPasses={s.lawnPasses} placedDisks={s.disks} classified={s.classified} highlight={o.highlight} />,
   },
   {
+    id: "matchbox",
+    label: "lab4.items.matchbox",
+    apparatus: true,
+    target: true,
+    w: 110,
+    h: 70,
+    preview: 0.62,
+    render: () => <Matchbox open={false} />,
+  },
+  {
+    id: "match",
+    label: "lab4.items.match",
+    apparatus: false,
+    target: false,
+    w: 100,
+    h: 32,
+    tipX: 42,
+    preview: 0.7,
+    render: (s) => <Match lit={s.match.lit} burnProgress={s.match.lit ? 0.2 : 0} burned={false} />,
+  },
+  {
     id: "lamp",
     label: "lab4.items.lamp",
     apparatus: true,
@@ -66,7 +93,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: () => <SpiritLamp uncapped lit />,
+    render: (s) => <SpiritLamp uncapped lit={s.lamp.lit} />,
   },
   {
     id: "alcohol-jar",
@@ -135,6 +162,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     label: "lab4.items.incubator",
     apparatus: true,
     target: true,
+    fixed: true,
     w: 264,
     h: 330,
     preview: 0.26,
@@ -149,6 +177,10 @@ export const LAB4_ITEM_BY_ID: Record<Lab4ItemId, Lab4ItemDef> = Object.fromEntri
 /** The intent a (tool → target) drop performs, or null if meaningless.
  *  `carrying` is the antibiotic id currently held in the forceps. */
 export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, carrying: string | null): DiskIntent | null {
+  if (tool === "match") {
+    if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
+    if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+  }
   if (tool === "swab") {
     if (target === "culture") return !s.swabCharged && s.lawnPasses === 0 ? "charge-swab" : null;
     if (target === "dish" && s.swabCharged && !s.lawnSpread) {
@@ -159,7 +191,7 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
   }
   if (tool === "forceps") {
     if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsSterile ? "dip-forceps" : null;
-    if (target === "lamp") return s.forcepsDipped ? "sterilize-forceps" : null;
+    if (target === "lamp") return s.forcepsDipped && s.lamp.lit ? "sterilize-forceps" : null;
     if (target === "cartridge") return s.forcepsSterile && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
     if (target === "dish") return carrying && s.dried ? "place-disk" : null;
   }
@@ -173,6 +205,7 @@ export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId 
   if (!s.dishPlaced) return "dish";
   if (!s.swabCharged && s.lawnPasses === 0) return "swab";
   if (!s.lawnSpread) return "swab";
+  if (!s.lamp.lit) return "match";
   if (!s.forcepsSterile) return "forceps";
   if (!allDisksPlaced(s)) return "forceps";
   if (!s.incubated) return "incubator";

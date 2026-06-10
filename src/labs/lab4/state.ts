@@ -43,6 +43,9 @@ export const SENS_LABEL: Record<Sens, string> = { S: "Sezgir", I: "Oraliq", R: "
 
 export interface DiskState {
   dishPlaced: boolean;
+  /** Spirit lamp lit by hand (match struck on the box, then touched to wick). */
+  match: { struck: boolean; lit: boolean };
+  lamp: { lit: boolean };
   /** Cotton swab dipped in the culture (ready to spread). */
   swabCharged: boolean;
   /** Number of completed streak passes (Kirby-Bauer streaks in 3 directions). */
@@ -65,6 +68,8 @@ export const LAWN_PASSES = 3;
 export function freshDiskState(): DiskState {
   return {
     dishPlaced: false,
+    match: { struck: false, lit: false },
+    lamp: { lit: false },
     swabCharged: false,
     lawnPasses: 0,
     lawnSpread: false,
@@ -82,6 +87,8 @@ export function allDisksPlaced(s: DiskState): boolean {
 }
 
 export type DiskIntent =
+  | "strike-match" // match → matchbox
+  | "light-lamp" // lit match → lamp
   | "charge-swab" // swab → culture
   | "spread-1" // swab → dish (1st direction)
   | "spread-2" // swab → dish (rotate ~60°)
@@ -101,8 +108,15 @@ export function plateStage(s: DiskState): PlateStage {
 }
 
 export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: string): DiskState {
-  const s: DiskState = { ...state, disks: { ...state.disks }, classified: { ...state.classified } };
+  const s: DiskState = { ...state, match: { ...state.match }, lamp: { ...state.lamp }, disks: { ...state.disks }, classified: { ...state.classified } };
   switch (intent) {
+    case "strike-match":
+      s.match.struck = true;
+      s.match.lit = true;
+      break;
+    case "light-lamp":
+      s.lamp.lit = true;
+      break;
     case "charge-swab":
       s.swabCharged = true;
       break;

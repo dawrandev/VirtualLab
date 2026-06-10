@@ -42,7 +42,7 @@ interface Hold {
   progress: number;
 }
 interface Fx {
-  kind: "drip-saline";
+  kind: "drip-saline" | "spark";
   x: number;
   y: number;
   key: number;
@@ -64,11 +64,13 @@ function actionKind(intent: WetIntent): Kind {
 }
 
 function nextHint(s: WetMountState): string {
+  if (!s.lamp.lit) return s.match.struck ? "lab5.hint.lightLamp" : "lab5.hint.strikeMatch";
   if (!s.slideDegreased) return "lab5.hint.degrease";
   if (!s.salineApplied) return "lab5.hint.saline";
   if (!s.loopFlamed && !s.loopCharged) return "lab5.hint.flame";
   if (!s.loopCharged && !s.mixed) return "lab5.hint.charge";
   if (!s.mixed) return "lab5.hint.mix";
+  if (!s.loopResterilized) return "lab5.hint.reflame";
   if (!s.coverPlaced) return "lab5.hint.cover";
   if (!s.blotted) return "lab5.hint.blot";
   if (!s.observed) return "lab5.hint.observe";
@@ -152,6 +154,7 @@ export function Lab5Workbench() {
     setWet((g) => applyWetStep(g, intent));
     recordAction(intent);
     if (intent === "flame-loop") setLoopHot(true);
+    else if (intent === "strike-match") flashAt("spark", at("matchbox").x, at("matchbox").y, 700);
     else if (intent === "apply-saline") flashAt("drip-saline", at("slide").x, at("slide").y - 6, 900);
   }
 
@@ -596,6 +599,16 @@ export function Lab5Workbench() {
           {fx?.kind === "drip-saline" && (
             <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 8}%` }}>
               <Drop trigger={fx.key} color="#bfe0ec" fallHeight={54} />
+            </div>
+          )}
+          {/* Match strike spark on the box */}
+          {fx?.kind === "spark" && (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <motion.line key={i} x1="30" y1="30" x2={30 + 16 * Math.cos((i / 6) * Math.PI * 2)} y2={30 + 16 * Math.sin((i / 6) * Math.PI * 2)} stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" initial={{ opacity: 0.9, pathLength: 0 }} animate={{ opacity: 0, pathLength: 1 }} transition={{ duration: 0.45, delay: i * 0.02 }} />
+                ))}
+              </svg>
             </div>
           )}
 
