@@ -78,6 +78,13 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, de
           <stop offset="60%" stopColor="#f0cf7e" stopOpacity="0.5" />
           <stop offset="100%" stopColor="#caa24a" stopOpacity="0.2" />
         </radialGradient>
+        {/* Soft-edged smear film — a dried bacterial smudge, fading to nothing
+            at the rim (no hard outline, since a real smear is invisible). */}
+        <radialGradient id="gsSmear" cx="50%" cy="50%" r="55%">
+          <stop offset="0%" stopColor={cellColor} stopOpacity="0.85" />
+          <stop offset="65%" stopColor={cellColor} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={cellColor} stopOpacity="0" />
+        </radialGradient>
       </defs>
 
       {/* Glass body */}
@@ -93,16 +100,20 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, de
         <rect x="24" y="2" width="74" height={vh - 4} rx="2" fill="url(#gsFuchsinField)" />
       )}
 
-      {/* The smear — clustered cocci, coloured by stage (hidden until smeared).
-          Kept very faint: the unstained fixed smear is barely visible (a thin
-          haze on the glass, like Lab 1's washed field); it only reads clearly
-          once stained, and even then stays subtle on the bench preview. */}
+      {/* The smear — only a faint dried film on the glass, NOT individual cells.
+          A real bacterial smear is invisible to the naked eye (cells are ~1 µm
+          and only resolve under the microscope); on the bench it reads as a
+          barely-perceptible smudge where the drop dried. During an active dye
+          flood the reagent covers it, so the film is hidden then. */}
       {!blank && (
-        <g opacity={stage === "fixed" ? 0.16 : stage === "final" ? 0.5 : flood ? 0.5 : 0.55}>
-          {COCCI.map(([dx, dy], i) => (
-            <circle key={i} cx={cx + dx} cy={cyc + dy} r={1.3} fill={cellColor} />
-          ))}
-        </g>
+        <ellipse
+          cx={cx}
+          cy={cyc}
+          rx={17}
+          ry={vh * 0.32}
+          fill="url(#gsSmear)"
+          opacity={flood ? 0 : stage === "fixed" ? 0.1 : stage === "final" ? 0.2 : 0.12}
+        />
       )}
 
       {/* Wet flood while a reagent is on the slide — deepens as it develops */}
@@ -136,11 +147,3 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, de
     </svg>
   );
 }
-
-/** Clustered cocci offsets (grape-like) around the smear centre. */
-const COCCI: Array<[number, number]> = [
-  [-6, -3], [-3, -4], [0, -3], [3, -4], [6, -2],
-  [-7, 0], [-4, -1], [-1, 0], [2, -1], [5, 0], [8, 1],
-  [-5, 3], [-2, 2], [1, 3], [4, 2], [7, 3],
-  [-3, 5], [0, 5], [3, 5],
-];
