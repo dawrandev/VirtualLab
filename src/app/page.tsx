@@ -44,8 +44,9 @@ export default function Home() {
           <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-slate-500">{t("home.tagline")}</p>
         </header>
 
-        {/* Lab grid */}
-        <section className="grid flex-1 grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Lab grid — centred flex-wrap so the 5th lab's row stays balanced
+            (3 on top, 2 centred below) instead of leaving an empty cell. */}
+        <section className="flex flex-1 flex-wrap content-start justify-center gap-5">
           {LABS.map((lab, i) => (
             <LabCard key={lab.id} lab={lab} index={i} onOpen={() => router.push(lab.href)} />
           ))}
@@ -70,7 +71,7 @@ function LabCard({ lab, index, onOpen }: { lab: LabEntry; index: number; onOpen:
       transition={{ delay: index * 0.06, type: "spring", stiffness: 260, damping: 26 }}
       whileHover={enabled ? { y: -5 } : undefined}
       whileTap={enabled ? { scale: 0.98 } : undefined}
-      className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 p-5 text-left shadow-sm backdrop-blur transition disabled:cursor-not-allowed"
+      className="group relative flex w-full flex-col items-start gap-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 p-5 text-left shadow-sm backdrop-blur transition disabled:cursor-not-allowed sm:w-[336px] lg:w-[350px]"
       style={{ boxShadow: enabled ? "0 1px 2px rgba(15,23,42,0.06)" : "none", opacity: enabled ? 1 : 0.62 }}
     >
       {/* Accent wash on hover */}
