@@ -15,7 +15,7 @@ import { ModeSelect } from "./ModeSelect";
 import { PlanningSidebar } from "./PlanningSidebar";
 import { Lab2ResultModal } from "../components2d/Lab2ResultModal";
 import { MicroscopeModal } from "../components2d/MicroscopeModal";
-import { Hourglass } from "../components2d/items/Hourglass";
+import { Hourglass } from "@/components/Hourglass";
 import { WaterRinse } from "../components2d/WaterRinse";
 
 const DROP_PAD = 26;

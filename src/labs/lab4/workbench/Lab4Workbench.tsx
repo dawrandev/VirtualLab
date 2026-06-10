@@ -27,6 +27,7 @@ import { ModeSelect } from "./ModeSelect";
 import { PlanningSidebar } from "./PlanningSidebar";
 import { Lab4ResultModal } from "../components2d/Lab4ResultModal";
 import { MeasureModal } from "../components2d/MeasureModal";
+import { HourglassWait } from "@/components/HourglassWait";
 
 const DROP_PAD = 26;
 const GHOST_SCALE = 1.06;
@@ -650,35 +651,23 @@ export function Lab4Workbench() {
 
           {/* Drying countdown (~5 min) after the lawn is swabbed */}
           {dry && (
-            <div className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2">
-              <div className="flex items-center gap-3 rounded-xl bg-slate-900/90 px-4 py-2.5 text-white shadow-lg">
-                <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="#ffffff22" strokeWidth="3" />
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" strokeDasharray={2 * Math.PI * 15} strokeDashoffset={2 * Math.PI * 15 * (1 - dryProg)} transform="rotate(-90 18 18)" style={{ transition: "stroke-dashoffset 0.1s linear" }} />
-                  <text x="18" y="22" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">≈</text>
-                </svg>
-                <div className="leading-tight">
-                  <p className="text-[13px] font-semibold">{tg("lab4.dry.title")}</p>
-                  <p className="text-[11px] text-slate-300">{tg("lab4.dry.remain", { m: Math.max(0, Math.ceil(DISPLAY_DRY_MIN * (1 - dryProg))) })}</p>
-                </div>
-              </div>
+            <div className="pointer-events-none absolute left-1/2 top-3 z-40 -translate-x-1/2">
+              <HourglassWait
+                progress={dryProg}
+                title={tg("lab4.dry.title")}
+                time={tg("lab4.dry.remain", { m: Math.max(0, Math.ceil(DISPLAY_DRY_MIN * (1 - dryProg))) })}
+              />
             </div>
           )}
 
           {/* Incubation countdown */}
           {inc && (
-            <div className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2">
-              <div className="flex items-center gap-3 rounded-xl bg-slate-900/90 px-4 py-2.5 text-white shadow-lg">
-                <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="#ffffff22" strokeWidth="3" />
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" strokeDasharray={2 * Math.PI * 15} strokeDashoffset={2 * Math.PI * 15 * (1 - incProg)} transform="rotate(-90 18 18)" style={{ transition: "stroke-dashoffset 0.1s linear" }} />
-                  <text x="18" y="22" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">37°</text>
-                </svg>
-                <div className="leading-tight">
-                  <p className="text-[13px] font-semibold">{tg("lab4.inc.title")}</p>
-                  <p className="text-[11px] text-slate-300">{tg("lab4.inc.remain", { h: tg("lab4.hours", { h: Math.max(0, Math.ceil(DISPLAY_INCUBATE_HOURS * (1 - incProg))) }) })}</p>
-                </div>
-              </div>
+            <div className="pointer-events-none absolute left-1/2 top-3 z-40 -translate-x-1/2">
+              <HourglassWait
+                progress={incProg}
+                title={tg("lab4.inc.title")}
+                time={tg("lab4.inc.remain", { h: tg("lab4.hours", { h: Math.max(0, Math.ceil(DISPLAY_INCUBATE_HOURS * (1 - incProg))) }) })}
+              />
             </div>
           )}
 

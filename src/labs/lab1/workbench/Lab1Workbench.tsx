@@ -17,6 +17,7 @@ import { ToolSidebar } from "./ToolSidebar";
 import { ModeSelect } from "./ModeSelect";
 import { PlanningSidebar } from "./PlanningSidebar";
 import { ExamResultModal } from "../components2d/ExamResultModal";
+import { HourglassWait } from "@/components/HourglassWait";
 import type { ExamAction, ExamPhase, LabMode } from "../exam/protocol";
 import { scoreExam, type ExamResult } from "../exam/scoring";
 import { ITEMS, ITEM_BY_ID, intentFor, type ItemId } from "./items";
@@ -921,10 +922,15 @@ export function Lab1Workbench() {
           {/* MB contact countdown — learn mode only (guidance). */}
           {!isExam && slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
             <div
-              className="pointer-events-none absolute z-20 rounded-lg bg-blue-900/90 px-3 py-1.5 text-xs font-semibold text-white shadow-md"
+              className="pointer-events-none absolute z-20"
               style={{ left: `${slidePos.x}%`, top: `${slidePos.y + 12}%`, transform: "translate(-50%,0)" }}
             >
-              {mbReady ? tg("lab1.mb.ready") : tg("lab1.mb.waiting", { s: mbLeft })}
+              <HourglassWait
+                progress={mbReady ? 1 : (10 - mbLeft) / 10}
+                time={mbReady ? tg("lab1.mb.ready") : tg("lab1.mb.waiting", { s: mbLeft })}
+                done={mbReady}
+                width={88}
+              />
             </div>
           )}
           {/* Exam mode: no text — the dye just slowly deepens on the smear as it

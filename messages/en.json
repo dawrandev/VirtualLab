@@ -14,7 +14,7 @@
     "badge": "Virtual microbiology",
     "title": "Virtual Medical Laboratory",
     "tagline": "Choose a lab. Complete each experiment step by step — practise or take the exam.",
-    "footer": "{done} of 6 labs ready · the rest are coming soon",
+    "footer": "All {done} labs are ready to use",
     "comingSoon": "Coming soon",
     "ready": "Ready",
     "enter": "Open lab",
@@ -181,14 +181,22 @@
       "incubate": "Invert the dish and place it in the incubator (37°C, 24 h)",
       "measure": "Measure the inhibition zones and determine sensitivity"
     },
-    "toast": { "needLawn": "First swab the lawn, dry it and place all the disks" },
+    "toast": {
+      "needLawn": "First swab the lawn, dry it and place all the disks"
+    },
     "act": {
       "dir": "🔄 direction {n}/3",
       "swab": "💧 Dipping the swab…",
       "forceps": "🧴 Sterilising the forceps…"
     },
-    "dry": { "title": "The dish is drying…", "remain": "Left: {m} min · the inoculum soaks into the agar" },
-    "inc": { "title": "Incubating…", "remain": "Left: {h} · real 24 h" },
+    "dry": {
+      "title": "The dish is drying…",
+      "remain": "Left: {m} min · the inoculum soaks into the agar"
+    },
+    "inc": {
+      "title": "Incubating…",
+      "remain": "Left: {h} · real 24 h"
+    },
     "hours": "{h} h",
     "btnMeasure": "🔍 Measure the zones",
     "btnMeasureBig": "🔍 Measure the inhibition zones",
@@ -217,8 +225,17 @@
       "classifyZero": "Sensitivity determined incorrectly",
       "classifyPartial": "Some disks were determined incorrectly"
     },
-    "sens": { "S": "Susceptible", "I": "Intermediate", "R": "Resistant" },
-    "ab": { "amp": "Ampicillin", "gen": "Gentamicin", "tet": "Tetracycline", "cip": "Ciprofloxacin" },
+    "sens": {
+      "S": "Susceptible",
+      "I": "Intermediate",
+      "R": "Resistant"
+    },
+    "ab": {
+      "amp": "Ampicillin",
+      "gen": "Gentamicin",
+      "tet": "Tetracycline",
+      "cip": "Ciprofloxacin"
+    },
     "measure": {
       "title": "Measure the inhibition zone",
       "instruction": "Measure the clear-zone diameter around each disk and judge it by each antibiotic's own breakpoints: Susceptible (≥ S) / Intermediate / Resistant (≤ R).",
@@ -295,7 +312,10 @@
       "needAll3": "First spread onto all 3 dishes",
       "needBridge": "First place the staining bridge on the bench"
     },
-    "inc": { "title": "Incubating…", "remain": "Left: {h} · real 18–24 h" },
+    "inc": {
+      "title": "Incubating…",
+      "remain": "Left: {h} · real 18–24 h"
+    },
     "hours": "{h} h",
     "steps": {
       "dishesCard": "Take 3 Petri dishes",
@@ -366,8 +386,14 @@
       "oil": "Apply immersion oil",
       "micro": "Take the slide to the microscope and determine the Gram type"
     },
-    "toast": { "needBridge": "First place the staining bridge on the bench" },
-    "wait": { "developing": "The dye is developing…", "ready": "Ready — next step", "realTime": "Real time: 1–2 min" },
+    "toast": {
+      "needBridge": "First place the staining bridge on the bench"
+    },
+    "wait": {
+      "developing": "The dye is developing…",
+      "ready": "Ready — next step",
+      "realTime": "Real time: 1–2 min"
+    },
     "steps": {
       "gvCard": "Stain with crystal violet",
       "gvResult": "Crystal violet (over filter paper) — 1–2 min, remove the paper and drain the dye",
@@ -454,7 +480,10 @@
       "applyOil": "Apply immersion oil",
       "toMicroscope": "Take the slide to the microscope"
     },
-    "mb": { "ready": "Ready — now wash", "waiting": "Reaction time: {s}s" },
+    "mb": {
+      "ready": "Ready — now wash",
+      "waiting": "Reaction time: {s}s"
+    },
     "finish": "✓ Finish",
     "sidebarClose": "Close the tools panel",
     "sidebarOpen": "Open the tools panel",
@@ -469,7 +498,9 @@
       "notNow": "Not now — follow the sequence",
       "needBridge": "First place the staining bridge on the bench"
     },
-    "result": { "title": "Microscope result" },
+    "result": {
+      "title": "Microscope result"
+    },
     "micro": {
       "incomplete1": "The preparation is incomplete (smear / fixation / staining missing).",
       "incomplete2": "Almost no cells are visible under the microscope.",
@@ -481,20 +512,34 @@
       "low": "Low quality — review the protocol steps."
     },
     "steps": {
-      "lightLampCard": "Light the lamp", "lightLampResult": "Light the spirit lamp",
-      "cleanSlideCard": "Clean the slide", "cleanSlideResult": "Clean the slide with an alcohol pad",
-      "addNaclCard": "Apply NaCl", "addNaclResult": "Place a drop of NaCl on the slide",
-      "sterilizeLoopCard": "Sterilise the loop", "sterilizeLoopResult": "Sterilise the loop in the flame",
-      "takeSampleCard": "Take a sample", "takeSampleResult": "Take a sample from the culture",
-      "smearSampleCard": "Make a smear", "smearSampleResult": "Make a smear (spread in the NaCl)",
-      "resterilizeLoopCard": "Re-sterilise the loop", "resterilizeLoopResult": "Re-sterilise the loop",
-      "airDryCard": "Air-dry", "airDryResult": "Air-dry the smear",
-      "flameFixCard": "Heat fixation", "flameFixResult": "Heat-fix by passing through the flame",
-      "applyMbCard": "Stain with methylene blue", "applyMbResult": "Flood and stain with methylene blue",
-      "washMbCard": "Wash with water", "washMbResult": "Wash with distilled water",
-      "blotFilterCard": "Blot with filter paper", "blotFilterResult": "Press dry with filter paper",
-      "applyOilCard": "Immersion oil", "applyOilResult": "Apply immersion oil",
-      "openMicroscopeCard": "View under the microscope", "openMicroscopeResult": "View under the microscope (100×)"
+      "lightLampCard": "Light the lamp",
+      "lightLampResult": "Light the spirit lamp",
+      "cleanSlideCard": "Clean the slide",
+      "cleanSlideResult": "Clean the slide with an alcohol pad",
+      "addNaclCard": "Apply NaCl",
+      "addNaclResult": "Place a drop of NaCl on the slide",
+      "sterilizeLoopCard": "Sterilise the loop",
+      "sterilizeLoopResult": "Sterilise the loop in the flame",
+      "takeSampleCard": "Take a sample",
+      "takeSampleResult": "Take a sample from the culture",
+      "smearSampleCard": "Make a smear",
+      "smearSampleResult": "Make a smear (spread in the NaCl)",
+      "resterilizeLoopCard": "Re-sterilise the loop",
+      "resterilizeLoopResult": "Re-sterilise the loop",
+      "airDryCard": "Air-dry",
+      "airDryResult": "Air-dry the smear",
+      "flameFixCard": "Heat fixation",
+      "flameFixResult": "Heat-fix by passing through the flame",
+      "applyMbCard": "Stain with methylene blue",
+      "applyMbResult": "Flood and stain with methylene blue",
+      "washMbCard": "Wash with water",
+      "washMbResult": "Wash with distilled water",
+      "blotFilterCard": "Blot with filter paper",
+      "blotFilterResult": "Press dry with filter paper",
+      "applyOilCard": "Immersion oil",
+      "applyOilResult": "Apply immersion oil",
+      "openMicroscopeCard": "View under the microscope",
+      "openMicroscopeResult": "View under the microscope (100×)"
     },
     "detail": {
       "discardMatch": "Discard the used match into the biohazard bin",

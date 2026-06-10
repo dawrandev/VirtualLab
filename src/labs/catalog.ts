@@ -1,7 +1,6 @@
 /**
- * Catalog of the 6 microbiology laboratories shown on the home menu.
- * Lab 1 (methylene-blue simple stain) is fully built; the rest are planned
- * and shown as "coming soon" until implemented.
+ * Catalog of the 5 microbiology laboratories shown on the home menu.
+ * All five are fully built and available.
  */
 export interface LabEntry {
   id: number;
@@ -72,16 +71,5 @@ export const LABS: LabEntry[] = [
     paths:
       "M12 3c3 4 5 6.5 5 9a5 5 0 0 1-10 0c0-2.5 2-5 5-9zM10.5 13a1.5 1.5 0 0 0 1.5 1.5",
     available: true,
-  },
-  {
-    id: 6,
-    href: "/lab/6",
-    title: "Ziehl-Neelsen usuli",
-    subtitle: "Kislotaga chidamli bo'yash",
-    description: "Karbol fuksin, kislota va metilen ko'ki bilan sil tayoqchasini (KChB) aniqlash.",
-    accent: { from: "#ec4899", to: "#be185d", ring: "#f9a8d4", soft: "#fdf2f8" },
-    paths:
-      "M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zM12 6v6M9 9h6",
-    available: false,
   },
 ];

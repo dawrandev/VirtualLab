@@ -10,11 +10,11 @@ interface Props {
 }
 
 /**
- * Animated sand hourglass (qum soat) for the staining wait. Two glass bulbs:
- * the top chamber drains and the bottom heap grows as `progress` goes 0 → 1,
- * while a live stream of falling grains pours through the neck the whole time
- * it runs (independent of progress, so the sand always looks like it's moving).
- * Funnel shapes come from clipping the sand to the bulb outline.
+ * Animated sand hourglass (qum soat). Two glass bulbs: the top chamber drains
+ * and the bottom heap grows as `progress` goes 0 → 1, while a live stream of
+ * falling grains pours through the neck the whole time it runs (independent of
+ * progress, so the sand always looks like it's moving). Funnel shapes come from
+ * clipping the sand to the bulb outline. Shared across every lab's wait timer.
  */
 export function Hourglass({ progress, width = 46 }: Props) {
   const p = Math.max(0, Math.min(1, progress));

@@ -9,7 +9,7 @@
     "badge": "Virtual mikrobiologiya",
     "title": "Virtual Tibbiy Laboratoriya",
     "tagline": "Laboratoriya ishini tanlang. Har bir tajribani bosqichma-bosqich bajaring — o'rganing yoki imtihon topshiring.",
-    "footer": "6 ta laboratoriyadan {done} tasi tayyor · qolganlari tez kunda qo'shiladi",
+    "footer": "Barcha {done} ta laboratoriya tayyor",
     "comingSoon": "Tez kunda",
     "ready": "Tayyor",
     "enter": "Laboratoriyaga kirish",
@@ -176,14 +176,22 @@
       "incubate": "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)",
       "measure": "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang"
     },
-    "toast": { "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying" },
+    "toast": {
+      "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying"
+    },
     "act": {
       "dir": "🔄 {n}/3-yo'nalish",
       "swab": "💧 Tampon botirilyapti…",
       "forceps": "🧴 Pinset spirtga botirilyapti…"
     },
-    "dry": { "title": "Idish quriyabdi…", "remain": "Qoldi: {m} daqiqa · inokulyat agarga singadi" },
-    "inc": { "title": "Termostatda inkubatsiya…", "remain": "Qoldi: {h} · real 24 soat" },
+    "dry": {
+      "title": "Idish quriyabdi…",
+      "remain": "Qoldi: {m} daqiqa · inokulyat agarga singadi"
+    },
+    "inc": {
+      "title": "Termostatda inkubatsiya…",
+      "remain": "Qoldi: {h} · real 24 soat"
+    },
     "hours": "{h} soat",
     "btnMeasure": "🔍 Zonalarni o'lchash",
     "btnMeasureBig": "🔍 Tormozlanish zonalarini o'lchash",
@@ -212,8 +220,17 @@
       "classifyZero": "Sezuvchanlik noto'g'ri aniqlandi",
       "classifyPartial": "Ba'zi disklar noto'g'ri aniqlandi"
     },
-    "sens": { "S": "Sezgir", "I": "Oraliq", "R": "Chidamli" },
-    "ab": { "amp": "Ampitsillin", "gen": "Gentamitsin", "tet": "Tetratsiklin", "cip": "Tsiprofloksatsin" },
+    "sens": {
+      "S": "Sezgir",
+      "I": "Oraliq",
+      "R": "Chidamli"
+    },
+    "ab": {
+      "amp": "Ampitsillin",
+      "gen": "Gentamitsin",
+      "tet": "Tetratsiklin",
+      "cip": "Tsiprofloksatsin"
+    },
     "measure": {
       "title": "Tormozlanish zonasini o'lchang",
       "instruction": "Har disk atrofidagi steril zona diametrini o'lchab, har antibiotikning o'z chegaralari bilan baholang: Sezgir (≥ S) / Oraliq / Chidamli (≤ R).",
@@ -290,7 +307,10 @@
       "needAll3": "Avval 3 ta idishga ham surting",
       "needBridge": "Avval bo'yash ko'prigini stolga qo'ying"
     },
-    "inc": { "title": "Termostatda inkubatsiya…", "remain": "Qoldi: {h} · real 18-24 soat" },
+    "inc": {
+      "title": "Termostatda inkubatsiya…",
+      "remain": "Qoldi: {h} · real 18-24 soat"
+    },
     "hours": "{h} soat",
     "steps": {
       "dishesCard": "3 ta Petri idishini olish",
@@ -361,8 +381,14 @@
       "oil": "Immersion moyini tomizing",
       "micro": "Oynani mikroskopga olib boring va Gram tegishliligini aniqlang"
     },
-    "toast": { "needBridge": "Avval bo'yash ko'prigini stolga qo'ying" },
-    "wait": { "developing": "Bo'yoq ta'sir qilmoqda…", "ready": "Tayyor — keyingi bosqich", "realTime": "Real vaqt: 1–2 daqiqa" },
+    "toast": {
+      "needBridge": "Avval bo'yash ko'prigini stolga qo'ying"
+    },
+    "wait": {
+      "developing": "Bo'yoq ta'sir qilmoqda…",
+      "ready": "Tayyor — keyingi bosqich",
+      "realTime": "Real vaqt: 1–2 daqiqa"
+    },
     "steps": {
       "gvCard": "Gensianviolet bilan bo'yash",
       "gvResult": "Gensianviolet (filtr qog'oz ustidan) — 1-2 daq, qog'oz olinib bo'yoq to'kiladi",
@@ -449,7 +475,10 @@
       "applyOil": "Immersion moyini tomizing",
       "toMicroscope": "Oynani mikroskopga olib boring"
     },
-    "mb": { "ready": "Tayyor — endi yuving", "waiting": "Ta'sir vaqti: {s}s" },
+    "mb": {
+      "ready": "Tayyor — endi yuving",
+      "waiting": "Ta'sir vaqti: {s}s"
+    },
     "finish": "✓ Yakunlash",
     "sidebarClose": "Asboblar panelini yopish",
     "sidebarOpen": "Asboblar panelini ochish",
@@ -464,7 +493,9 @@
       "notNow": "Hozir bo'lmaydi — ketma-ketlikni kuzating",
       "needBridge": "Avval bo'yash ko'prigini stolga qo'ying"
     },
-    "result": { "title": "Mikroskop natijasi" },
+    "result": {
+      "title": "Mikroskop natijasi"
+    },
     "micro": {
       "incomplete1": "Preparat to'liq tayyorlanmagan (surtma / fiksatsiya / bo'yash yetishmaydi).",
       "incomplete2": "Mikroskop ostida hujayralar deyarli ko'rinmaydi.",
@@ -476,20 +507,34 @@
       "low": "Sifat past — protokol bosqichlarini qayta ko'rib chiqing."
     },
     "steps": {
-      "lightLampCard": "Spirtovkani yoqish", "lightLampResult": "Spirtovkani yoqish",
-      "cleanSlideCard": "Oynani tozalash", "cleanSlideResult": "Buyum oynasini spirtli salfetka bilan tozalash",
-      "addNaclCard": "NaCl tomizish", "addNaclResult": "Oynaga NaCl tomchisini tomizish",
-      "sterilizeLoopCard": "Halqani sterillash", "sterilizeLoopResult": "Bakteriologik halqani olovda sterillash",
-      "takeSampleCard": "Namuna olish", "takeSampleResult": "Kulturadan namuna olish",
-      "smearSampleCard": "Surtma tayyorlash", "smearSampleResult": "Surtma tayyorlash (NaCl bilan yoyish)",
-      "resterilizeLoopCard": "Halqani qayta sterillash", "resterilizeLoopResult": "Halqani qayta sterillash",
-      "airDryCard": "Havoda quritish", "airDryResult": "Surtmani havoda quritish",
-      "flameFixCard": "Termik fiksatsiya", "flameFixResult": "Olov ustidan o'tkazib termik fiksatsiya",
-      "applyMbCard": "Metilen ko'ki bilan bo'yash", "applyMbResult": "Metilen ko'ki bilan qoplab bo'yash",
-      "washMbCard": "Suv bilan yuvish", "washMbResult": "Distillangan suv bilan yuvish",
-      "blotFilterCard": "Filtr bilan quritish", "blotFilterResult": "Filtr qog'oz bilan bosib quritish",
-      "applyOilCard": "Immersion moyi", "applyOilResult": "Immersion moyini tomizish",
-      "openMicroscopeCard": "Mikroskopda ko'rish", "openMicroscopeResult": "Mikroskopda (100×) ko'rish"
+      "lightLampCard": "Spirtovkani yoqish",
+      "lightLampResult": "Spirtovkani yoqish",
+      "cleanSlideCard": "Oynani tozalash",
+      "cleanSlideResult": "Buyum oynasini spirtli salfetka bilan tozalash",
+      "addNaclCard": "NaCl tomizish",
+      "addNaclResult": "Oynaga NaCl tomchisini tomizish",
+      "sterilizeLoopCard": "Halqani sterillash",
+      "sterilizeLoopResult": "Bakteriologik halqani olovda sterillash",
+      "takeSampleCard": "Namuna olish",
+      "takeSampleResult": "Kulturadan namuna olish",
+      "smearSampleCard": "Surtma tayyorlash",
+      "smearSampleResult": "Surtma tayyorlash (NaCl bilan yoyish)",
+      "resterilizeLoopCard": "Halqani qayta sterillash",
+      "resterilizeLoopResult": "Halqani qayta sterillash",
+      "airDryCard": "Havoda quritish",
+      "airDryResult": "Surtmani havoda quritish",
+      "flameFixCard": "Termik fiksatsiya",
+      "flameFixResult": "Olov ustidan o'tkazib termik fiksatsiya",
+      "applyMbCard": "Metilen ko'ki bilan bo'yash",
+      "applyMbResult": "Metilen ko'ki bilan qoplab bo'yash",
+      "washMbCard": "Suv bilan yuvish",
+      "washMbResult": "Distillangan suv bilan yuvish",
+      "blotFilterCard": "Filtr bilan quritish",
+      "blotFilterResult": "Filtr qog'oz bilan bosib quritish",
+      "applyOilCard": "Immersion moyi",
+      "applyOilResult": "Immersion moyini tomizish",
+      "openMicroscopeCard": "Mikroskopda ko'rish",
+      "openMicroscopeResult": "Mikroskopda (100×) ko'rish"
     },
     "detail": {
       "discardMatch": "Ishlatilgan gugurtni biohazard idishiga tashlash",

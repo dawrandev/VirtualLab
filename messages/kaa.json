@@ -10,7 +10,7 @@
     "badge": "Virtual mikrobiologiya",
     "title": "Virtual Meditsina Laboratoriyası",
     "tagline": "Laboratoriya jumısın tańlań. Hár bir tájriybeni basqıshpa-basqısh orınlań — úyrenıń yamasa imtihan tapsırıń.",
-    "footer": "6 laboratoriyadan {done} ewi tayyar · qalǵanları tez kúnde qosıladı",
+    "footer": "Barlıq {done} laboratoriya tayyar",
     "comingSoon": "Tez kúnde",
     "ready": "Tayyar",
     "enter": "Laboratoriyaǵa kiriw",
@@ -64,7 +64,7 @@
     "toolsTitle": "Laboratoriya ásbapları",
     "dragHintSidebar": "Ásbaplardı jumıs stolina sabaqlap, qálegen jerge qoyıń",
     "onTable": "stolda",
-    "dragToTable": "Ásbaplardı shep panelden jumıs stolına sabaqlap alıń",
+    "dragToTable": "Ásbaplardı shep panelden jumıs stolına alıń",
     "examBanner": "Imtihan — járdem joq. Bilgenińizshe orınlań.",
     "restart": "Qaytadan baslaw",
     "close": "Jabıw",
@@ -85,7 +85,7 @@
       "culture": "E. coli kulturası",
       "rack": "Probirka shtativi",
       "filter": "Filtr qaǵaz",
-      "bridge": "Shisha kópirik",
+      "bridge": "Shisha kópir",
       "tray": "Lotok",
       "microscope": "Mikroskop"
     },
@@ -101,7 +101,7 @@
       "done": "Bakteriya háreketsheńligin anıqlań"
     },
     "toast": {
-      "needBridge": "Dáslep shisha kópirikti stolǵa qoyıń",
+      "needBridge": "Dáslep shisha kópirdi stolǵa qoyıń",
       "needPrep": "Dáslep preparattı tayarlap, qaplaǵısh ayna menen jawıń",
       "success": "✓ Preparat tayar — jumıstı tabıslı juwmaqladıńız!"
     },
@@ -277,7 +277,7 @@
       "loopStand": "Ilmek shtativi",
       "loop": "Bakteriologiyalıq ilmek",
       "tray": "Búyreksiman lotok",
-      "bridge": "Boyaw kópirigi",
+      "bridge": "Boyaw kópiri",
       "slide": "Buyım aynası",
       "wash": "Distillengen suw",
       "gv": "Gensianviolet",
