@@ -71,6 +71,7 @@ export function scoreGramExam(
   log: ExamAction[],
   state: GramState,
   classification: "positive" | "negative" | null,
+  correctGram: "positive" | "negative" = SPECIMEN.gram,
 ): ExamResult {
   const ctx = buildCtx(log);
   const { alcoholWash, fuchsinWash } = washTimes(ctx);
@@ -156,7 +157,7 @@ export function scoreGramExam(
   {
     if (classification == null) {
       steps.push(grade("classify", "zero", ["lab2.score.classifyZero"]));
-    } else if (classification === SPECIMEN.gram) {
+    } else if (classification === correctGram) {
       steps.push(grade("classify", "full", []));
     } else {
       steps.push(grade("classify", "zero", ["lab2.score.classifyWrong"]));
@@ -168,6 +169,6 @@ export function scoreGramExam(
     total,
     max: MAX_SCORE,
     steps,
-    classification: { picked: classification, correct: SPECIMEN.gram, isRight: classification === SPECIMEN.gram },
+    classification: { picked: classification, correct: correctGram, isRight: classification === correctGram },
   };
 }

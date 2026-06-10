@@ -93,11 +93,14 @@ export function GramSlide({ stage, filterOn, oilApplied, gramPositive = true, de
         <rect x="24" y="2" width="74" height={vh - 4} rx="2" fill="url(#gsFuchsinField)" />
       )}
 
-      {/* The smear — clustered cocci, coloured by stage (hidden until smeared) */}
+      {/* The smear — clustered cocci, coloured by stage (hidden until smeared).
+          Kept very faint: the unstained fixed smear is barely visible (a thin
+          haze on the glass, like Lab 1's washed field); it only reads clearly
+          once stained, and even then stays subtle on the bench preview. */}
       {!blank && (
-        <g opacity={flood ? 0.55 : 0.95}>
+        <g opacity={stage === "fixed" ? 0.16 : stage === "final" ? 0.5 : flood ? 0.5 : 0.55}>
           {COCCI.map(([dx, dy], i) => (
-            <circle key={i} cx={cx + dx} cy={cyc + dy} r={1.5} fill={cellColor} />
+            <circle key={i} cx={cx + dx} cy={cyc + dy} r={1.3} fill={cellColor} />
           ))}
         </g>
       )}

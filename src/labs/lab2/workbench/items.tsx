@@ -45,7 +45,7 @@ export interface Lab2ItemDef {
   hitDY?: number;
   render: (
     state: GramState,
-    opts: { trayStained?: boolean; develop?: number; trayColors?: [string, string, string, string] },
+    opts: { trayStained?: boolean; develop?: number; trayColors?: [string, string, string, string]; specimenPositive?: boolean },
   ) => ReactNode;
 }
 
@@ -79,7 +79,7 @@ export const LAB2_ITEMS: Lab2ItemDef[] = [
     h: 42,
     preview: 0.78,
     render: (s, o) => (
-      <GramSlide stage={gramStage(s)} filterOn={s.slide.filterOn} oilApplied={s.slide.oilApplied} gramPositive develop={o.develop ?? 1} width={132} height={42} />
+      <GramSlide stage={gramStage(s)} filterOn={s.slide.filterOn} oilApplied={s.slide.oilApplied} gramPositive={o.specimenPositive ?? true} develop={o.develop ?? 1} width={132} height={42} />
     ),
   },
   {

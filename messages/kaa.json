@@ -8,19 +8,19 @@
   "_QORAQALPOQCHA_TARJIMA": "Tómendegi 'home', 'labs' hám 'common' (restart, languageLabel, back) mánisleri házir waqıtsha QARAQALPAQShA turıptı — olardı qaraqalpaq tiline awdarıńız.",
   "home": {
     "badge": "Virtual mikrobiologiya",
-    "title": "Virtual Medisina Laboratoriyası",
-    "tagline": "Laboratoriya jumısın tańlań. Hár bir tájribeni basqıshpa-basqısh orınlań — úyrenıń yamasa imtihan tapsırıń.",
-    "footer": "6 laboratoriyadan {done} ewi tayar · qalganları tez kunda qosıladı",
-    "comingSoon": "Tez kunda",
-    "ready": "Tayar",
+    "title": "Virtual Meditsina Laboratoriyası",
+    "tagline": "Laboratoriya jumısın tańlań. Hár bir tájriybeni basqıshpa-basqısh orınlań — úyrenıń yamasa imtihan tapsırıń.",
+    "footer": "6 laboratoriyadan {done} ewi tayyar · qalǵanları tez kúnde qosıladı",
+    "comingSoon": "Tez kúnde",
+    "ready": "Tayyar",
     "enter": "Laboratoriyaǵa kiriw",
     "unavailable": "Házirshe joq"
   },
   "labs": {
     "1": {
       "title": "Bakterial kletka morfologiyası",
-      "subtitle": "Ápiwayı boyaw — metilen kókisi",
-      "desc": "Surtpa tayarlaw, fiksatsiya hám metilen kókisi menen boyap, kletka formasın mikroskopta úyreniw."
+      "subtitle": "Ápiwayı boyaw — metilen kóki",
+      "desc": "Súrtpe tayarlaw, fiksatsiya hám metilen kóki menen boyap, kletka formasın mikroskopta úyreniw."
     },
     "2": {
       "title": "Gram boyaw usılı",
@@ -30,7 +30,7 @@
     "3": {
       "title": "Drigalski usılında egiw",
       "subtitle": "Shpatel menen egiw — taza kultura",
-      "desc": "Suspenziyanı shpatel menen 3 plastinkaǵa izbe-iz surtip, bólek koloniyalardan taza kultura ajıratıw hám Gram boyaw."
+      "desc": "Suspenziyanı shpatel menen 3 plastinkaǵa izbe-iz Súrtip, bólek koloniyalardan taza kultura ajıratıw hám Gram boyaw."
     },
     "4": {
       "title": "Antibiotiklerge sezgishlik",
@@ -45,13 +45,13 @@
     "6": {
       "title": "Ziehl-Neelsen usılı",
       "subtitle": "Kislotaǵa shıdamlı boyaw",
-      "desc": "Karbol fuksin, kislota hám metilen kókisi menen tuberkulyoz tayaqshasın (KShB) anıqlaw."
+      "desc": "Karbol fuksin, kislota hám metilen kóki menen tuberkulyoz tayaqshasın (KShB) anıqlaw."
     }
   },
   "ui": {
     "chooseMode": "Rejimdi tańlań",
     "learnTitle": "Úyreniw rejimi",
-    "learnDesc": "Hár qádemde jollama hám geyingi ásbap kórsetiledi. Ball qoyılmaydı — bimalal úyrenesiz.",
+    "learnDesc": "Hár qádemde jollama hám keyingi ásbap kórsetiledi. Ball qoyılmaydı — bimalal úyrenesiz.",
     "examTitle": "Imtihan rejimi",
     "examDescPdf": "Awal jumıs tártibin duzesiz, soń járdemsiz orınlaysız. Ballar PDF kriteriyası boyınsha (jámi 100).",
     "examDescStages": "Awal jumıs tártibin duzesiz, soń járdemsiz orınlaysız. Ballar basqıshlar boyınsha (jámi 100).",
@@ -169,8 +169,8 @@
     "hint": {
       "dish": "Azuqlıq ortalıqlı Petri ıdısın stólǵa qoyıń",
       "charge": "Steril paxta tampondı E. coli kulturasına batırıń",
-      "spread": "Tampon menen «gazon» usılında surtiń — {n}/3-baǵdar (ıdıstı ~60° aylandırıp)",
-      "dry": "Idıs júzesi sińgansha ~5 minuta qurıtıń",
+      "spread": "Tampon menen «gazon» usılında súrtiń — {n}/3-baǵdar (ıdıstı ~60° aylandırıp)",
+      "dry": "Idıs júzesi sińgansha ~5 minutta qurıtıń",
       "forceps": "Pinsetti spirt bankasına batırıp, jalında sterilleń",
       "pickDisk": "Pinset menen diskler toplamınan antibiotik diskin alıń",
       "placeDisk": "Pinsettegi diskti agar júzesine qoyıń",
@@ -187,7 +187,7 @@
     },
     "dry": {
       "title": "Idıs qurımaqta…",
-      "remain": "Qaldı: {m} minuta · inokulyat agarǵa sińedi"
+      "remain": "Qaldı: {m} minutta · inokulyat agarǵa sińedi"
     },
     "inc": {
       "title": "Termostatta inkubatsiya…",
@@ -198,7 +198,7 @@
     "btnMeasureBig": "🔍 Tormozlanıw zonaların ólşew",
     "steps": {
       "lawnCard": "Kulturanı gazon usılında egiw",
-      "lawnResult": "Steril paxta tampondı kulturaǵa batırıp, ıdıstı ~60° aylandırıp 3 baǵdarda «gazon» egiń hám ~5 minuta qurıtıń",
+      "lawnResult": "Steril paxta tampondı kulturaǵa batırıp, ıdıstı ~60° aylandırıp 3 baǵdarda «gazon» egiń hám ~5 minutta qurıtıń",
       "disksCard": "Antibiotik disklerin qoyıw",
       "disksResult": "Antibiotik sińdirilgen qaǵaz disklerdi pinset menen agar júzesine jaylastırıw",
       "incubateCard": "Termostat 37°C, 24 saat",
@@ -210,8 +210,8 @@
     },
     "score": {
       "lawnZero": "Kultura gazon usılında egilmedi",
-      "lawnIncomplete": "Gazon tolıq surtilmedi (3 baǵdar kerek)",
-      "notDried": "Idıs ~5 minuta qurıtılmadı",
+      "lawnIncomplete": "Gazon tolıq súrtilmedi (3 baǵdar kerek)",
+      "notDried": "Idıs ~5 minutta qurıtılmadı",
       "disksZero": "Antibiotik diskleri qoyılmadı",
       "forcepsNotSterile": "Pinset sterillenbegen",
       "disksIncomplete": "Diskler tolıq qoyılmadı",
@@ -292,12 +292,12 @@
       "dropMaterial": "Pipetkadaǵı materialdı 1-ıdısqa tamızıń",
       "dipSpatula": "Shpatel ushın spirt bankasına batırıń",
       "flameSpatula": "Shpateldi jalında jaǵıń — spirt janıp sterillenedi (soń suwıtıń)",
-      "spread1": "Suwıǵan steril shpatel menen 1-ıdıstaǵı agarǵa surtiń",
-      "spread2": "Sol shpatel menen (sterillep otırmastan) 2-ıdısqa surtiń",
-      "spread3": "Sol shpatel menen 3-ıdısqa surtiń",
+      "spread1": "Suwıǵan steril shpatel menen 1-ıdıstaǵı agarǵa súrtiń",
+      "spread2": "Sol shpatel menen (sterillep otırmastan) 2-ıdısqa súrtiń",
+      "spread3": "Sol shpatel menen 3-ıdısqa súrtiń",
       "incubate": "3 ıdıstı da termostatqa qoyıń (18-24 saat)",
       "pickColony": "3-ıdıstaǵı bólek koloniyanı ilmek menen alıń",
-      "smear": "Ilmekti áyna ústinde júrgizip surtpa tayarlań",
+      "smear": "Ilmekti áyna ústinde júrgizip súrtpe tayarlań",
       "gv": "Gram boyaw: gensianviolet tamızıń",
       "lugol": "Lyugol eritpesin tamızıń",
       "alcohol": "Etil spirti menen reńsizlendiriń",
@@ -305,7 +305,7 @@
       "micro": "Áynanı mikroskopqa alıp barıń hám nátiyjeni anıqlań"
     },
     "toast": {
-      "needAll3": "Awal 3 ıdısqa da surtiń",
+      "needAll3": "Awal 3 ıdısqa da súrtiń",
       "needBridge": "Awal boyaw kópirigin stólǵa qoyıń"
     },
     "inc": {
@@ -317,27 +317,27 @@
       "dishesCard": "3 Petri ıdısın alıw",
       "dishesResult": "Azuqlıq ortalıǵı salınǵan 3 Petri ıdısın alıw",
       "spread1Card": "1-ıdısqa maqala + shpatel",
-      "spread1Result": "1-ıdısqa pipetka menen material salıp, shpatel menen agarǵa surtiw",
+      "spread1Result": "1-ıdısqa pipetka menen material salıp, shpatel menen agarǵa súrtiw",
       "spread23Card": "Sol shpatel menen 2-3 ıdıs + termostat",
-      "spread23Result": "Sol shpatel menen (sterillep otırmastan) 2 hám 3-ıdısqa surtip, termostatqa qoyıw",
-      "colonyCard": "Bólek koloniya → surtpa → Gram",
-      "colonyResult": "Bólek koloniyadan taza kultura alıp, surtpa tayarlap Gram usılında boyaw",
+      "spread23Result": "Sol shpatel menen (sterillep otırmastan) 2 hám 3-ıdısqa súrtip, termostatqa qoyıw",
+      "colonyCard": "Bólek koloniya → súrtpe → Gram",
+      "colonyResult": "Bólek koloniyadan taza kultura alıp, súrtpe tayarlap Gram usılında boyaw",
       "microCard": "Mikroskopta úyreniw",
-      "microResult": "Surtpanı mikroskopta kórip, morfologiyalıq hám tinktorial qásiyetlerin anıqlaw"
+      "microResult": "Súrtpe ni mikroskopta kórip, morfologiyalıq hám tinktorial qásiyetlerin anıqlaw"
     },
     "score": {
       "dishesZero": "3 Petri ıdısı alınmadı",
       "d1Zero": "1-ıdısqa egilmedi",
       "spatulaNotSterile": "Shpatel aldınnan sterillenbegen",
       "noMaterial": "Tekseriliwshi material salınbaǵan",
-      "spread23Zero": "2 hám 3-ıdıslarǵa surtilmedi",
-      "spread2Zero": "2-ıdısqa surtilmedi",
-      "spread3Zero": "3-ıdısqa surtilmedi",
+      "spread23Zero": "2 hám 3-ıdıslarǵa súrtilmedi",
+      "spread2Zero": "2-ıdısqa súrtilmedi",
+      "spread3Zero": "3-ıdısqa súrtilmedi",
       "incubateZero": "Termostatqa qoyılmadı (inkubatsiya joq)",
       "respread": "Shpatel 2-3 ıdıs aldınnan qayta sterillengen — suyıltırıw buzıladı",
-      "colonyZero": "Koloniya alınmadı / surtpa tayarlanmadı",
+      "colonyZero": "Koloniya alınmadı / súrtpe tayarlanmadı",
       "noColony": "Bólek koloniya alınmadı",
-      "noSmear": "Surtpa tayarlanmadı",
+      "noSmear": "Súrtpe tayarlanmadı",
       "gramIncomplete": "Gram boyaw tolıq orınlanmadı (4 reaktiv: gensianviolet, lyugol, spirt, fuksin)",
       "microZero": "Mikroskopta kórilmedi",
       "noMorph": "Morfologiyalıq/tinktorial qásiyet anıqlanmadı",
@@ -358,7 +358,7 @@
     "items": {
       "tray": "Búyreksiman lotok",
       "bridge": "Boyaw kópirigi",
-      "slide": "Tayar surtpa (áyna)",
+      "slide": "Tayar súrtpe (áyna)",
       "gv": "Gensianviolet",
       "lugol": "Lyugol eritpesi",
       "ethanol": "Etil spirti",
@@ -370,14 +370,14 @@
       "microscope": "Mikroskop"
     },
     "hint": {
-      "onBridge": "Tayar surtpanı (áyna) boyaw kópirigine qoyıń",
-      "needFilter": "Surtpa ústine filtr qaǵaz qoyıń",
+      "onBridge": "Tayar súrtpe (áyna) boyaw kópirigine qoyıń",
+      "needFilter": "Surtpe ústine filtr qaǵaz qoyıń",
       "gvApply": "Gensianviolet eritpesin filtr qaǵaz ústinen tamızıń",
-      "gvRemove": "1-2 minutadan so'ng pinset menen filtr qaǵazdı alıń (boyaw tógiledi)",
-      "lugol": "Lyugol eritpesin tamızıń (1-2 minuta)",
-      "alcohol": "Etil spirti menen reńsizlendiriń (binafsha reń joqolǵansha)",
+      "gvRemove": "1-2 minuttadan so'ng pinset menen filtr qaǵazdı alıń (boyaw tógiledi)",
+      "lugol": "Lyugol eritpesin tamızıń (1-2 minutta)",
+      "alcohol": "Etil spirti menen reńsizlendiriń (binafsha reń joǵalǵansha)",
       "wash": "Suw menen juwıń",
-      "fuchsin": "Fuksin menen boyań (1-2 minuta)",
+      "fuchsin": "Fuksin menen boyań (1-2 minutta)",
       "blot": "Filtr qaǵaz menen qurıtıń",
       "oil": "Immersion mayın tamızıń",
       "micro": "Áynanı mikroskopqa alıp barıń hám Gram tiyisliligin anıqlań"
@@ -387,8 +387,8 @@
     },
     "wait": {
       "developing": "Boyaw tásir qilmaqta…",
-      "ready": "Tayar — geyingi basqısh",
-      "realTime": "Real waqıt: 1–2 minuta"
+      "ready": "Tayar — keyingi basqısh",
+      "realTime": "Real waqıt: 1–2 minutta"
     },
     "steps": {
       "gvCard": "Gensianviolet menen boyaw",
@@ -406,7 +406,7 @@
       "gvZero": "Gensianviolet ulıwma qollanılmadı",
       "noFilter": "Filtr qaǵaz isletilmedi (boyaw qaǵaz ústinen tamızılıwı kerek)",
       "filterNotRemoved": "Filtr qaǵaz alıp taslanmadı / boyaw tógilmedi",
-      "gvTooEarly": "1-2 minuta kútilmedi (juda erte alındı)",
+      "gvTooEarly": "1-2 minutta kútilmedi (juda erte alındı)",
       "lugolZero": "Lyugol eritpesi qollanılmadı",
       "lugolOrder": "Qáte tártipte (gentsianviolettan keyin bolıwı kerek)",
       "lugolTooShort": "Lyugol jetarlishe (1-2 min) ushlanıp turılmadı",
@@ -449,7 +449,7 @@
       "rack": "Probirka shtativi",
       "culture": "Kultura probirkası",
       "petri": "Petri ıdıschası",
-      "mb": "Metilen kókisi",
+      "mb": "Metilen kóki",
       "wash": "Distillengen suw",
       "filter": "Filtr qaǵaz",
       "oil": "Immersion mayı",
@@ -466,11 +466,11 @@
       "applyNacl": "NaCl di áynaǵa tamızıń",
       "sterilizeLoop": "Ilmekti jalında qızdırıń — awal vertikal, so'ng gorizontal (↻ túyme menen burıń)",
       "takeSample": "Ilmek bır az suwıǵach kulturadan namuna alıń (qızǵan ilmek bakteriyanı óltiredi)",
-      "smear": "Ilmekti áyna ústinde júrgizip surtpa qılıń",
+      "smear": "Ilmekti áyna ústinde júrgizip surtpe qılıń",
       "resterilize": "Ilmekti qaytadan jalında qızdırıń (vertikal + gorizontal)",
-      "airDry": "Áynanı kóterip havada ushlanp qurıtıń (~12s)",
+      "airDry": "Áynanı kóterip hawada ushlanp qurıtıń (~12s)",
       "fix": "Áynanı jalın ústinden 3 márte ótkeriń — fiksatsiya ({n}/3)",
-      "applyMb": "Metilen kókisin áynaǵa alıp barıń",
+      "applyMb": "Metilen kókin áynaǵa alıp barıń",
       "wash": "Suw menen juwıń",
       "blot": "Filtr qaǵazdı áyna ústine basıp qoyıń (ısqalamań)",
       "applyOil": "Immersion mayın tamızıń",
@@ -488,7 +488,7 @@
     "loopUp": "Bası joqarı",
     "loopSide": "Sırtlama",
     "extinguish": "Spirtovkanı qapaq penen óshiriw",
-    "airDryLabel": "💨 Havada qurıtılmaqta {s}s",
+    "airDryLabel": "💨 Hawada qurıtılmaqta {s}s",
     "toast": {
       "dyeWait": "Boyaw ele tásir qilmaqta — kútiń",
       "notNow": "Házir bolmaydı — izbe-izlikti baqlań",
@@ -498,9 +498,9 @@
       "title": "Mikroskop nátiyjesi"
     },
     "micro": {
-      "incomplete1": "Preparat tolıq tayarlanbaǵan (surtpa / fiksatsiya / boyaw jetispeydi).",
+      "incomplete1": "Preparat tolıq tayarlanbaǵan (surtpe / fiksatsiya / boyaw jetispeydi).",
       "incomplete2": "Mikroskop astında kletkalar deyerli kórinnmeydi.",
-      "note1": "Barlıq kletkalar bir qıylı kók reńge boyalǵan — ápiwayı boyaw usılı (metilen kókisi).",
+      "note1": "Barlıq kletkalar bir qıylı kók reńge boyalǵan — ápiwayı boyaw usılı (metilen kóki).",
       "note2": "Kórinisli formalar: kokklar (top-top) hám tayaqshalar (batsillalar).",
       "noOil": "Immersion mayısız 100× obyektivte súvret xira — may qosılmaǵan.",
       "high": "Immersion mayı menen 100× da súvret tınıq. Tayarlaw sapası a'lo.",
@@ -518,16 +518,16 @@
       "sterilizeLoopResult": "Bakteriologiyalıq ilmekti jalında sterillew",
       "takeSampleCard": "Namuna alıw",
       "takeSampleResult": "Kulturadan namuna alıw",
-      "smearSampleCard": "Surtpa tayarlaw",
-      "smearSampleResult": "Surtpa tayarlaw (NaCl menen jayıw)",
+      "smearSampleCard": "Surtpe tayarlaw",
+      "smearSampleResult": "Surtpe tayarlaw (NaCl menen jayıw)",
       "resterilizeLoopCard": "Ilmekti qayta sterillew",
       "resterilizeLoopResult": "Ilmekti qayta sterillew",
-      "airDryCard": "Havada qurıtıw",
-      "airDryResult": "Surtpanı havada qurıtıw",
+      "airDryCard": "Hawada qurıtıw",
+      "airDryResult": "Surtpe ni hawada qurıtıw",
       "flameFixCard": "Termik fiksatsiya",
       "flameFixResult": "Jalın ústinden ótkerip termik fiksatsiya",
-      "applyMbCard": "Metilen kókisi menen boyaw",
-      "applyMbResult": "Metilen kókisi menen qaplap boyaw",
+      "applyMbCard": "Metilen kóki menen boyaw",
+      "applyMbResult": "Metilen kóki menen qaplap boyaw",
       "washMbCard": "Suw menen juwıw",
       "washMbResult": "Distillengen suw menen juwıw",
       "blotFilterCard": "Filtr menen qurıtıw",
@@ -564,7 +564,7 @@
     }
   },
   "common": {
-    "appTitle": "Virtual Medisina Laboratoriyası",
+    "appTitle": "Virtual Meditsina Laboratoriyası",
     "soundOn": "Tawıs jaǵılǵan",
     "soundOff": "Tawıs óshirilgen",
     "languageUz": "Ózbek",
@@ -574,7 +574,7 @@
     "reset": "Qaytadan baslaw",
     "restart": "Qaytadan",
     "languageLabel": "Til",
-    "next": "Geyingi",
+    "next": "Keyingi",
     "back": "Izge",
     "understand": "Túsindim, baslań"
   }

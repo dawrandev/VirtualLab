@@ -8,13 +8,14 @@ import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LAB2_ITEMS, LAB2_ITEM_BY_ID, intentFor, type Lab2ItemId } from "./items";
 import { freshGramState, applyGramStep, type GramState, type GramIntent } from "../state";
-import { SPECIMEN, STAIN_WAIT_MS, DISPLAY_WAIT_SECONDS, type LabMode, type ExamPhase } from "../exam/protocol";
+import { STAIN_WAIT_MS, DISPLAY_WAIT_SECONDS, type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreGramExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab2Sidebar } from "./Lab2Sidebar";
 import { ModeSelect } from "./ModeSelect";
 import { PlanningSidebar } from "./PlanningSidebar";
 import { Lab2ResultModal } from "../components2d/Lab2ResultModal";
 import { MicroscopeModal } from "../components2d/MicroscopeModal";
+import { Hourglass } from "../components2d/items/Hourglass";
 
 const DROP_PAD = 26;
 const GHOST_SCALE = 1.06;
@@ -108,6 +109,16 @@ export function Lab2Workbench() {
   // Microscope / classification
   const [scopeOpen, setScopeOpen] = useState(false);
   const [reveal, setReveal] = useState(false);
+
+  // The specimen's Gram type is randomised each session (positive ⇄ negative),
+  // so the student must read the smear rather than memorise one answer. Picked
+  // after mount (and on restart) to avoid an SSR/hydration mismatch.
+  const [specimen, setSpecimen] = useState<"positive" | "negative">("positive");
+  const specimenRef = useRef<"positive" | "negative">("positive");
+  specimenRef.current = specimen;
+  useEffect(() => {
+    setSpecimen(Math.random() < 0.5 ? "positive" : "negative");
+  }, []);
 
   const isExam = mode === "exam";
   const examActive = isExam && examPhase === "execution";
@@ -313,7 +324,7 @@ export function Lab2Workbench() {
 
   function finishExam(classification: "positive" | "negative" | null) {
     const cls = classification ?? gramRef.current.classification;
-    setExamResult(scoreGramExam(actionLog, gramRef.current, cls));
+    setExamResult(scoreGramExam(actionLog, gramRef.current, cls, specimenRef.current));
     setExamPhase("result");
   }
 
@@ -329,6 +340,7 @@ export function Lab2Workbench() {
     setReveal(false);
     setExamPhase("planning");
     setMode(null);
+    setSpecimen(Math.random() < 0.5 ? "positive" : "negative");
   }
 
   const placedSet = new Set(Object.keys(placed)) as Set<Lab2ItemId>;
@@ -338,7 +350,7 @@ export function Lab2Workbench() {
   // Dye flood deepens while a reagent develops, else it's fully developed.
   const develop = reaction ? reactionProg : 1;
   const trayColors = gram.slide.fuchsin.applied ? TRAY_PINK : TRAY_VIOLET;
-  const renderOpts = { trayStained, develop, trayColors };
+  const renderOpts = { trayStained, develop, trayColors, specimenPositive: specimen === "positive" };
   // The reaction countdown is a learning aid → learn mode only, while waiting.
   const showCountdown = !isExam && reaction != null && slidePos;
 
@@ -497,28 +509,14 @@ export function Lab2Workbench() {
           {showCountdown && slidePos && (
             <div className="pointer-events-none absolute z-30" style={{ left: `${slidePos.x}%`, top: `${slidePos.y - 16}%`, transform: "translate(-50%,-100%)" }}>
               <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/90 px-3 py-2 text-white shadow-lg">
-                {/* progress ring */}
-                <svg width="34" height="34" viewBox="0 0 34 34" className="shrink-0">
-                  <circle cx="17" cy="17" r="14" fill="none" stroke="#ffffff22" strokeWidth="3" />
-                  <circle
-                    cx="17"
-                    cy="17"
-                    r="14"
-                    fill="none"
-                    stroke={reactionProg >= 1 ? "#34d399" : "#a78bfa"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 14}
-                    strokeDashoffset={2 * Math.PI * 14 * (1 - reactionProg)}
-                    transform="rotate(-90 17 17)"
-                    style={{ transition: "stroke-dashoffset 0.1s linear" }}
-                  />
-                  <text x="17" y="20" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#fff">
-                    {reactionProg >= 1 ? "✓" : fmtClock(DISPLAY_WAIT_SECONDS * (1 - reactionProg))}
-                  </text>
-                </svg>
+                {/* sand hourglass — drains over the (sped-up) wait */}
+                <Hourglass progress={reactionProg} width={26} />
                 <div className="leading-tight">
-                  <p className="text-[12px] font-semibold">{reactionProg >= 1 ? tg("lab2.wait.ready") : tg("lab2.wait.developing")}</p>
+                  <p className="flex items-center gap-2 text-[12px] font-semibold">
+                    <span>{reactionProg >= 1 ? tg("lab2.wait.ready") : tg("lab2.wait.developing")}</span>
+                    {reactionProg < 1 && <span className="rounded bg-white/15 px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-amber-200">{fmtClock(DISPLAY_WAIT_SECONDS * (1 - reactionProg))}</span>}
+                    {reactionProg >= 1 && <span className="text-emerald-400">✓</span>}
+                  </p>
                   <p className="text-[10px] text-slate-300">{tg("lab2.wait.realTime")}</p>
                 </div>
               </div>
@@ -549,7 +547,9 @@ export function Lab2Workbench() {
         cellColor="violet"
         picked={gram.classification}
         reveal={reveal && !isExam}
-        correct={SPECIMEN.gram}
+        correct={specimen}
+        cocciCount={specimen === "positive" ? 8 : 3}
+        redRods={specimen === "positive" ? 12 : 26}
         onClassify={classify}
         onClose={() => setScopeOpen(false)}
       />

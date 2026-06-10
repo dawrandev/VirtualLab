@@ -13,6 +13,11 @@ interface Props {
   /** In learn mode the correct answer + feedback is revealed after picking. */
   reveal: boolean;
   correct: "positive" | "negative";
+  /** How many grape-like cocci clusters to draw (default = all 9). */
+  cocciCount?: number;
+  /** How many red counterstained rods (bacilli) to scatter (default 0).
+   *  A real Gram smear shows both: violet cocci + fuchsin-red rods. */
+  redRods?: number;
   onClassify: (type: "positive" | "negative") => void;
   onClose: () => void;
 }
@@ -25,14 +30,15 @@ interface P {
   delay: number;
 }
 
-function clusters(): P[] {
+const CLUSTER_CENTERS = [
+  [32, 34], [60, 26], [45, 54], [70, 62], [24, 66], [54, 76], [78, 42], [38, 74], [66, 40],
+];
+
+function clusters(n: number): P[] {
   // Deterministic grape-like cocci clusters (no Math.random for stability).
   const pts: P[] = [];
-  const centers = [
-    [32, 34], [60, 26], [45, 54], [70, 62], [24, 66], [54, 76], [78, 42], [38, 74], [66, 40],
-  ];
   let id = 0;
-  for (const [cxp, cyp] of centers) {
+  for (const [cxp, cyp] of CLUSTER_CENTERS.slice(0, n)) {
     const offs = [[-3.6, -2.8], [-0.6, -3.6], [2.4, -2.6], [-3, 0.4], [0, 0], [3, 1], [-1.2, 3], [2, 3.2], [-3.4, 3.4]];
     for (const [dx, dy] of offs) {
       pts.push({ id: id++, left: cxp + dx, top: cyp + dy, size: 13, delay: (id % 7) * 0.4 });
@@ -41,12 +47,32 @@ function clusters(): P[] {
   return pts;
 }
 
+interface Rod {
+  id: number;
+  left: number;
+  top: number;
+  len: number;
+  angle: number;
+  delay: number;
+}
+
+/** Deterministic scatter of red counterstained rods (Gram-negative bacilli). */
+function rods(n: number): Rod[] {
+  const seeds = [
+    [18, 30], [40, 18], [62, 28], [79, 44], [30, 52], [52, 44], [70, 64], [23, 73], [46, 70], [66, 35],
+    [34, 38], [58, 60], [82, 27], [15, 50], [50, 30], [73, 52], [36, 63], [60, 73], [26, 41], [80, 61],
+    [44, 82], [64, 83], [20, 82], [84, 40], [41, 52], [56, 20], [74, 73], [28, 27], [48, 60], [69, 47],
+  ];
+  return seeds.slice(0, n).map(([l, t], i) => ({ id: i, left: l, top: t, len: 13 + (i % 4) * 2.4, angle: (i * 47) % 180, delay: (i % 6) * 0.35 }));
+}
+
 /** Microscope eyepiece view for the Gram result — a vignetted field of stained
- *  cocci. The student classifies the Gram type; in learn mode the answer is
- *  revealed with feedback. */
-export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onClassify, onClose }: Props) {
+ *  cocci (violet) and counterstained rods (red), as in a real water-fuchsin
+ *  Gram smear. The student classifies the Gram type from what dominates. */
+export function MicroscopeModal({ open, cellColor, picked, reveal, correct, cocciCount = 9, redRods = 0, onClassify, onClose }: Props) {
   const t = useTranslations();
-  const cells = useMemo(() => clusters(), []);
+  const cells = useMemo(() => clusters(cocciCount), [cocciCount]);
+  const rodCells = useMemo(() => rods(redRods), [redRods]);
   const fill = cellColor === "violet" ? "#3b0a6b" : "#a8194f";
   const isRight = picked === correct;
 
@@ -70,6 +96,27 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, onCl
                 className="absolute inset-0 overflow-hidden rounded-full ring-4 ring-slate-800 shadow-[0_0_120px_rgba(0,0,0,0.8)]"
                 style={{ background: "radial-gradient(circle, #fdf4f8 0%, #f7e6ee 60%, #d4abc1 90%, #2a1622 100%)" }}
               >
+                {/* Red counterstained rods (Gram-negative bacilli) — drawn first
+                    so the violet cocci clusters read on top of them. */}
+                {rodCells.map((r) => (
+                  <motion.div
+                    key={`r-${r.id}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.88, x: [0, 1.5, -2, 0], y: [0, -1.5, 2, 0] }}
+                    transition={{ duration: 5.5, delay: r.delay, repeat: Infinity }}
+                    style={{
+                      position: "absolute",
+                      left: `${r.left}%`,
+                      top: `${r.top}%`,
+                      width: r.len,
+                      height: 4.6,
+                      borderRadius: 3,
+                      transform: `rotate(${r.angle}deg)`,
+                      background: "#c01f56",
+                      boxShadow: "0 0 3px rgba(178,24,80,0.6)",
+                    }}
+                  />
+                ))}
                 {cells.map((p) => (
                   <motion.div
                     key={p.id}
