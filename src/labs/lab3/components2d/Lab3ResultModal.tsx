@@ -7,7 +7,6 @@ import type { ExamResult, StepStatus } from "../exam/scoring";
 interface Props {
   result: ExamResult;
   onRestart: () => void;
-  onViewScope: () => void;
 }
 
 function tier(pct: number): { key: string; color: string } {
@@ -24,7 +23,7 @@ const MARK: Record<StepStatus, { icon: string; color: string; bg: string }> = {
 };
 
 /** End-of-exam breakdown for Lab 3 — five PDF criteria, full/partial/zero, /100. */
-export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
+export function Lab3ResultModal({ result, onRestart }: Props) {
   const tr = useTranslations();
   const pct = (result.total / result.max) * 100;
   const t = tier(pct);
@@ -46,16 +45,6 @@ export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
         </div>
 
         <div className="wb-tray flex-1 space-y-2.5 overflow-y-auto px-5 py-4">
-          <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: result.classification.isRight ? "#ecfdf5" : "#fef2f2" }}>
-            <span className="text-xl">{result.classification.isRight ? "🔬" : "⚠️"}</span>
-            <div className="text-[13px]">
-              <p className="font-semibold" style={{ color: result.classification.isRight ? "#059669" : "#dc2626" }}>
-                {result.classification.picked == null ? tr("lab3.result.noMorph") : result.classification.isRight ? tr("lab3.result.right") : tr("lab3.result.wrong")}
-              </p>
-              <p className="text-slate-500">{tr("lab3.result.correctAnswer", { ans: result.classification.correct === "positive" ? tr("lab3.result.ansPositive") : tr("lab3.result.ansNegative") })}</p>
-            </div>
-          </div>
-
           {result.steps.map((s) => {
             const m = MARK[s.status];
             return (
@@ -76,7 +65,6 @@ export function Lab3ResultModal({ result, onRestart, onViewScope }: Props) {
         </div>
 
         <div className="flex gap-2 border-t border-slate-200 p-3">
-          <button onClick={onViewScope} className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">{tr("lab3.result.viewScope")}</button>
           <button onClick={onRestart} className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">{tr("ui.restart")}</button>
         </div>
       </motion.div>

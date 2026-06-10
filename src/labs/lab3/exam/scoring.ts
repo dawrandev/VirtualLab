@@ -1,4 +1,4 @@
-import { MAIN_STEPS, MAX_SCORE, SPECIMEN } from "./protocol";
+import { MAIN_STEPS, MAX_SCORE } from "./protocol";
 import type { DrigalskiState } from "../state";
 
 export interface ExamAction {
@@ -22,14 +22,9 @@ export interface ExamResult {
   total: number;
   max: number;
   steps: StepResult[];
-  classification: { picked: "positive" | "negative" | null; correct: "positive" | "negative"; isRight: boolean };
 }
 
-export function scoreDrigalskiExam(
-  log: ExamAction[],
-  s: DrigalskiState,
-  classification: "positive" | "negative" | null,
-): ExamResult {
+export function scoreDrigalskiExam(log: ExamAction[], s: DrigalskiState): ExamResult {
   const firstTs: Record<string, number> = {};
   for (const a of log) if (firstTs[a.intent] == null) firstTs[a.intent] = a.ts;
   const byId = Object.fromEntries(MAIN_STEPS.map((m) => [m.id, m]));
@@ -45,7 +40,17 @@ export function scoreDrigalskiExam(
   // 1 — three plates obtained
   steps.push(s.dishes ? grade("get-dishes", "full", []) : grade("get-dishes", "zero", ["lab3.score.dishesZero"]));
 
-  // 2 — plate 1: sterile spreader + material + spread
+  // 2 — spreader dipped in alcohol + flamed sterile over the (hand-lit) lamp
+  {
+    if (!s.spatulaSterile) {
+      steps.push(grade("sterilize", "zero", ["lab3.score.spatulaNotSterile"]));
+    } else {
+      const dippedFirst = firstTs["dip-spatula"] != null;
+      steps.push(grade("sterilize", dippedFirst ? "full" : "partial", dippedFirst ? [] : ["lab3.score.noAlcohol"]));
+    }
+  }
+
+  // 3 — plate 1: material dropped + spread with the sterile spreader
   {
     const notes: string[] = [];
     if (!s.d1.spread) {
@@ -57,7 +62,7 @@ export function scoreDrigalskiExam(
     }
   }
 
-  // 3 — same spreader on plates 2 & 3 + incubate
+  // 4 — same spreader (not re-sterilized) on plates 2 & 3
   {
     const notes: string[] = [];
     const any = s.d2.spread || s.d3.spread;
@@ -66,46 +71,32 @@ export function scoreDrigalskiExam(
     } else {
       if (!s.d2.spread) notes.push("lab3.score.spread2Zero");
       if (!s.d3.spread) notes.push("lab3.score.spread3Zero");
-      if (!s.incubated) notes.push("lab3.score.incubateZero");
       const reSterilized = firstTs["sterilize-spatula"] != null && firstTs["spread-2"] != null && firstTs["sterilize-spatula"] > firstTs["spread-1"];
       if (reSterilized) notes.push("lab3.score.respread");
-      steps.push(grade("spread-23", s.d2.spread && s.d3.spread && s.incubated && !reSterilized ? "full" : "partial", notes));
+      steps.push(grade("spread-23", s.d2.spread && s.d3.spread && !reSterilized ? "full" : "partial", notes));
     }
   }
 
-  // 4 — pick isolated colony, smear, Gram stain
+  // 5 — used spreader decontaminated in the 5% chlorine jar
   {
-    const notes: string[] = [];
-    const g = s.gram;
-    const gramDone = g.gv && g.lugol && g.alcohol && g.fuchsin;
-    if (!s.colonyPicked && !s.smeared) {
-      steps.push(grade("pick-stain", "zero", ["lab3.score.colonyZero"]));
+    if (!s.spatulaDisinfected) {
+      steps.push(grade("disinfect", "zero", ["lab3.score.disinfectZero"]));
     } else {
-      if (!s.colonyPicked) notes.push("lab3.score.noColony");
-      if (!s.smeared) notes.push("lab3.score.noSmear");
-      if (!gramDone) notes.push("lab3.score.gramIncomplete");
-      steps.push(grade("pick-stain", s.colonyPicked && s.smeared && gramDone ? "full" : "partial", notes));
+      const afterSpread = firstTs["disinfect-spatula"] != null && firstTs["spread-3"] != null && firstTs["disinfect-spatula"] > firstTs["spread-3"];
+      steps.push(grade("disinfect", afterSpread ? "full" : "partial", afterSpread ? [] : ["lab3.score.disinfectEarly"]));
     }
   }
 
-  // 5 — microscopy + identification
+  // 6 — incubate the three plates 18–24 h at 37 °C
   {
-    if (!s.microscopeOpen) {
-      steps.push(grade("microscopy", "zero", ["lab3.score.microZero"]));
-    } else if (classification == null) {
-      steps.push(grade("microscopy", "partial", ["lab3.score.noMorph"]));
-    } else if (classification === SPECIMEN.gram) {
-      steps.push(grade("microscopy", "full", []));
+    if (!s.incubated) {
+      steps.push(grade("incubate", "zero", ["lab3.score.incubateZero"]));
     } else {
-      steps.push(grade("microscopy", "partial", ["lab3.score.gramWrong"]));
+      const allSpread = s.d1.spread && s.d2.spread && s.d3.spread;
+      steps.push(grade("incubate", allSpread ? "full" : "partial", allSpread ? [] : ["lab3.score.incubatePartial"]));
     }
   }
 
   const total = steps.reduce((a, x) => a + x.earned, 0);
-  return {
-    total,
-    max: MAX_SCORE,
-    steps,
-    classification: { picked: classification, correct: SPECIMEN.gram, isRight: classification === SPECIMEN.gram },
-  };
+  return { total, max: MAX_SCORE, steps };
 }

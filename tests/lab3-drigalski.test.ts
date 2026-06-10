@@ -16,23 +16,29 @@ function run(steps: DrigalskiIntent[]) {
 
 const PERFECT: DrigalskiIntent[] = [
   "get-dishes",
+  "strike-match",
+  "light-lamp",
+  "dip-spatula",
   "sterilize-spatula",
   "load-pipette",
   "drop-material",
   "spread-1",
   "spread-2",
   "spread-3",
+  "disinfect-spatula",
   "incubate",
-  "pick-colony",
-  "make-smear",
-  "apply-gv",
-  "apply-lugol",
-  "apply-alcohol",
-  "apply-fuchsin",
-  "to-microscope",
 ];
 
 describe("Lab 3 — Drigalski state", () => {
+  it("the lamp is lit by hand: strike the match, then touch the wick", () => {
+    let s = freshDrigalskiState();
+    expect(s.lamp.lit).toBe(false);
+    s = applyDrigalskiStep(s, "strike-match");
+    expect(s.match.lit).toBe(true);
+    s = applyDrigalskiStep(s, "light-lamp");
+    expect(s.lamp.lit).toBe(true);
+  });
+
   it("growth appears only after incubation", () => {
     let s = freshDrigalskiState();
     s = applyDrigalskiStep(s, "spread-1");
@@ -53,45 +59,53 @@ describe("Lab 3 — Drigalski state", () => {
     expect(s.pipetteLoaded).toBe(false);
     expect(s.d1.material).toBe(true);
   });
+
+  it("flaming the spreader clears the alcohol dip and makes it sterile", () => {
+    let s = freshDrigalskiState();
+    s = applyDrigalskiStep(s, "dip-spatula");
+    expect(s.spatulaDipped).toBe(true);
+    s = applyDrigalskiStep(s, "sterilize-spatula");
+    expect(s.spatulaDipped).toBe(false);
+    expect(s.spatulaSterile).toBe(true);
+  });
 });
 
 describe("Lab 3 — exam scoring", () => {
-  it("a perfect run + correct identification scores 100", () => {
+  it("a perfect run scores 100, every step full", () => {
     const { s, log } = run(PERFECT);
-    const res = scoreDrigalskiExam(log, s, "positive");
+    const res = scoreDrigalskiExam(log, s);
     expect(res.total).toBe(MAX_SCORE);
     expect(res.total).toBe(100);
     expect(res.steps.every((x) => x.status === "full")).toBe(true);
   });
 
-  it("skipping spreader sterilization makes step 2 partial", () => {
-    const steps = PERFECT.filter((i) => i !== "sterilize-spatula");
+  it("flaming without the alcohol dip makes the sterilize step partial", () => {
+    const steps = PERFECT.filter((i) => i !== "dip-spatula");
     const { s, log } = run(steps);
-    const res = scoreDrigalskiExam(log, s, "positive");
-    const s2 = res.steps.find((x) => x.id === "inoculate-1")!;
-    expect(s2.status).toBe("partial");
-    expect(s2.earned).toBe(15);
+    const res = scoreDrigalskiExam(log, s);
+    expect(res.steps.find((x) => x.id === "sterilize")!.status).toBe("partial");
   });
 
-  it("no incubation makes step 3 partial", () => {
+  it("skipping the chlorine disinfection makes that step zero", () => {
+    const steps = PERFECT.filter((i) => i !== "disinfect-spatula");
+    const { s, log } = run(steps);
+    const res = scoreDrigalskiExam(log, s);
+    expect(res.steps.find((x) => x.id === "disinfect")!.status).toBe("zero");
+  });
+
+  it("no incubation makes the incubate step zero", () => {
     const steps = PERFECT.filter((i) => i !== "incubate");
     const { s, log } = run(steps);
-    const res = scoreDrigalskiExam(log, s, "positive");
-    expect(res.steps.find((x) => x.id === "spread-23")!.status).toBe("partial");
+    const res = scoreDrigalskiExam(log, s);
+    expect(res.steps.find((x) => x.id === "incubate")!.status).toBe("zero");
   });
 
-  it("incomplete Gram stain makes step 4 partial", () => {
-    const steps = PERFECT.filter((i) => i !== "apply-fuchsin");
-    const { s, log } = run(steps);
-    const res = scoreDrigalskiExam(log, s, "positive");
-    expect(res.steps.find((x) => x.id === "pick-stain")!.status).toBe("partial");
-  });
-
-  it("missing everything scores zero per step", () => {
+  it("missing everything scores zero per step (only the obtained plates count)", () => {
     const { s, log } = run(["get-dishes"]);
-    const res = scoreDrigalskiExam(log, s, null);
+    const res = scoreDrigalskiExam(log, s);
     expect(res.steps.find((x) => x.id === "get-dishes")!.status).toBe("full");
     expect(res.steps.find((x) => x.id === "spread-23")!.status).toBe("zero");
-    expect(res.steps.find((x) => x.id === "microscopy")!.status).toBe("zero");
+    expect(res.steps.find((x) => x.id === "disinfect")!.status).toBe("zero");
+    expect(res.steps.find((x) => x.id === "incubate")!.status).toBe("zero");
   });
 });

@@ -283,7 +283,10 @@
       "lugol": "Lyugol eritmasi",
       "ethanol": "Etil spirti",
       "fuchsin": "Fuksin",
-      "microscope": "Mikroskop"
+      "microscope": "Mikroskop",
+      "matchbox": "Gugurt qutisi",
+      "match": "Gugurt",
+      "chlorineJar": "5% xlor (dezraztvor)"
     },
     "hint": {
       "dishes": "Oziqa muhitli 3 ta Petri idishini stolga qo'ying",
@@ -301,7 +304,11 @@
       "lugol": "Lyugol eritmasini tomizing",
       "alcohol": "Etil spirti bilan rangsizlantiring",
       "fuchsin": "Fuksin bilan bo'yang",
-      "micro": "Oynani mikroskopga olib boring va natijani aniqlang"
+      "micro": "Oynani mikroskopga olib boring va natijani aniqlang",
+      "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
+      "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
+      "disinfect": "Ishlatilgan shpatelni 5% xlor (dezraztvor) bankasiga soling",
+      "done": "Tayyor — idishlar termostatdan olindi, ish yakunlandi"
     },
     "toast": {
       "needAll3": "Avval 3 ta idishga ham surting",
@@ -322,7 +329,13 @@
       "colonyCard": "Alohida koloniya → surtma → Gram",
       "colonyResult": "Alohida koloniyadan toza kultura olib, surtma tayyorlab Gram usulida bo'yash",
       "microCard": "Mikroskopda o'rganish",
-      "microResult": "Surtmani mikroskopda ko'rib, morfologik va tinktorial xususiyatlarni aniqlash"
+      "microResult": "Surtmani mikroskopda ko'rib, morfologik va tinktorial xususiyatlarni aniqlash",
+      "sterilizeCard": "Shpatelni sterillash",
+      "sterilizeResult": "Spirt lampasini yoqib, shpatelni spirtga botirib olovda sterillash",
+      "disinfectCard": "Shpatelni dezinfeksiya qilish (5% xlor)",
+      "disinfectResult": "Ishlatilgan shpatelni 5% xlor eritmasiga solib zararsizlantirish",
+      "incubateCard": "Termostatda inkubatsiya",
+      "incubateResult": "3 ta idishni 37 °C termostatda 18-24 soat inkubatsiya qilish"
     },
     "score": {
       "dishesZero": "3 ta Petri idishi olinmadi",
@@ -340,7 +353,11 @@
       "gramIncomplete": "Gram bo'yash to'liq bajarilmadi (4 reaktiv: gensianviolet, lyugol, spirt, fuksin)",
       "microZero": "Mikroskopda ko'rilmadi",
       "noMorph": "Morfologik/tinktorial xususiyat aniqlanmadi",
-      "gramWrong": "Gram tegishliligi noto'g'ri aniqlandi"
+      "gramWrong": "Gram tegishliligi noto'g'ri aniqlandi",
+      "noAlcohol": "Shpatel oldin spirtga botirilmagan",
+      "disinfectZero": "Ishlatilgan shpatel 5% xlorga solinmadi (dezinfeksiya yo'q)",
+      "disinfectEarly": "Shpatel ekishdan oldin dezinfeksiya qilingan",
+      "incubatePartial": "Termostatga qo'yildi, lekin 3 idish ham ekilmagan"
     },
     "result": {
       "subtitle": "Drigalski usuli — imtihon natijasi (PDF mezoni)",

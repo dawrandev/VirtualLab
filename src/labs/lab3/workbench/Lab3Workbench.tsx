@@ -7,12 +7,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Drop } from "@/labs/lab1/components2d/animations/Drop";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
-import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
 import { AlcoholJar } from "../components2d/items/AlcoholJar";
-import { MicroscopeModal } from "@/labs/lab2/components2d/MicroscopeModal";
 import { LAB3_ITEMS, LAB3_ITEM_BY_ID, intentFor, canIncubate, type Lab3ItemId } from "./items";
 import { freshDrigalskiState, applyDrigalskiStep, type DrigalskiState, type DrigalskiIntent } from "../state";
-import { SPECIMEN, INCUBATE_MS, DISPLAY_INCUBATE_HOURS, type LabMode, type ExamPhase } from "../exam/protocol";
+import { INCUBATE_MS, DISPLAY_INCUBATE_HOURS, type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreDrigalskiExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab3Sidebar } from "./Lab3Sidebar";
 import { ModeSelect } from "./ModeSelect";
@@ -25,10 +23,8 @@ const GHOST_SCALE = 1.06;
 const SPATULA_COOL_MS = 3200;
 const TICK = 70;
 const RUB_K = 0.0016;
-const REACTION_MS = 2200;
-
-const TRAY_VIOLET: [string, string, string, string] = ["#6d28d9", "#4c1d95", "#5b21b6", "#7c3aed"];
-const TRAY_PINK: [string, string, string, string] = ["#d4146a", "#9d174d", "#a8194f", "#be185d"];
+/** The thermostat is a permanent bench fixture (top-right), never in the sidebar. */
+const FIXED_INCUBATOR = { x: 85, y: 24 };
 
 interface DragState {
   id: Lab3ItemId;
@@ -46,45 +42,30 @@ interface Hold {
 
 /** How a (tool → target) action is performed. */
 function actionKind(intent: DrigalskiIntent): Kind {
-  if (intent === "load-pipette" || intent === "pick-colony") return "sample"; // timed, with a visual
-  if (intent === "make-smear" || intent === "spread-1" || intent === "spread-2" || intent === "spread-3") return "rub";
-  if (intent === "to-microscope") return "instant";
-  return "contact"; // drip material, dip, flame, apply dyes, wash — fire on touch
+  if (intent === "load-pipette") return "sample"; // timed, with a visual
+  if (intent === "spread-1" || intent === "spread-2" || intent === "spread-3") return "rub";
+  return "contact"; // strike match, light lamp, dip, flame, drop material, disinfect
 }
 
 const SAMPLE_DUR = 1500;
 interface Fx {
-  kind: "drip-mat" | "drip-gv" | "drip-lugol" | "drip-alcohol" | "drip-fuchsin" | "wash" | "dip";
+  kind: "drip-mat" | "dip" | "dip-chlorine" | "spark";
   x: number;
   y: number;
   key: number;
 }
 
-const DRIP_COLOR: Record<string, string> = {
-  "drip-mat": "#cfe0d6",
-  "drip-gv": "#6d28d9",
-  "drip-lugol": "#92500f",
-  "drip-alcohol": "#dbe6f0",
-  "drip-fuchsin": "#d4146a",
-};
-
 function nextHint(s: DrigalskiState): string {
   if (!s.dishes) return "lab3.hint.dishes";
-  if (!s.pipetteLoaded && !s.d1.material) return "lab3.hint.loadPipette";
-  if (!s.d1.material) return "lab3.hint.dropMaterial";
-  if (!s.spatulaDipped && !s.spatulaSterile) return "lab3.hint.dipSpatula";
-  if (!s.spatulaSterile) return "lab3.hint.flameSpatula";
+  if (!s.lamp.lit) return s.match.struck ? "lab3.hint.lightLamp" : "lab3.hint.strikeMatch";
+  if (!s.spatulaSterile) return s.spatulaDipped ? "lab3.hint.flameSpatula" : "lab3.hint.dipSpatula";
+  if (!s.d1.material) return s.pipetteLoaded ? "lab3.hint.dropMaterial" : "lab3.hint.loadPipette";
   if (!s.d1.spread) return "lab3.hint.spread1";
   if (!s.d2.spread) return "lab3.hint.spread2";
   if (!s.d3.spread) return "lab3.hint.spread3";
+  if (!s.spatulaDisinfected) return "lab3.hint.disinfect";
   if (!s.incubated) return "lab3.hint.incubate";
-  if (!s.colonyPicked) return "lab3.hint.pickColony";
-  if (!s.smeared) return "lab3.hint.smear";
-  if (!s.gram.gv) return "lab3.hint.gv";
-  if (!s.gram.lugol) return "lab3.hint.lugol";
-  if (!s.gram.alcohol) return "lab3.hint.alcohol";
-  if (!s.gram.fuchsin) return "lab3.hint.fuchsin";
-  return "lab3.hint.micro";
+  return "lab3.hint.done";
 }
 
 export function Lab3Workbench() {
@@ -95,7 +76,8 @@ export function Lab3Workbench() {
   drigRef.current = drig;
 
   const tableRef = useRef<HTMLDivElement | null>(null);
-  const [placed, setPlaced] = useState<Record<string, { x: number; y: number }>>({});
+  // The thermostat is always present at its fixed station.
+  const [placed, setPlaced] = useState<Record<string, { x: number; y: number }>>(() => ({ incubator: FIXED_INCUBATOR }));
   const placedRef = useRef(placed);
   placedRef.current = placed;
   // Dishes hidden inside the incubator + their bench positions to restore.
@@ -114,8 +96,6 @@ export function Lab3Workbench() {
   const holdRef = useRef<Hold | null>(null);
   holdRef.current = hold;
   const holdIv = useRef<number | null>(null);
-  // After a contact/sample action fires the tool stays in hand; lock the target
-  // so it doesn't re-fire until the pointer leaves it.
   const lockTargetRef = useRef<Lab3ItemId | null>(null);
 
   const [fx, setFx] = useState<Fx | null>(null);
@@ -123,13 +103,10 @@ export function Lab3Workbench() {
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [spatulaHot, setSpatulaHot] = useState(false);
-  const [trayStained, setTrayStained] = useState(false);
 
-  // Incubation + dye-reaction countdowns.
+  // Incubation countdown.
   const [inc, setInc] = useState<{ start: number } | null>(null);
   const [incProg, setIncProg] = useState(0);
-  const [reaction, setReaction] = useState<{ start: number } | null>(null);
-  const [reactionProg, setReactionProg] = useState(1);
 
   const [mode, setMode] = useState<LabMode | null>(null);
   const modeRef = useRef<LabMode | null>(null);
@@ -137,9 +114,6 @@ export function Lab3Workbench() {
   const [examPhase, setExamPhase] = useState<ExamPhase>("planning");
   const [actionLog, setActionLog] = useState<ExamAction[]>([]);
   const [examResult, setExamResult] = useState<ExamResult | null>(null);
-
-  const [scopeOpen, setScopeOpen] = useState(false);
-  const [reveal, setReveal] = useState(false);
 
   const isExam = mode === "exam";
   const examActive = isExam && examPhase === "execution";
@@ -183,17 +157,6 @@ export function Lab3Workbench() {
     return () => window.clearInterval(iv);
   }, [inc, recordAction]);
 
-  // Dye reaction → colour deepens over a couple of seconds.
-  useEffect(() => {
-    if (!reaction) return;
-    const iv = window.setInterval(() => {
-      const p = Math.min(1, (Date.now() - reaction.start) / REACTION_MS);
-      setReactionProg(p);
-      if (p >= 1) window.clearInterval(iv);
-    }, 70);
-    return () => window.clearInterval(iv);
-  }, [reaction]);
-
   function perform(intent: DrigalskiIntent) {
     setDrig((g) => applyDrigalskiStep(g, intent));
     recordAction(intent);
@@ -201,22 +164,11 @@ export function Lab3Workbench() {
       const p = placedRef.current[id];
       return { x: p?.x ?? 50, y: p?.y ?? 50 };
     };
-    if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    if (intent === "strike-match") flashAt("spark", at("matchbox").x, at("matchbox").y, 700);
+    else if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    else if (intent === "disinfect-spatula") flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
     else if (intent === "sterilize-spatula") setSpatulaHot(true);
     else if (intent === "drop-material") flashAt("drip-mat", at("dish-1").x, at("dish-1").y);
-    else if (intent === "apply-gv" || intent === "apply-lugol" || intent === "apply-alcohol" || intent === "apply-fuchsin") {
-      const { x, y } = at("slide");
-      flashAt(`drip-${intent === "apply-gv" ? "gv" : intent === "apply-lugol" ? "lugol" : intent === "apply-alcohol" ? "alcohol" : "fuchsin"}` as Fx["kind"], x, y, 1300);
-      setReaction({ start: Date.now() });
-      setReactionProg(0);
-    } else if (intent === "wash") {
-      const { x, y } = at("slide");
-      flashAt("wash", x, y, 1100);
-      if (placedRef.current["tray"]) setTrayStained(true);
-    } else if (intent === "to-microscope") {
-      setReveal(false);
-      setScopeOpen(true);
-    }
   }
 
   function startIncubation() {
@@ -250,6 +202,7 @@ export function Lab3Workbench() {
   }, []);
 
   const startDrag = useCallback((id: Lab3ItemId, e: React.PointerEvent) => {
+    if (LAB3_ITEM_BY_ID[id].fixed) return; // permanent fixtures can't be dragged
     const fromSidebar = !placedRef.current[id];
     lastPtr.current = { x: e.clientX, y: e.clientY };
     setDrag({ id, fromSidebar, px: e.clientX, py: e.clientY });
@@ -264,7 +217,6 @@ export function Lab3Workbench() {
     setHold(null);
   }
 
-  /** Fired once a timed/rub action completes; the tool stays in hand. */
   function completeAction(intent: DrigalskiIntent, target: Lab3ItemId) {
     perform(intent);
     cancelHold();
@@ -300,17 +252,16 @@ export function Lab3Workbench() {
       const rect = tableRef.current?.getBoundingClientRect();
       if (!d || !rect) return;
       const { hx, hy } = hitPoint(d, e.clientX, e.clientY);
-      const tg = targetAt(hx - rect.left, hy - rect.top, d.id);
-      const intent = tg ? intentFor(d.id, tg, drigRef.current) : null;
-      const validIncubate = tg === "incubator" && d.id.startsWith("dish-") && canIncubate(drigRef.current);
-      setHoverTarget(intent || validIncubate ? tg : null);
+      const tgId = targetAt(hx - rect.left, hy - rect.top, d.id);
+      const intent = tgId ? intentFor(d.id, tgId, drigRef.current) : null;
+      const validIncubate = tgId === "incubator" && d.id.startsWith("dish-") && canIncubate(drigRef.current);
+      setHoverTarget(intent || validIncubate ? tgId : null);
 
       const h = holdRef.current;
-      // Release the lock once the pointer leaves that target.
-      if (lockTargetRef.current && tg !== lockTargetRef.current) lockTargetRef.current = null;
+      if (lockTargetRef.current && tgId !== lockTargetRef.current) lockTargetRef.current = null;
 
-      if (!intent || !tg) {
-        if (h && h.kind !== "rub") cancelHold(); // timed needs continuous contact
+      if (!intent || !tgId) {
+        if (h && h.kind !== "rub") cancelHold();
         return;
       }
       // Spreading plate 1 needs a sterile spreader.
@@ -318,31 +269,31 @@ export function Lab3Workbench() {
         if (h) cancelHold();
         return;
       }
-      if (lockTargetRef.current === tg) return; // already fired, tool still in hand
+      if (lockTargetRef.current === tgId) return;
 
       const kind = actionKind(intent);
       if (kind === "contact") {
         if (h) cancelHold();
         perform(intent);
-        lockTargetRef.current = tg;
+        lockTargetRef.current = tgId;
         return;
       }
       if (kind === "instant") {
         if (h) cancelHold();
-        return; // fires on release
+        return;
       }
       if (kind === "sample") {
-        if (!h || h.target !== tg || h.kind !== "sample") startTimed(tg, intent, SAMPLE_DUR);
+        if (!h || h.target !== tgId || h.kind !== "sample") startTimed(tgId, intent, SAMPLE_DUR);
         return;
       }
       // rub — accumulate from movement
-      if (!h || h.target !== tg || h.kind !== "rub") {
-        const nh: Hold = { kind: "rub", target: tg, intent, progress: 0 };
+      if (!h || h.target !== tgId || h.kind !== "rub") {
+        const nh: Hold = { kind: "rub", target: tgId, intent, progress: 0 };
         holdRef.current = nh;
         setHold(nh);
       } else {
         const np = h.progress + Math.hypot(dx, dy) * RUB_K;
-        if (np >= 1) completeAction(intent, tg);
+        if (np >= 1) completeAction(intent, tgId);
         else {
           const nh: Hold = { ...h, progress: np };
           holdRef.current = nh;
@@ -371,9 +322,11 @@ export function Lab3Workbench() {
   function snapPos(id: Lab3ItemId, rect: DOMRect, fallback: { x: number; y: number }): { x: number; y: number } {
     const p = placedRef.current;
     if (id === "suspension" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
-    if (id === "loop" && p["loop-stand"]) return { x: p["loop-stand"].x, y: p["loop-stand"].y + (-55 / rect.height) * 100 };
-    if (id === "spatula" && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-47 / rect.height) * 100 };
-    if (id === "slide" && p["bridge"]) return { x: p["bridge"].x, y: p["bridge"].y - 4 };
+    // The used spreader rests in whichever jar matches its state.
+    if (id === "spatula") {
+      if (drigRef.current.spatulaDisinfected && p["chlorine-jar"]) return { x: p["chlorine-jar"].x, y: p["chlorine-jar"].y + (-47 / rect.height) * 100 };
+      if (!drigRef.current.spatulaSterile && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-47 / rect.height) * 100 };
+    }
     return fallback;
   }
 
@@ -424,12 +377,10 @@ export function Lab3Workbench() {
     if (target) {
       const intent = intentFor(d.id, target, drigRef.current);
       if (intent) {
-        // Instant actions fire on release; contact/sample/rub already fired
-        // mid-drag. Either way the tool is laid back down (never vanishes).
         if (actionKind(intent) === "instant") perform(intent);
-        const fx = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
-        const fy = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
-        const pos = snapPos(d.id, rect, { x: fx, y: fy });
+        const fxp = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
+        const fyp = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
+        const pos = snapPos(d.id, rect, { x: fxp, y: fyp });
         setPlaced((p) => ({ ...p, [d.id]: pos }));
         endDrag();
         return;
@@ -439,11 +390,7 @@ export function Lab3Workbench() {
     // Plain placement (snap apparatus/tools to their stations).
     const fxp = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
     const fyp = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
-    let pos = snapPos(d.id, rect, { x: fxp, y: fyp });
-    if (d.id === "slide" && !placedRef.current["bridge"]) {
-      showToast(tg("lab3.toast.needBridge"));
-      pos = { x: fxp, y: fyp };
-    }
+    const pos = snapPos(d.id, rect, { x: fxp, y: fyp });
     setPlaced((p) => {
       const n = { ...p, [d.id]: pos };
       if (d.id.startsWith("dish-") && n["dish-1"] && n["dish-2"] && n["dish-3"] && !drigRef.current.dishes) {
@@ -455,67 +402,44 @@ export function Lab3Workbench() {
     endDrag();
   }
 
-  function classify(type: "positive" | "negative") {
-    setDrig((g) => ({ ...g, classification: type }));
-    if (modeRef.current === "exam") {
-      setScopeOpen(false);
-      finishExam(type);
-    } else {
-      setReveal(true);
-    }
-  }
   function startExam() {
     setExamPhase("execution");
   }
-  function finishExam(classification: "positive" | "negative" | null) {
-    const cls = classification ?? drigRef.current.classification;
-    setExamResult(scoreDrigalskiExam(actionLog, drigRef.current, cls));
+  function finishExam() {
+    setExamResult(scoreDrigalskiExam(actionLog, drigRef.current));
     setExamPhase("result");
   }
   function restart() {
     setDrig(freshDrigalskiState());
-    setPlaced({});
+    setPlaced({ incubator: FIXED_INCUBATOR });
     setInIncubator(new Set());
     dishHome.current = {};
     setActionLog([]);
     setExamResult(null);
     setSpatulaHot(false);
-    setTrayStained(false);
     setInc(null);
     setIncProg(0);
-    setReaction(null);
-    setReactionProg(1);
     cancelHold();
     lockTargetRef.current = null;
-    setScopeOpen(false);
-    setReveal(false);
     setExamPhase("planning");
     setMode(null);
   }
 
   const placedSet = new Set(Object.keys(placed).filter((k) => !inIncubator.has(k))) as Set<Lab3ItemId>;
+  const movableCount = [...placedSet].filter((id) => !LAB3_ITEM_BY_ID[id].fixed).length;
   // Dishes inside the incubator are still "in use" — keep them out of the tray.
-  const sidebarPlaced = new Set([...placedSet, ...inIncubator]) as Set<Lab3ItemId>;
+  // Fixed fixtures are never offered in the sidebar.
+  const sidebarPlaced = new Set([...placedSet, ...inIncubator, ...LAB3_ITEMS.filter((i) => i.fixed).map((i) => i.id)]) as Set<Lab3ItemId>;
   const draggingDef = drag ? LAB3_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(drig);
-  const develop = reaction ? reactionProg : 1;
-  const trayColors = drig.gram.fuchsin ? TRAY_PINK : TRAY_VIOLET;
-  const sampling = hold?.kind === "sample";
   const renderOpts = {
     spatulaHot,
     incubatorRunning: inc != null,
-    develop,
-    trayStained,
-    trayColors,
-    suspensionPlugOff: sampling && hold?.intent === "load-pipette",
+    suspensionPlugOff: hold?.kind === "sample" && hold?.intent === "load-pipette",
   };
-  const slidePos = placed["slide"];
-  const dish3Pos = placed["dish-3"];
-  // Seated-on-station detection (drives the loop's vertical pose + the 3-layer
-  // occlusion overlays so the loop/tube read as *inside* their stations).
-  const loopOnStand = !!placed["loop"] && !!placed["loop-stand"] && Math.abs(placed["loop"].x - placed["loop-stand"].x) < 2;
   const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
-  const spatulaInJar = !!placed["spatula"] && !!placed["alcohol-jar"] && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
+  const spatulaInAlcohol = !!placed["spatula"] && !!placed["alcohol-jar"] && !drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
+  const spatulaInChlorine = !!placed["spatula"] && !!placed["chlorine-jar"] && drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["chlorine-jar"].x) < 3;
 
   const validTargets = new Set<Lab3ItemId>();
   if (drag) {
@@ -550,7 +474,7 @@ export function Lab3Workbench() {
 
         <div className="flex items-center gap-2">
           {examActive && (
-            <button onClick={() => finishExam(drig.classification)} className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">✓ Yakunlash</button>
+            <button onClick={finishExam} className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-400">✓ Yakunlash</button>
           )}
           <LanguageSwitcher />
           <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
@@ -572,7 +496,7 @@ export function Lab3Workbench() {
               <p className="rounded-2xl bg-white/80 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.planFirst")}</p>
             </div>
           )}
-          {placedSet.size === 0 && !drag && !isExam && (
+          {movableCount === 0 && !drag && !isExam && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <p className="rounded-2xl bg-white/70 px-5 py-3 text-sm font-medium text-slate-500 shadow">{tg("ui.dragToTable")}</p>
             </div>
@@ -598,23 +522,24 @@ export function Lab3Workbench() {
                   />
                 )}
                 <div
-                  onPointerDown={(e) => {
+                  onPointerDown={it.fixed ? undefined : (e) => {
                     e.preventDefault();
                     startDrag(it.id, e);
                   }}
-                  onDoubleClick={() =>
-                    setPlaced((p) => {
-                      const n = { ...p };
-                      delete n[it.id];
-                      return n;
-                    })
+                  onDoubleClick={
+                    it.fixed
+                      ? undefined
+                      : () =>
+                          setPlaced((p) => {
+                            const n = { ...p };
+                            delete n[it.id];
+                            return n;
+                          })
                   }
-                  style={{ cursor: "grab" }}
+                  style={{ cursor: it.fixed ? "default" : "grab" }}
                   title={tg(it.label)}
                 >
-                  {it.id === "loop" && loopOnStand ? (
-                    <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(drig, renderOpts)}</div>
-                  ) : it.id === "spatula" && spatulaInJar ? (
+                  {it.id === "spatula" && (spatulaInAlcohol || spatulaInChlorine) ? (
                     <div style={{ transform: "rotate(82deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
                   ) : (
                     it.render(drig, renderOpts)
@@ -631,26 +556,16 @@ export function Lab3Workbench() {
               <TestTubeRack width={340} front />
             </div>
           )}
-          {/* Front face of the loop stand — frosts the seated loop's handle. */}
-          {loopOnStand && placed["loop-stand"] && (
-            <div className="pointer-events-none absolute" style={{ left: `${placed["loop-stand"].x}%`, top: `${placed["loop-stand"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
-              <LoopStand width={200} front />
-            </div>
-          )}
-          {/* Front glass + alcohol of the jar — painted over the dipped spreader
-              so its working end reads as submerged in the alcohol. */}
-          {spatulaInJar && placed["alcohol-jar"] && (
+          {/* Front glass + liquid of the alcohol jar — painted over the dipped spreader. */}
+          {spatulaInAlcohol && placed["alcohol-jar"] && (
             <div className="pointer-events-none absolute" style={{ left: `${placed["alcohol-jar"].x}%`, top: `${placed["alcohol-jar"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
-              <AlcoholJar width={110} front />
+              <AlcoholJar width={110} variant="alcohol" front />
             </div>
           )}
-
-          {/* Smear marks building up as the loop rubs the slide */}
-          {hold?.intent === "make-smear" && slidePos && (
-            <div className="pointer-events-none absolute z-20" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
-              <svg width="120" height="46" viewBox="0 0 120 46">
-                <path d="M60 23 m -17 0 a 17 8.5 0 1 0 34 0 a 13 6.5 0 1 0 -26 0 a 9 4.5 0 1 0 18 0" stroke="#cdbb93" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeDasharray={170} strokeDashoffset={170 * (1 - hold.progress)} opacity="0.9" />
-              </svg>
+          {/* Front glass of the chlorine jar — over the discarded used spreader. */}
+          {spatulaInChlorine && placed["chlorine-jar"] && (
+            <div className="pointer-events-none absolute" style={{ left: `${placed["chlorine-jar"].x}%`, top: `${placed["chlorine-jar"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+              <AlcoholJar width={110} variant="chlorine" front />
             </div>
           )}
 
@@ -677,24 +592,36 @@ export function Lab3Workbench() {
             </div>
           )}
 
-          {/* Colony pick: a touch ring pulses on the isolated colony in plate 3 */}
-          {hold?.kind === "sample" && hold.intent === "pick-colony" && dish3Pos && (
-            <div className="pointer-events-none absolute z-20" style={{ left: `${dish3Pos.x}%`, top: `${dish3Pos.y}%`, transform: "translate(-50%,-50%)" }}>
-              <svg width="132" height="132" viewBox="0 0 132 132">
-                <circle cx="44.9" cy="47.5" r={6 + hold.progress * 5} fill="none" stroke="#e0573f" strokeWidth="2" opacity={0.9 - hold.progress * 0.4} />
-                <circle cx="44.9" cy="47.5" r="3.4" fill="#f8f8da" />
+          {/* Material drip from the pipette onto plate 1 */}
+          {fx && fx.kind === "drip-mat" && (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 8}%` }}>
+              <Drop trigger={fx.key} color="#cfe0d6" fallHeight={60} />
+            </div>
+          )}
+          {/* Match strike spark on the box */}
+          {fx?.kind === "spark" && (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <motion.line
+                    key={i}
+                    x1="30"
+                    y1="30"
+                    x2={30 + 16 * Math.cos((i / 6) * Math.PI * 2)}
+                    y2={30 + 16 * Math.sin((i / 6) * Math.PI * 2)}
+                    stroke="#fbbf24"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    initial={{ opacity: 0.9, pathLength: 0 }}
+                    animate={{ opacity: 0, pathLength: 1 }}
+                    transition={{ duration: 0.45, delay: i * 0.02 }}
+                  />
+                ))}
               </svg>
             </div>
           )}
-
-          {/* Drips */}
-          {fx && fx.kind.startsWith("drip") && (
-            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 8}%` }}>
-              <Drop trigger={fx.key} color={DRIP_COLOR[fx.kind]} fallHeight={60} />
-            </div>
-          )}
-          {/* Alcohol dip — expanding ripple rings on the jar's surface */}
-          {fx?.kind === "dip" && (
+          {/* Jar dip — expanding ripple rings on the liquid surface */}
+          {(fx?.kind === "dip" || fx?.kind === "dip-chlorine") && (
             <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 18}%`, transform: "translate(-50%,-50%)" }}>
               <svg width="90" height="40" viewBox="0 0 90 40">
                 {[0, 1, 2].map((i) => (
@@ -706,21 +633,12 @@ export function Lab3Workbench() {
                     animate={{ rx: 26, ry: 9, opacity: 0 }}
                     transition={{ duration: 0.8, delay: i * 0.18, ease: "easeOut" }}
                     fill="none"
-                    stroke="#bfe0ee"
+                    stroke={fx.kind === "dip-chlorine" ? "#c4d98a" : "#bfe0ee"}
                     strokeWidth="1.6"
                   />
                 ))}
-                <motion.circle cx="45" cy="18" r="2.5" initial={{ y: -10, opacity: 0.9 }} animate={{ y: 0, opacity: 0 }} transition={{ duration: 0.35 }} fill="#cfe6f0" />
+                <motion.circle cx="45" cy="18" r="2.5" initial={{ y: -10, opacity: 0.9 }} animate={{ y: 0, opacity: 0 }} transition={{ duration: 0.35 }} fill={fx.kind === "dip-chlorine" ? "#d6e6a0" : "#cfe6f0"} />
               </svg>
-            </div>
-          )}
-          {/* Wash stream + coloured runoff toward the tray */}
-          {fx?.kind === "wash" && (
-            <div key={fx.key} className="pointer-events-none absolute z-30 overflow-hidden" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-30%)", width: 130, height: 190 }}>
-              <motion.div initial={{ y: -90, opacity: 0.9 }} animate={{ y: 60, opacity: 0 }} transition={{ duration: 0.95, ease: "easeIn" }} style={{ width: "100%", height: 60, background: "linear-gradient(180deg, rgba(150,200,225,0) 0%, rgba(150,200,225,0.9) 50%, rgba(150,200,225,0) 100%)" }} />
-              {[0, 1, 2, 3, 4].map((i) => (
-                <motion.div key={i} initial={{ y: 4, opacity: 0 }} animate={{ y: 160, opacity: [0, 0.85, 0.85, 0] }} transition={{ duration: 0.85, delay: i * 0.07, ease: "easeIn" }} className="absolute rounded-full" style={{ left: `${20 + i * 16}%`, width: 6, height: 14, background: trayColors[0] }} />
-              ))}
             </div>
           )}
 
@@ -735,14 +653,10 @@ export function Lab3Workbench() {
             </div>
           )}
 
-          {/* Drag ghost — the loop dips as it picks a colony / rubs a smear */}
+          {/* Drag ghost */}
           {drag && draggingDef && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
-              {drag.id === "loop" && hold ? (
-                <div style={{ transform: `translateY(${hold.progress * 10}px)`, transition: "transform 0.1s ease" }}>{draggingDef.render(drig, renderOpts)}</div>
-              ) : (
-                draggingDef.render(drig, renderOpts)
-              )}
+              {draggingDef.render(drig, renderOpts)}
             </div>
           )}
 
@@ -758,13 +672,11 @@ export function Lab3Workbench() {
         {isExam && examPhase === "planning" && <PlanningSidebar onStart={startExam} />}
       </div>
 
-      <MicroscopeModal open={scopeOpen} cellColor="violet" picked={drig.classification} reveal={reveal && !isExam} correct={SPECIMEN.gram} onClassify={classify} onClose={() => setScopeOpen(false)} />
-
       <AnimatePresence>{mode === null && <ModeSelect onPick={setMode} />}</AnimatePresence>
 
       <AnimatePresence>
-        {isExam && examPhase === "result" && examResult && !scopeOpen && (
-          <Lab3ResultModal result={examResult} onRestart={restart} onViewScope={() => setScopeOpen(true)} />
+        {isExam && examPhase === "result" && examResult && (
+          <Lab3ResultModal result={examResult} onRestart={restart} />
         )}
       </AnimatePresence>
     </div>

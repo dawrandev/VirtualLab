@@ -2,20 +2,27 @@
  * Lab 3 (Drigalski spread-plate) runtime state. Self-contained — the workbench
  * owns this in React state.
  *
- * The method: a sterile glass spreader spreads the suspension across plate 1,
- * then the SAME spreader (without re-sterilizing) is dragged across plates 2
- * and 3 — progressive depletion. After 18–24 h incubation: plate 1 = confluent
- * lawn, plate 2 = merged colonies, plate 3 = isolated colonies. An isolated
- * colony is picked, smeared, Gram-stained and read under the microscope.
+ * The method: the glass spreader is dipped in alcohol and flamed sterile over a
+ * hand-lit spirit lamp, then the suspension is dropped on plate 1 and spread;
+ * the SAME spreader (without re-sterilizing) is dragged across plates 2 and 3 —
+ * progressive depletion. The used, contaminated spreader is then dropped into a
+ * 5% chlorine disinfectant jar. The three plates incubate 18–24 h at 37 °C:
+ * plate 1 = confluent lawn, plate 2 = merged colonies, plate 3 = isolated
+ * colonies. The work ends once the grown plates come out of the thermostat.
  */
 
 export interface DrigalskiState {
   /** Three agar plates obtained and set on the bench. */
   dishes: boolean;
+  /** Spirit lamp lit by hand (match struck on the box, then touched to wick). */
+  match: { struck: boolean; lit: boolean };
+  lamp: { lit: boolean };
   /** Working end dipped in alcohol (before flaming). */
   spatulaDipped: boolean;
   /** Spreader flamed/sterile before plate 1. */
   spatulaSterile: boolean;
+  /** Used spreader decontaminated in the 5% chlorine jar after spreading. */
+  spatulaDisinfected: boolean;
   /** Suspension drawn into the pipette. */
   pipetteLoaded: boolean;
   d1: { material: boolean; spread: boolean };
@@ -23,35 +30,28 @@ export interface DrigalskiState {
   d3: { spread: boolean };
   /** Placed in the thermostat and the 18–24 h incubation elapsed. */
   incubated: boolean;
-  /** Phase 2 — pure-culture work-up. */
-  colonyPicked: boolean;
-  smeared: boolean;
-  gram: { gv: boolean; lugol: boolean; alcohol: boolean; fuchsin: boolean };
-  microscopeOpen: boolean;
-  /** Student recorded the morphology/Gram result. */
-  classification: "positive" | "negative" | null;
 }
 
 export function freshDrigalskiState(): DrigalskiState {
   return {
     dishes: false,
+    match: { struck: false, lit: false },
+    lamp: { lit: false },
     spatulaDipped: false,
     spatulaSterile: false,
+    spatulaDisinfected: false,
     pipetteLoaded: false,
     d1: { material: false, spread: false },
     d2: { spread: false },
     d3: { spread: false },
     incubated: false,
-    colonyPicked: false,
-    smeared: false,
-    gram: { gv: false, lugol: false, alcohol: false, fuchsin: false },
-    microscopeOpen: false,
-    classification: null,
   };
 }
 
 export type DrigalskiIntent =
   | "get-dishes"
+  | "strike-match" // match → matchbox
+  | "light-lamp" // lit match → lamp
   | "dip-spatula"
   | "sterilize-spatula"
   | "load-pipette"
@@ -59,15 +59,8 @@ export type DrigalskiIntent =
   | "spread-1"
   | "spread-2"
   | "spread-3"
-  | "incubate"
-  | "pick-colony" // loop → dish 3
-  | "make-smear" // loop → slide
-  | "apply-gv"
-  | "apply-lugol"
-  | "apply-alcohol"
-  | "apply-fuchsin"
-  | "wash"
-  | "to-microscope";
+  | "disinfect-spatula" // used spreader → 5% chlorine jar
+  | "incubate";
 
 /** Growth pattern a plate shows after incubation. */
 export type Growth = "none" | "lawn" | "merged" | "isolated";
@@ -79,29 +72,25 @@ export function dishGrowth(s: DrigalskiState, dish: 1 | 2 | 3): Growth {
   return s.d3.spread ? "isolated" : "none";
 }
 
-/** Gram colour stage of the worked-up smear (Gram-positive specimen). */
-export type GramStage = "fixed" | "violet" | "iodine" | "decolorized" | "fuchsin" | "final";
-export function smearStage(s: DrigalskiState): GramStage {
-  if (!s.smeared) return "fixed";
-  const g = s.gram;
-  if (g.fuchsin) return "final";
-  if (g.alcohol) return "decolorized";
-  if (g.lugol) return "iodine";
-  if (g.gv) return "violet";
-  return "fixed";
-}
-
 export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiIntent): DrigalskiState {
   const s: DrigalskiState = {
     ...state,
+    match: { ...state.match },
+    lamp: { ...state.lamp },
     d1: { ...state.d1 },
     d2: { ...state.d2 },
     d3: { ...state.d3 },
-    gram: { ...state.gram },
   };
   switch (intent) {
     case "get-dishes":
       s.dishes = true;
+      break;
+    case "strike-match":
+      s.match.struck = true;
+      s.match.lit = true;
+      break;
+    case "light-lamp":
+      s.lamp.lit = true;
       break;
     case "dip-spatula":
       s.spatulaDipped = true;
@@ -127,32 +116,11 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
     case "spread-3":
       s.d3.spread = true;
       break;
+    case "disinfect-spatula":
+      s.spatulaDisinfected = true;
+      break;
     case "incubate":
       s.incubated = true;
-      break;
-    case "pick-colony":
-      s.colonyPicked = true;
-      break;
-    case "make-smear":
-      s.smeared = true;
-      break;
-    case "apply-gv":
-      s.gram.gv = true;
-      break;
-    case "apply-lugol":
-      s.gram.lugol = true;
-      break;
-    case "apply-alcohol":
-      s.gram.alcohol = true;
-      break;
-    case "apply-fuchsin":
-      s.gram.fuchsin = true;
-      break;
-    case "wash":
-      // Rinsing — visual only (pours dye into the tray); no scored state change.
-      break;
-    case "to-microscope":
-      s.microscopeOpen = true;
       break;
   }
   return s;

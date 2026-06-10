@@ -288,7 +288,10 @@
       "lugol": "Lugol's solution",
       "ethanol": "Ethyl alcohol",
       "fuchsin": "Fuchsin",
-      "microscope": "Microscope"
+      "microscope": "Microscope",
+      "matchbox": "Matchbox",
+      "match": "Match",
+      "chlorineJar": "5% chlorine (disinfectant)"
     },
     "hint": {
       "dishes": "Place 3 nutrient Petri dishes on the bench",
@@ -306,7 +309,11 @@
       "lugol": "Apply Lugol's solution",
       "alcohol": "Decolorize with ethyl alcohol",
       "fuchsin": "Counterstain with fuchsin",
-      "micro": "Take the slide to the microscope and read the result"
+      "micro": "Take the slide to the microscope and read the result",
+      "strikeMatch": "Strike the match on the box",
+      "lightLamp": "Light the spirit lamp with the burning match",
+      "disinfect": "Drop the used spreader into the 5% chlorine disinfectant",
+      "done": "Done — the plates are out of the thermostat, work complete"
     },
     "toast": {
       "needAll3": "First spread onto all 3 dishes",
@@ -327,7 +334,13 @@
       "colonyCard": "Single colony → smear → Gram",
       "colonyResult": "Take a pure culture from a single colony, make a smear and Gram-stain it",
       "microCard": "Examine under the microscope",
-      "microResult": "View the smear under the microscope and determine the morphological and tinctorial properties"
+      "microResult": "View the smear under the microscope and determine the morphological and tinctorial properties",
+      "sterilizeCard": "Sterilize the spreader",
+      "sterilizeResult": "Light the spirit lamp, dip the spreader in alcohol and flame it sterile",
+      "disinfectCard": "Disinfect the spreader (5% chlorine)",
+      "disinfectResult": "Drop the used spreader into 5% chlorine solution to decontaminate it",
+      "incubateCard": "Incubate in the thermostat",
+      "incubateResult": "Incubate the 3 plates at 37 °C for 18-24 h"
     },
     "score": {
       "dishesZero": "3 Petri dishes were not taken",
@@ -345,7 +358,11 @@
       "gramIncomplete": "The Gram stain was not completed (4 reagents: crystal violet, Lugol, alcohol, fuchsin)",
       "microZero": "Not viewed under the microscope",
       "noMorph": "Morphological/tinctorial property not determined",
-      "gramWrong": "The Gram type was determined incorrectly"
+      "gramWrong": "The Gram type was determined incorrectly",
+      "noAlcohol": "The spreader was not dipped in alcohol first",
+      "disinfectZero": "The used spreader was not placed in 5% chlorine (no disinfection)",
+      "disinfectEarly": "The spreader was disinfected before spreading",
+      "incubatePartial": "Placed in the thermostat, but not all 3 plates were spread"
     },
     "result": {
       "subtitle": "Drigalski method — exam result (PDF criteria)",

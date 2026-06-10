@@ -284,7 +284,10 @@
       "lugol": "Lyugol eritpesi",
       "ethanol": "Etil spirti",
       "fuchsin": "Fuksin",
-      "microscope": "Mikroskop"
+      "microscope": "Mikroskop",
+      "matchbox": "Gugurt qutısı",
+      "match": "Gugurt",
+      "chlorineJar": "5% xlor (dezrastvor)"
     },
     "hint": {
       "dishes": "Azuqlıq ortalıqlı 3 Petri ıdısın stolǵa qoyıń",
@@ -302,7 +305,11 @@
       "lugol": "Lyugol eritpesin tamızıń",
       "alcohol": "Etil spirti menen reńsizlendiriń",
       "fuchsin": "Fuksin menen boyań",
-      "micro": "Aynanı mikroskopqa alıp barıń hám nátiyjeni anıqlań"
+      "micro": "Aynanı mikroskopqa alıp barıń hám nátiyjeni anıqlań",
+      "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
+      "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
+      "disinfect": "Isletilgen shpateldi 5% xlor (dezrastvor) bankasına salıń",
+      "done": "Tayar — ıdıslar termostattan alındı, jumıs juwmaqlandı"
     },
     "toast": {
       "needAll3": "Dáslep 3 ıdısqa da súrtiń",
@@ -323,7 +330,13 @@
       "colonyCard": "Bólek koloniya → súrtpe → Gram",
       "colonyResult": "Bólek koloniyadan taza kultura alıp, súrtpe tayarlap Gram usılında boyaw",
       "microCard": "Mikroskopta úyreniw",
-      "microResult": "Súrtpe ni mikroskopta kórip, morfologiyalıq hám tinktorial qásiyetlerin anıqlaw"
+      "microResult": "Súrtpe ni mikroskopta kórip, morfologiyalıq hám tinktorial qásiyetlerin anıqlaw",
+      "sterilizeCard": "Shpateldi sterilizaciyalaw",
+      "sterilizeResult": "Spirt lampasın jaǵıp, shpateldi spirtke malıp jalında sterilizaciyalaw",
+      "disinfectCard": "Shpateldi dezinfekciyalaw (5% xlor)",
+      "disinfectResult": "Isletilgen shpateldi 5% xlor eritpesine salıp zararsızlandırıw",
+      "incubateCard": "Termostatta inkubaciya",
+      "incubateResult": "3 ıdıstı 37 °C termostatta 18-24 saat inkubaciyalaw"
     },
     "score": {
       "dishesZero": "3 Petri ıdısı alınmadı",
@@ -341,7 +354,11 @@
       "gramIncomplete": "Gram boyaw tolıq orınlanmadı (4 reaktiv: gensianviolet, lyugol, spirt, fuksin)",
       "microZero": "Mikroskopta kórilmedi",
       "noMorph": "Morfologiyalıq/tinktorial qásiyet anıqlanmadı",
-      "gramWrong": "Gram tiyisliligi qáte anıqlandı"
+      "gramWrong": "Gram tiyisliligi qáte anıqlandı",
+      "noAlcohol": "Shpatel aldın spirtke malınbaǵan",
+      "disinfectZero": "Isletilgen shpatel 5% xlorǵa salınbadı (dezinfekciya joq)",
+      "disinfectEarly": "Shpatel egiwden aldın dezinfekciyalanǵan",
+      "incubatePartial": "Termostatqa qoyıldı, biraq 3 ıdıs da egilmegen"
     },
     "result": {
       "subtitle": "Drigalski usılı — imtihan nátiyjesi (PDF kriteriyası)",
