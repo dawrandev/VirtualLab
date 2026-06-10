@@ -507,18 +507,20 @@ export function Lab2Workbench() {
           {/* Reaction countdown (learn mode) — shows the real 1–2 min protocol
               time ticking 2:00 → 0:00, sped up into the 10 s sim wait. */}
           {showCountdown && slidePos && (
-            <div className="pointer-events-none absolute z-30" style={{ left: `${slidePos.x}%`, top: `${slidePos.y - 16}%`, transform: "translate(-50%,-100%)" }}>
-              <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/90 px-3 py-2 text-white shadow-lg">
-                {/* sand hourglass — drains over the (sped-up) wait */}
-                <Hourglass progress={reactionProg} width={26} />
-                <div className="leading-tight">
-                  <p className="flex items-center gap-2 text-[12px] font-semibold">
-                    <span>{reactionProg >= 1 ? tg("lab2.wait.ready") : tg("lab2.wait.developing")}</span>
-                    {reactionProg < 1 && <span className="rounded bg-white/15 px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-amber-200">{fmtClock(DISPLAY_WAIT_SECONDS * (1 - reactionProg))}</span>}
-                    {reactionProg >= 1 && <span className="text-emerald-400">✓</span>}
-                  </p>
-                  <p className="text-[10px] text-slate-300">{tg("lab2.wait.realTime")}</p>
-                </div>
+            <div className="pointer-events-none absolute z-30" style={{ left: `${slidePos.x}%`, top: `${slidePos.y - 18}%`, transform: "translate(-50%,-100%)" }}>
+              {/* BIG bare hourglass (no card) — the student watches the sand fall
+                  and acts when it has run out. Text sits below on the bench. */}
+              <div className="flex flex-col items-center gap-1" style={{ textShadow: "0 1px 3px rgba(255,255,255,0.95), 0 1px 6px rgba(255,255,255,0.7)" }}>
+                <Hourglass progress={reactionProg} width={124} />
+                <p className="mt-1 text-[14px] font-bold text-slate-800">
+                  {reactionProg >= 1 ? tg("lab2.wait.ready") : tg("lab2.wait.developing")}
+                </p>
+                {reactionProg < 1 ? (
+                  <p className="font-mono text-[40px] font-extrabold leading-none tabular-nums text-amber-600">{fmtClock(DISPLAY_WAIT_SECONDS * (1 - reactionProg))}</p>
+                ) : (
+                  <p className="text-[40px] leading-none text-emerald-600">✓</p>
+                )}
+                <p className="text-[12px] font-semibold text-slate-600">{tg("lab2.wait.realTime")}</p>
               </div>
             </div>
           )}

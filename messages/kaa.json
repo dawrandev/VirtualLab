@@ -59,16 +59,16 @@
     "planTitle": "Jumıs tártibin duziń",
     "planInstruction": "Qádemlerdi durıs izbe-izlikte jaylastırıń.",
     "planConfirm": "Tártipti tastıyıqlap baslaw →",
-    "planLocked": "Tastıyıqlannnan soń tártipti ózgertip bolmaydı.",
+    "planLocked": "Tastıyıqlanǵannan soń tártipti ózgertip bolmaydı.",
     "planFirst": "Dáslep oń panelden jumıs tártibin duziń →",
     "toolsTitle": "Laboratoriya ásbapları",
-    "dragHintSidebar": "Ásbaplardı jumıs stólina sabaqlap, qálegen jerge qoyıń",
-    "onTable": "stólda",
-    "dragToTable": "Ásbaplardı shep panelden jumıs stólina sabaqlap alıń",
+    "dragHintSidebar": "Ásbaplardı jumıs stolina sabaqlap, qálegen jerge qoyıń",
+    "onTable": "stolda",
+    "dragToTable": "Ásbaplardı shep panelden jumıs stolına sabaqlap alıń",
     "examBanner": "Imtihan — járdem joq. Bilgenińizshe orınlań.",
     "restart": "Qaytadan baslaw",
-    "close": "Japıw",
-    "tierExcellent": "Á'lo",
+    "close": "Jabıw",
+    "tierExcellent": "Ájayıp",
     "tierGood": "Jaqsı",
     "tierOk": "Qanaatlandırarlı",
     "tierPoor": "Qanaatlandırarsız",
@@ -101,7 +101,7 @@
       "done": "Bakteriya háreketsheńligin anıqlań"
     },
     "toast": {
-      "needBridge": "Dáslep shisha kópirikti stólǵa qoyıń",
+      "needBridge": "Dáslep shisha kópirikti stolǵa qoyıń",
       "needPrep": "Dáslep preparattı tayarlap, qaplaǵısh ayna menen jawıń",
       "success": "✓ Preparat tayar — jumıstı tabıslı juwmaqladıńız!"
     },
@@ -167,7 +167,7 @@
       "incubator": "Termostat"
     },
     "hint": {
-      "dish": "Azuqlıq ortalıqlı Petri ıdısın stólǵa qoyıń",
+      "dish": "Azuqlıq ortalıqlı Petri ıdısın stolǵa qoyıń",
       "charge": "Steril paxta tampondı E. coli kulturasına batırıń",
       "spread": "Tampon menen «gazon» usılında súrtiń — {n}/3-baǵdar (ıdıstı ~60° aylandırıp)",
       "dry": "Idıs júzesi sińgansha ~5 minutta qurıtıń",
@@ -287,7 +287,7 @@
       "microscope": "Mikroskop"
     },
     "hint": {
-      "dishes": "Azuqlıq ortalıqlı 3 Petri ıdısın stólǵa qoyıń",
+      "dishes": "Azuqlıq ortalıqlı 3 Petri ıdısın stolǵa qoyıń",
       "loadPipette": "Pipetka menen suspenziyadan alıń",
       "dropMaterial": "Pipetkadaǵı materialdı 1-ıdısqa tamızıń",
       "dipSpatula": "Shpatel ushın spirt bankasına batırıń",
@@ -306,7 +306,7 @@
     },
     "toast": {
       "needAll3": "Dáslep 3 ıdısqa da súrtiń",
-      "needBridge": "Dáslep boyaw kópirigin stólǵa qoyıń"
+      "needBridge": "Dáslep boyaw kópirigin stolǵa qoyıń"
     },
     "inc": {
       "title": "Termostatta inkubatsiya…",
@@ -383,7 +383,7 @@
       "micro": "Aynanı mikroskopqa alıp barıń hám Gram tiyisliligin anıqlań"
     },
     "toast": {
-      "needBridge": "Dáslep boyaw kópirigin stólǵa qoyıń"
+      "needBridge": "Dáslep boyaw kópirigin stolǵa qoyıń"
     },
     "wait": {
       "developing": "Boyaw tásir qilmaqta…",
@@ -464,7 +464,7 @@
       "slideOnBridge": "Buyım aynasın boyaw kópirigine qoyıń",
       "cleanSlide": "Aynanı spirtli salfetka menen artıń",
       "applyNacl": "NaCl di aynaǵa tamızıń",
-      "sterilizeLoop": "Ilmekti jalında qızdırıń — Dáslep vertikal, so'ng gorizontal (↻ túyme menen burıń)",
+      "sterilizeLoop": "Ilmekti jalında qızdırıń — dáslep vertikal, so'ng gorizontal (↻ túyme menen burıń)",
       "takeSample": "Ilmek bır az suwıǵach kulturadan namuna alıń (qızǵan ilmek bakteriyanı óltiredi)",
       "smear": "Ilmekti ayna ústinde júrgizip súrtpe qılıń",
       "resterilize": "Ilmekti qaytadan jalında qızdırıń (vertikal + gorizontal)",
@@ -481,7 +481,7 @@
       "waiting": "Tásir waqıtı: {s}s"
     },
     "finish": "✓ Juwmaqlaw",
-    "sidebarClose": "Ásbaplar panelin japıw",
+    "sidebarClose": "Ásbaplar panelin jabıw",
     "sidebarOpen": "Ásbaplar panelin ashıw",
     "loopRotate": "Ilmekti burıw · ↻ (yaki R) ·",
     "loopDown": "Bası tómen",
@@ -492,7 +492,7 @@
     "toast": {
       "dyeWait": "Boyaw ele tásir qilmaqta — kútiń",
       "notNow": "Házir bolmaydı — izbe-izlikti baqlań",
-      "needBridge": "Dáslep boyaw kópirigin stólǵa qoyıń"
+      "needBridge": "Dáslep boyaw kópirigin stolǵa qoyıń"
     },
     "result": {
       "title": "Mikroskop nátiyjesi"
