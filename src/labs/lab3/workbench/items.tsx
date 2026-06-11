@@ -7,6 +7,7 @@ import { dishGrowth } from "../state";
 import { SpiritLamp } from "@/labs/lab1/components2d/items/SpiritLamp";
 import { Match } from "@/labs/lab1/components2d/items/Match";
 import { Matchbox } from "@/labs/lab1/components2d/items/Matchbox";
+import { BiohazardBin } from "@/labs/lab1/components2d/items/BiohazardBin";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { PetriAgarDish } from "../components2d/items/PetriAgarDish";
 import { DrigalskiSpatula } from "../components2d/items/DrigalskiSpatula";
@@ -21,6 +22,7 @@ export type Lab3ItemId =
   | "dish-3"
   | "matchbox"
   | "match"
+  | "bin"
   | "lamp"
   | "alcohol-jar"
   | "chlorine-jar"
@@ -52,6 +54,7 @@ export interface Lab3ItemDef {
       spatulaHot?: boolean;
       incubatorRunning?: boolean;
       suspensionPlugOff?: boolean;
+      binBump?: number;
     },
   ) => ReactNode;
 }
@@ -101,6 +104,16 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
     tipX: 42, // burning head at the right end
     preview: 0.7,
     render: (s) => <Match lit={s.match.lit} burnProgress={s.match.lit ? 0.2 : 0} burned={false} />,
+  },
+  {
+    id: "bin",
+    label: "lab3.items.bin",
+    apparatus: true,
+    target: true,
+    w: 120,
+    h: 150,
+    preview: 0.46,
+    render: (_s, o) => <BiohazardBin bumpKey={o.binBump ?? 0} />,
   },
   {
     id: "lamp",
@@ -200,10 +213,11 @@ export function intentFor(tool: Lab3ItemId, target: Lab3ItemId, s: DrigalskiStat
   if (tool === "match") {
     if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
     if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+    if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
   if (tool === "spatula") {
     if (target === "alcohol-jar") return !s.spatulaDipped && !s.spatulaSterile ? "dip-spatula" : null;
-    if (target === "lamp") return s.spatulaDipped && s.lamp.lit ? "sterilize-spatula" : null;
+    if (target === "lamp") return s.spatulaDipped && s.lamp.lit && s.match.discarded ? "sterilize-spatula" : null;
     if (target === "dish-1") return s.d1.material && !s.d1.spread ? "spread-1" : null;
     if (target === "dish-2") return s.d1.spread && !s.d2.spread ? "spread-2" : null;
     if (target === "dish-3") return s.d2.spread && !s.d3.spread ? "spread-3" : null;
@@ -225,6 +239,7 @@ export function canIncubate(s: DrigalskiState): boolean {
 export function requiredItem(s: DrigalskiState): Lab3ItemId | null {
   if (!s.dishes) return "dish-1";
   if (!s.lamp.lit) return "match";
+  if (!s.match.discarded) return "match";
   if (!s.spatulaSterile) return "spatula";
   if (!s.d1.material) return "pipette";
   if (!s.d1.spread) return "spatula";

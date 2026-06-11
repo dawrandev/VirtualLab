@@ -93,7 +93,8 @@
       "tray": "Tray",
       "microscope": "Microscope",
       "matchbox": "Matchbox",
-      "match": "Match"
+      "match": "Match",
+      "bin": "Biohazard bin"
     },
     "hint": {
       "degrease": "Pass the slide through the spirit-lamp flame to degrease it",
@@ -107,7 +108,8 @@
       "done": "Determine the bacterium's motility",
       "strikeMatch": "Strike the match on the box",
       "lightLamp": "Light the spirit lamp with the burning match",
-      "reflame": "Re-sterilize the used loop in the flame after the smear"
+      "reflame": "Re-sterilize the used loop in the flame after the smear",
+      "discardMatch": "Drop the burning match into the biohazard bin"
     },
     "toast": {
       "needBridge": "First place the glass bridge on the bench",
@@ -175,7 +177,8 @@
       "forceps": "Forceps",
       "incubator": "Incubator",
       "matchbox": "Matchbox",
-      "match": "Match"
+      "match": "Match",
+      "bin": "Biohazard bin"
     },
     "hint": {
       "dish": "Place the nutrient Petri dish on the bench",
@@ -188,7 +191,8 @@
       "incubate": "Invert the dish and place it in the incubator (37°C, 24 h)",
       "measure": "Measure the inhibition zones and determine sensitivity",
       "strikeMatch": "Strike the match on the box",
-      "lightLamp": "Light the spirit lamp with the burning match"
+      "lightLamp": "Light the spirit lamp with the burning match",
+      "discardMatch": "Drop the burning match into the biohazard bin"
     },
     "toast": {
       "needLawn": "First swab the lawn, dry it and place all the disks"
@@ -300,7 +304,8 @@
       "microscope": "Microscope",
       "matchbox": "Matchbox",
       "match": "Match",
-      "chlorineJar": "5% chlorine (disinfectant)"
+      "chlorineJar": "5% chlorine (disinfectant)",
+      "bin": "Biohazard bin"
     },
     "hint": {
       "dishes": "Place 3 nutrient Petri dishes on the bench",
@@ -322,7 +327,8 @@
       "strikeMatch": "Strike the match on the box",
       "lightLamp": "Light the spirit lamp with the burning match",
       "disinfect": "Drop the used spreader into the 5% chlorine disinfectant",
-      "done": "Done — the plates are out of the thermostat, work complete"
+      "done": "Done — the plates are out of the thermostat, work complete",
+      "discardMatch": "Drop the burning match into the biohazard bin"
     },
     "toast": {
       "needAll3": "First spread onto all 3 dishes",

@@ -89,7 +89,8 @@
       "tray": "Lotok",
       "microscope": "Mikroskop",
       "matchbox": "Gugurt qutısı",
-      "match": "Gugurt"
+      "match": "Gugurt",
+      "bin": "Biohazard ıdısı"
     },
     "hint": {
       "degrease": "Buyım aynasıın spirtovka jalınınan ótkerip maysızlandırıp alıń",
@@ -103,7 +104,8 @@
       "done": "Bakteriya háreketsheńligin anıqlań",
       "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
       "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
-      "reflame": "Jaǵıwdan keyin isletilgen ilmekti qayta jalında sterilizaciyalań"
+      "reflame": "Jaǵıwdan keyin isletilgen ilmekti qayta jalında sterilizaciyalań",
+      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
     },
     "toast": {
       "needBridge": "Dáslep shisha kópirdi stolǵa qoyıń",
@@ -171,7 +173,8 @@
       "forceps": "Pinset",
       "incubator": "Termostat",
       "matchbox": "Gugurt qutısı",
-      "match": "Gugurt"
+      "match": "Gugurt",
+      "bin": "Biohazard ıdısı"
     },
     "hint": {
       "dish": "Azuqlıq ortalıqlı Petri ıdısın stolǵa qoyıń",
@@ -184,7 +187,8 @@
       "incubate": "Idıstı awdarılıp termostatqa qoyıń (37°C, 24 saat)",
       "measure": "Tormozlanıw zonaların ólshep, sezgishlikti anıqlań",
       "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
-      "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń"
+      "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
+      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
     },
     "toast": {
       "needLawn": "Dáslep gazon egip qurıtıń hám barlıq disklerdi qoyıń"
@@ -296,7 +300,8 @@
       "microscope": "Mikroskop",
       "matchbox": "Gugurt qutısı",
       "match": "Gugurt",
-      "chlorineJar": "5% xlor (dezrastvor)"
+      "chlorineJar": "5% xlor (dezrastvor)",
+      "bin": "Biohazard ıdısı"
     },
     "hint": {
       "dishes": "Azuqlıq ortalıqlı 3 Petri ıdısın stolǵa qoyıń",
@@ -318,7 +323,8 @@
       "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
       "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
       "disinfect": "Isletilgen shpateldi 5% xlor (dezrastvor) bankasına salıń",
-      "done": "Tayar — ıdıslar termostattan alındı, jumıs juwmaqlandı"
+      "done": "Tayar — ıdıslar termostattan alındı, jumıs juwmaqlandı",
+      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
     },
     "toast": {
       "needAll3": "Dáslep 3 ıdısqa da súrtiń",

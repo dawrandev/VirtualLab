@@ -14,8 +14,9 @@
 export interface DrigalskiState {
   /** Three agar plates obtained and set on the bench. */
   dishes: boolean;
-  /** Spirit lamp lit by hand (match struck on the box, then touched to wick). */
-  match: { struck: boolean; lit: boolean };
+  /** Spirit lamp lit by hand: match struck on the box, touched to the wick,
+   *  then the burning match dropped into the biohazard bin. */
+  match: { struck: boolean; lit: boolean; discarded: boolean };
   lamp: { lit: boolean };
   /** Working end dipped in alcohol (before flaming). */
   spatulaDipped: boolean;
@@ -35,7 +36,7 @@ export interface DrigalskiState {
 export function freshDrigalskiState(): DrigalskiState {
   return {
     dishes: false,
-    match: { struck: false, lit: false },
+    match: { struck: false, lit: false, discarded: false },
     lamp: { lit: false },
     spatulaDipped: false,
     spatulaSterile: false,
@@ -52,6 +53,7 @@ export type DrigalskiIntent =
   | "get-dishes"
   | "strike-match" // match → matchbox
   | "light-lamp" // lit match → lamp
+  | "discard-match" // burning match → biohazard bin
   | "dip-spatula"
   | "sterilize-spatula"
   | "load-pipette"
@@ -91,6 +93,9 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
       break;
     case "light-lamp":
       s.lamp.lit = true;
+      break;
+    case "discard-match":
+      s.match.discarded = true;
       break;
     case "dip-spatula":
       s.spatulaDipped = true;

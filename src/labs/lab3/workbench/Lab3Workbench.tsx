@@ -58,6 +58,7 @@ interface Fx {
 function nextHint(s: DrigalskiState): string {
   if (!s.dishes) return "lab3.hint.dishes";
   if (!s.lamp.lit) return s.match.struck ? "lab3.hint.lightLamp" : "lab3.hint.strikeMatch";
+  if (!s.match.discarded) return "lab3.hint.discardMatch";
   if (!s.spatulaSterile) return s.spatulaDipped ? "lab3.hint.flameSpatula" : "lab3.hint.dipSpatula";
   if (!s.d1.material) return s.pipetteLoaded ? "lab3.hint.dropMaterial" : "lab3.hint.loadPipette";
   if (!s.d1.spread) return "lab3.hint.spread1";
@@ -103,6 +104,7 @@ export function Lab3Workbench() {
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [spatulaHot, setSpatulaHot] = useState(false);
+  const [binBump, setBinBump] = useState(0);
 
   // Incubation countdown.
   const [inc, setInc] = useState<{ start: number } | null>(null);
@@ -165,7 +167,10 @@ export function Lab3Workbench() {
       return { x: p?.x ?? 50, y: p?.y ?? 50 };
     };
     if (intent === "strike-match") flashAt("spark", at("matchbox").x, at("matchbox").y, 700);
-    else if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    else if (intent === "discard-match") {
+      setBinBump((b) => b + 1);
+      setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; }); // match drops into the bin
+    } else if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "disinfect-spatula") flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
     else if (intent === "sterilize-spatula") setSpatulaHot(true);
     else if (intent === "drop-material") flashAt("drip-mat", at("dish-1").x, at("dish-1").y);
@@ -436,6 +441,7 @@ export function Lab3Workbench() {
     spatulaHot,
     incubatorRunning: inc != null,
     suspensionPlugOff: hold?.kind === "sample" && hold?.intent === "load-pipette",
+    binBump,
   };
   const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
   const spatulaInAlcohol = !!placed["spatula"] && !!placed["alcohol-jar"] && !drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;

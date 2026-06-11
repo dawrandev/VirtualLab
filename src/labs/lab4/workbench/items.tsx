@@ -6,6 +6,7 @@ import { plateStage, allDisksPlaced, type DiskState, type DiskIntent } from "../
 import { SpiritLamp } from "@/labs/lab1/components2d/items/SpiritLamp";
 import { Match } from "@/labs/lab1/components2d/items/Match";
 import { Matchbox } from "@/labs/lab1/components2d/items/Matchbox";
+import { BiohazardBin } from "@/labs/lab1/components2d/items/BiohazardBin";
 import { CultureTube } from "@/labs/lab1/components2d/items/CultureTube";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { Incubator } from "@/labs/lab3/components2d/items/Incubator";
@@ -19,6 +20,7 @@ export type Lab4ItemId =
   | "dish"
   | "matchbox"
   | "match"
+  | "bin"
   | "lamp"
   | "alcohol-jar"
   | "swab"
@@ -46,7 +48,7 @@ export interface Lab4ItemDef {
   hitDY?: number;
   render: (
     state: DiskState,
-    opts: { forcepsHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean },
+    opts: { forcepsHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number },
   ) => ReactNode;
 }
 
@@ -81,6 +83,16 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     tipX: 42,
     preview: 0.7,
     render: (s) => <Match lit={s.match.lit} burnProgress={s.match.lit ? 0.2 : 0} burned={false} />,
+  },
+  {
+    id: "bin",
+    label: "lab4.items.bin",
+    apparatus: true,
+    target: true,
+    w: 120,
+    h: 150,
+    preview: 0.46,
+    render: (_s, o) => <BiohazardBin bumpKey={o.binBump ?? 0} />,
   },
   {
     id: "lamp",
@@ -180,6 +192,7 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
   if (tool === "match") {
     if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
     if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+    if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
   if (tool === "swab") {
     if (target === "culture") return !s.swabCharged && s.lawnPasses === 0 ? "charge-swab" : null;
@@ -191,7 +204,7 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
   }
   if (tool === "forceps") {
     if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsSterile ? "dip-forceps" : null;
-    if (target === "lamp") return s.forcepsDipped && s.lamp.lit ? "sterilize-forceps" : null;
+    if (target === "lamp") return s.forcepsDipped && s.lamp.lit && s.match.discarded ? "sterilize-forceps" : null;
     if (target === "cartridge") return s.forcepsSterile && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
     if (target === "dish") return carrying && s.dried ? "place-disk" : null;
   }
@@ -206,6 +219,7 @@ export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId 
   if (!s.swabCharged && s.lawnPasses === 0) return "swab";
   if (!s.lawnSpread) return "swab";
   if (!s.lamp.lit) return "match";
+  if (!s.match.discarded) return "match";
   if (!s.forcepsSterile) return "forceps";
   if (!allDisksPlaced(s)) return "forceps";
   if (!s.incubated) return "incubator";

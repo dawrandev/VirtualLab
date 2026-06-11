@@ -27,7 +27,7 @@ export function Lab5Sidebar({ state, placed, draggingId, onStartDrag, showHints 
       </div>
 
       <div className="wb-tray grid flex-1 grid-cols-2 content-start gap-2 overflow-y-auto px-3 py-3">
-        {LAB5_ITEMS.map((item) => {
+        {LAB5_ITEMS.filter((item) => !(item.id === "match" && state.match.discarded)).map((item) => {
           const isPlaced = placed.has(item.id);
           const isRequired = required === item.id && !isPlaced;
           return (

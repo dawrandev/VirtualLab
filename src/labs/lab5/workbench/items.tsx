@@ -6,6 +6,7 @@ import { dropStage, canObserve, type WetMountState, type WetIntent } from "../st
 import { SpiritLamp } from "@/labs/lab1/components2d/items/SpiritLamp";
 import { Match } from "@/labs/lab1/components2d/items/Match";
 import { Matchbox } from "@/labs/lab1/components2d/items/Matchbox";
+import { BiohazardBin } from "@/labs/lab1/components2d/items/BiohazardBin";
 import { BacterialLoop } from "@/labs/lab1/components2d/items/BacterialLoop";
 import { MicroscopeIcon } from "@/labs/lab1/components2d/items/MicroscopeIcon";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
@@ -23,6 +24,7 @@ export type Lab5ItemId =
   | "coverslip"
   | "matchbox"
   | "match"
+  | "bin"
   | "lamp"
   | "saline"
   | "loop"
@@ -50,7 +52,7 @@ export interface Lab5ItemDef {
   hitDY?: number;
   render: (
     state: WetMountState,
-    opts: { loopHeat?: number; slideWarming?: boolean; tubePlugOff?: boolean; filterWet?: boolean },
+    opts: { loopHeat?: number; slideWarming?: boolean; tubePlugOff?: boolean; filterWet?: boolean; binBump?: number },
   ) => ReactNode;
 }
 
@@ -95,6 +97,16 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
     tipX: 42,
     preview: 0.7,
     render: (s) => <Match lit={s.match.lit} burnProgress={s.match.lit ? 0.2 : 0} burned={false} />,
+  },
+  {
+    id: "bin",
+    label: "lab5.items.bin",
+    apparatus: true,
+    target: true,
+    w: 120,
+    h: 150,
+    preview: 0.46,
+    render: (_s, o) => <BiohazardBin bumpKey={o.binBump ?? 0} />,
   },
   {
     id: "lamp",
@@ -213,9 +225,10 @@ export function intentFor(tool: Lab5ItemId, target: Lab5ItemId, s: WetMountState
   if (tool === "match") {
     if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
     if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+    if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
   if (tool === "slide") {
-    if (target === "lamp") return !s.slideDegreased && s.lamp.lit ? "degrease-slide" : null;
+    if (target === "lamp") return !s.slideDegreased && s.lamp.lit && s.match.discarded ? "degrease-slide" : null;
     if (target === "microscope") return canObserve(s) ? "observe" : null;
   }
   if (tool === "saline" && target === "slide") return s.slideDegreased && !s.salineApplied && !s.coverPlaced ? "apply-saline" : null;
@@ -233,6 +246,7 @@ export function intentFor(tool: Lab5ItemId, target: Lab5ItemId, s: WetMountState
 /** Next item the student is expected to use (learn-mode highlight + hint). */
 export function requiredItem(s: WetMountState): Lab5ItemId | null {
   if (!s.lamp.lit) return "match";
+  if (!s.match.discarded) return "match";
   if (!s.slidePlaced) return "slide";
   if (!s.slideDegreased) return "slide";
   if (!s.salineApplied) return "saline";

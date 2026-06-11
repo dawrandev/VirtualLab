@@ -88,7 +88,8 @@
       "tray": "Lotok",
       "microscope": "Mikroskop",
       "matchbox": "Gugurt qutisi",
-      "match": "Gugurt"
+      "match": "Gugurt",
+      "bin": "Biohazard idishi"
     },
     "hint": {
       "degrease": "Buyum oynasini spirtovka olovidan o'tkazib yog'sizlantiring",
@@ -102,7 +103,8 @@
       "done": "Bakteriya harakatchanligini aniqlang",
       "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
       "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
-      "reflame": "Surtmadan so'ng halqani qaytadan olovda sterillang"
+      "reflame": "Surtmadan so'ng halqani qaytadan olovda sterillang",
+      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
     },
     "toast": {
       "needBridge": "Avval shisha ko'prikni stolga qo'ying",
@@ -170,7 +172,8 @@
       "forceps": "Pinset",
       "incubator": "Termostat",
       "matchbox": "Gugurt qutisi",
-      "match": "Gugurt"
+      "match": "Gugurt",
+      "bin": "Biohazard idishi"
     },
     "hint": {
       "dish": "Oziqa muhitli Petri idishini stolga qo'ying",
@@ -183,7 +186,8 @@
       "incubate": "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)",
       "measure": "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang",
       "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
-      "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing"
+      "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
+      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
     },
     "toast": {
       "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying"
@@ -295,7 +299,8 @@
       "microscope": "Mikroskop",
       "matchbox": "Gugurt qutisi",
       "match": "Gugurt",
-      "chlorineJar": "5% xlor (dezraztvor)"
+      "chlorineJar": "5% xlor (dezraztvor)",
+      "bin": "Biohazard idishi"
     },
     "hint": {
       "dishes": "Oziqa muhitli 3 ta Petri idishini stolga qo'ying",
@@ -317,7 +322,8 @@
       "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
       "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
       "disinfect": "Ishlatilgan shpatelni 5% xlor (dezraztvor) bankasiga soling",
-      "done": "Tayyor — idishlar termostatdan olindi, ish yakunlandi"
+      "done": "Tayyor — idishlar termostatdan olindi, ish yakunlandi",
+      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
     },
     "toast": {
       "needAll3": "Avval 3 ta idishga ham surting",

@@ -77,6 +77,7 @@ function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.lawnSpread) return "lab4.hint.spread";
   if (!s.dried) return "lab4.hint.dry";
   if (!s.lamp.lit) return s.match.struck ? "lab4.hint.lightLamp" : "lab4.hint.strikeMatch";
+  if (!s.match.discarded) return "lab4.hint.discardMatch";
   if (!s.forcepsSterile) return "lab4.hint.forceps";
   if (!allDisksPlaced(s)) return carrying ? "lab4.hint.placeDisk" : "lab4.hint.pickDisk";
   if (!s.incubated) return "lab4.hint.incubate";
@@ -112,6 +113,7 @@ export function Lab4Workbench() {
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [forcepsHot, setForcepsHot] = useState(false);
+  const [binBump, setBinBump] = useState(0);
   // Antibiotic disk currently held in the forceps.
   const [carrying, setCarrying] = useState<string | null>(null);
   const carryingRef = useRef<string | null>(null);
@@ -208,7 +210,10 @@ export function Lab4Workbench() {
     setDisk((g) => applyDiskStep(g, intent));
     recordAction(intent);
     if (intent === "strike-match") flashAt("spark", at("matchbox").x, at("matchbox").y, 700);
-    else if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    else if (intent === "discard-match") {
+      setBinBump((b) => b + 1);
+      setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; });
+    } else if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "sterilize-forceps") setForcepsHot(true);
     else if (intent === "charge-swab") flashAt("dip", at("culture").x, at("culture").y - 22, 900);
     else if (intent === "spread-3") startDrying();
@@ -462,7 +467,7 @@ export function Lab4Workbench() {
   // Lift the tube's cotton plug while the swab is being dipped into it.
   const chargingSwab = hold?.kind === "sample" && hold.intent === "charge-swab";
   const dippingForceps = hold?.kind === "sample" && hold.intent === "dip-forceps";
-  const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSwab };
+  const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSwab, binBump };
   const dishPos = placed["dish"];
   const culturePos = placed["culture"];
   const jarPos = placed["alcohol-jar"];

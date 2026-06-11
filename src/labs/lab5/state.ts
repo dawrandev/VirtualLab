@@ -20,8 +20,9 @@ export const SPECIMEN = {
 
 export interface WetMountState {
   slidePlaced: boolean;
-  /** Spirit lamp lit by hand (match struck on the box, then touched to wick). */
-  match: { struck: boolean; lit: boolean };
+  /** Spirit lamp lit by hand: strike the match, touch the wick, then drop the
+   *  burning match into the biohazard bin. */
+  match: { struck: boolean; lit: boolean; discarded: boolean };
   lamp: { lit: boolean };
   /** Passed through the flame to clean/degrease the glass. */
   slideDegreased: boolean;
@@ -48,7 +49,7 @@ export interface WetMountState {
 export function freshWetMountState(): WetMountState {
   return {
     slidePlaced: false,
-    match: { struck: false, lit: false },
+    match: { struck: false, lit: false, discarded: false },
     lamp: { lit: false },
     slideDegreased: false,
     salineApplied: false,
@@ -66,6 +67,7 @@ export function freshWetMountState(): WetMountState {
 export type WetIntent =
   | "strike-match" // match → matchbox
   | "light-lamp" // lit match → lamp
+  | "discard-match" // burning match → biohazard bin
   | "degrease-slide" // slide → lamp
   | "apply-saline" // saline → slide
   | "flame-loop" // loop → lamp (sterilise before use, then re-sterilise after smear)
@@ -94,6 +96,9 @@ export function applyWetStep(state: WetMountState, intent: WetIntent): WetMountS
       break;
     case "light-lamp":
       s.lamp.lit = true;
+      break;
+    case "discard-match":
+      s.match.discarded = true;
       break;
     case "degrease-slide":
       s.slidePlaced = true;

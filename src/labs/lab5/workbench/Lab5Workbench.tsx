@@ -65,6 +65,7 @@ function actionKind(intent: WetIntent): Kind {
 
 function nextHint(s: WetMountState): string {
   if (!s.lamp.lit) return s.match.struck ? "lab5.hint.lightLamp" : "lab5.hint.strikeMatch";
+  if (!s.match.discarded) return "lab5.hint.discardMatch";
   if (!s.slideDegreased) return "lab5.hint.degrease";
   if (!s.salineApplied) return "lab5.hint.saline";
   if (!s.loopFlamed && !s.loopCharged) return "lab5.hint.flame";
@@ -105,6 +106,7 @@ export function Lab5Workbench() {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loopHot, setLoopHot] = useState(false);
+  const [binBump, setBinBump] = useState(0);
 
   const [mode, setMode] = useState<LabMode | null>(null);
   const modeRef = useRef<LabMode | null>(null);
@@ -155,7 +157,10 @@ export function Lab5Workbench() {
     recordAction(intent);
     if (intent === "flame-loop") setLoopHot(true);
     else if (intent === "strike-match") flashAt("spark", at("matchbox").x, at("matchbox").y, 700);
-    else if (intent === "apply-saline") flashAt("drip-saline", at("slide").x, at("slide").y - 6, 900);
+    else if (intent === "discard-match") {
+      setBinBump((b) => b + 1);
+      setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; });
+    } else if (intent === "apply-saline") flashAt("drip-saline", at("slide").x, at("slide").y - 6, 900);
   }
 
   function hitPoint(d: DragState, clientX: number, clientY: number) {
@@ -415,7 +420,7 @@ export function Lab5Workbench() {
   const blotting = hold?.kind === "sample" && hold.intent === "blot-excess";
   const mixing = hold?.kind === "rub" && hold.intent === "mix-drop" ? hold : null;
 
-  const renderOpts = { loopHeat: loopHot ? 1 : 0, slideWarming: degreasing, tubePlugOff: charging, filterWet: wet.blotted };
+  const renderOpts = { loopHeat: loopHot ? 1 : 0, slideWarming: degreasing, tubePlugOff: charging, filterWet: wet.blotted, binBump };
   const slidePos = placed["slide"];
   const culturePos = placed["culture"];
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
