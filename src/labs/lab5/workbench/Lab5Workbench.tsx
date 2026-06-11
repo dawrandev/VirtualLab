@@ -57,10 +57,11 @@ const Z_STACK: Partial<Record<Lab5ItemId, number>> = { tray: 0, bridge: 1, rack:
 const zOf = (id: Lab5ItemId) => Z_STACK[id] ?? 2;
 
 function actionKind(intent: WetIntent): Kind {
-  if (intent === "mix-drop") return "rub";
+  // Mirrors Lab 1: strike the match with a rub on the box; bin it on release.
+  if (intent === "mix-drop" || intent === "strike-match") return "rub";
   if (SAMPLE_INTENTS.includes(intent)) return "sample";
-  if (intent === "observe") return "instant";
-  return "contact"; // flame-loop, apply-saline, blot-excess
+  if (intent === "observe" || intent === "discard-match") return "instant";
+  return "contact"; // light lamp, flame-loop, apply-saline, blot-excess
 }
 
 function nextHint(s: WetMountState): string {

@@ -40,11 +40,14 @@ interface Hold {
   progress: number;
 }
 
-/** How a (tool → target) action is performed. */
+/** How a (tool → target) action is performed. Mirrors Lab 1: striking the match
+ *  is a RUB on the box, lighting the lamp is a contact touch (match stays in
+ *  hand), and binning the spent match fires on release. */
 function actionKind(intent: DrigalskiIntent): Kind {
   if (intent === "load-pipette") return "sample"; // timed, with a visual
-  if (intent === "spread-1" || intent === "spread-2" || intent === "spread-3") return "rub";
-  return "contact"; // strike match, light lamp, dip, flame, drop material, disinfect
+  if (intent === "spread-1" || intent === "spread-2" || intent === "spread-3" || intent === "strike-match") return "rub";
+  if (intent === "discard-match") return "instant"; // drop into the bin
+  return "contact"; // light lamp, dip, flame, drop material, disinfect
 }
 
 const SAMPLE_DUR = 1500;

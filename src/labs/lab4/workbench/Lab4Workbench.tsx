@@ -66,9 +66,11 @@ function isSpread(i: DiskIntent): boolean {
 }
 
 function actionKind(intent: DiskIntent): Kind {
-  if (isSpread(intent)) return "rub";
+  // Mirrors Lab 1: strike the match with a rub on the box; bin it on release.
+  if (isSpread(intent) || intent === "strike-match") return "rub";
   if (intent === "charge-swab" || intent === "dip-forceps") return "sample"; // timed dip
-  return "contact";
+  if (intent === "discard-match") return "instant";
+  return "contact"; // light lamp, flame forceps, place disk, etc.
 }
 
 function nextHint(s: DiskState, carrying: string | null): string {
