@@ -26,11 +26,12 @@ const MARK: Record<StepStatus, { icon: string; color: string; bg: string }> = {
   zero: { icon: "✕", color: "#dc2626", bg: "#fef2f2" },
 };
 
-/** Colour the CLSI interpretation by code. */
+/** Colour the sensitivity category. */
 function sensColor(code: Sens): string {
-  if (code === "S") return "#0f766e";
-  if (code === "R") return "#b91c1c";
-  return "#b45309"; // I
+  if (code === "high") return "#059669";
+  if (code === "medium") return "#0ea5e9";
+  if (code === "low") return "#d97706";
+  return "#dc2626"; // resistant
 }
 
 /** End-of-exam breakdown for Lab 4 — five PDF criteria + per-antibiotic calls. */

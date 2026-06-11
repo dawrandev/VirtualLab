@@ -174,12 +174,13 @@
       "incubator": "Termostat",
       "matchbox": "Gugurt qutısı",
       "match": "Gugurt",
-      "bin": "Biohazard ıdısı"
+      "bin": "Biohazard ıdısı",
+      "spreader": "Drigalski shpateli"
     },
     "hint": {
       "dish": "Azuqlıq ortalıqlı Petri ıdısın stolǵa qoyıń",
       "charge": "Steril paxta tampondı E. coli kulturasına batırıń",
-      "spread": "Tampon menen «gazon» usılında súrtiń — {n}/3-baǵdar (ıdıstı ~60° aylandırıp)",
+      "spread": "Shpatel menen «gazon» usılında jaǵıń — {n}/3 (ıdıstı ~60° aylandırıp)",
       "dry": "Idıs júzesi sińgansha ~5 minutta qurıtıń",
       "forceps": "Pinsetti spirt bankasına batırıp, jalında sterilleń",
       "pickDisk": "Pinset menen diskler toplamınan antibiotik diskin alıń",
@@ -188,7 +189,10 @@
       "measure": "Tormozlanıw zonaların ólshep, sezgishlikti anıqlań",
       "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
       "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
-      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
+      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań",
+      "dipSpreader": "Shpatel ushın spirt bankasına malıń",
+      "flameSpreader": "Shpateldi jalında sterilizaciyalań (soń suwıtıń)",
+      "chargeSpreader": "Steril shpateldi E. coli kulturasına malıń"
     },
     "toast": {
       "needLawn": "Dáslep gazon egip qurıtıń hám barlıq disklerdi qoyıń"
@@ -196,7 +200,8 @@
     "act": {
       "dir": "🔄 {n}/3-baǵdar",
       "swab": "💧 Tampon batırılmaqta…",
-      "forceps": "🧴 Pinset spirtke batırılmaqta…"
+      "forceps": "🧴 Pinset spirtke batırılmaqta…",
+      "charge": "💧 Kultura alınbaqta…"
     },
     "dry": {
       "title": "Idıs qurımaqta…",
@@ -235,19 +240,23 @@
       "classifyPartial": "Geypara diskler qáte anıqlandı"
     },
     "sens": {
-      "S": "Sezgir",
-      "I": "Aralıq",
-      "R": "Shıdamlı"
+      "high": "Joqarı sezgir",
+      "medium": "Ortasha sezgir",
+      "low": "Tómen sezgir",
+      "resistant": "Shıdamlı (turaqlı)"
     },
     "ab": {
       "amp": "Ampitsillin",
       "gen": "Gentamitsin",
       "tet": "Tetratsiklin",
-      "cip": "Tsiprofloksatsin"
+      "cip": "Tsiprofloksatsin",
+      "pen": "Penitsillin",
+      "chl": "Xloramfenikol",
+      "ery": "Eritromitsin"
     },
     "measure": {
-      "title": "Tormozlanıw zonasını ólşeń",
-      "instruction": "Hár disk átrapındaǵı steril zona diametrin ólshep, hár antibiotiktiń óz shegaraları menen bahalań: Sezgir (≥ S) / Aralıq / Shıdamlı (≤ R).",
+      "title": "Tormozlanıw zonaların ólsheń",
+      "instruction": "Sızǵıshtı hár diskke alıp barıp zonasın ólsheń, soń sezgishlikti anıqlań: >25mm joqarı · 15–25mm ortasha · <15mm tómen · zonasız shıdamlı.",
       "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
       "sSuffix": " (≥ {s} mm)",
       "rSuffix": " (≤ {r} mm)",
@@ -256,7 +265,12 @@
       "wrong": "✕ Qáte — durısı: {label}",
       "counted": "{n}/{total} bahalandı",
       "finish": "Juwmaqlaw",
-      "viewResult": "Nátiyjeni kóriw"
+      "viewResult": "Nátiyjeni kóriw",
+      "rulerHint": "Sızǵıshtı diskke alıp barıp zonanı ólsheń",
+      "zoneMm": "{mm} mm",
+      "notMeasured": "ólshenbegen",
+      "measureFirst": "Aldın sızǵısh penen ólsheń",
+      "progress": "Ólshengen {measured}/{total} · bahalanǵan {classified}/{total}"
     },
     "result": {
       "learn": "Disk usılı — úyreniw nátiyjesi",

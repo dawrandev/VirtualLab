@@ -9,7 +9,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
-import { CottonSwab } from "../components2d/items/CottonSwab";
+import { DrigalskiSpatula } from "@/labs/lab3/components2d/items/DrigalskiSpatula";
 import { LAB4_ITEMS, LAB4_ITEM_BY_ID, intentFor, type Lab4ItemId } from "./items";
 import {
   freshDiskState,
@@ -68,18 +68,19 @@ function isSpread(i: DiskIntent): boolean {
 function actionKind(intent: DiskIntent): Kind {
   // Mirrors Lab 1: strike the match with a rub on the box; bin it on release.
   if (isSpread(intent) || intent === "strike-match") return "rub";
-  if (intent === "charge-swab" || intent === "dip-forceps") return "sample"; // timed dip
+  if (intent === "charge-spreader" || intent === "dip-forceps" || intent === "dip-spreader") return "sample"; // timed dip
   if (intent === "discard-match") return "instant";
-  return "contact"; // light lamp, flame forceps, place disk, etc.
+  return "contact"; // light lamp, flame forceps/spreader, place disk, etc.
 }
 
 function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.dishPlaced) return "lab4.hint.dish";
-  if (!s.swabCharged && s.lawnPasses === 0) return "lab4.hint.charge";
-  if (!s.lawnSpread) return "lab4.hint.spread";
-  if (!s.dried) return "lab4.hint.dry";
   if (!s.lamp.lit) return s.match.struck ? "lab4.hint.lightLamp" : "lab4.hint.strikeMatch";
   if (!s.match.discarded) return "lab4.hint.discardMatch";
+  if (!s.spreaderSterile) return s.spreaderDipped ? "lab4.hint.flameSpreader" : "lab4.hint.dipSpreader";
+  if (!s.spreaderCharged && s.lawnPasses === 0) return "lab4.hint.chargeSpreader";
+  if (!s.lawnSpread) return "lab4.hint.spread";
+  if (!s.dried) return "lab4.hint.dry";
   if (!s.forcepsSterile) return "lab4.hint.forceps";
   if (!allDisksPlaced(s)) return carrying ? "lab4.hint.placeDisk" : "lab4.hint.pickDisk";
   if (!s.incubated) return "lab4.hint.incubate";
@@ -115,6 +116,7 @@ export function Lab4Workbench() {
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [forcepsHot, setForcepsHot] = useState(false);
+  const [spreaderHot, setSpreaderHot] = useState(false);
   const [binBump, setBinBump] = useState(0);
   // Antibiotic disk currently held in the forceps.
   const [carrying, setCarrying] = useState<string | null>(null);
@@ -160,6 +162,12 @@ export function Lab4Workbench() {
     const t = window.setTimeout(() => setForcepsHot(false), FORCEPS_COOL_MS);
     return () => window.clearTimeout(t);
   }, [forcepsHot]);
+
+  useEffect(() => {
+    if (!spreaderHot) return;
+    const t = window.setTimeout(() => setSpreaderHot(false), FORCEPS_COOL_MS);
+    return () => window.clearTimeout(t);
+  }, [spreaderHot]);
 
   useEffect(() => {
     if (!dry) return;
@@ -215,9 +223,10 @@ export function Lab4Workbench() {
     else if (intent === "discard-match") {
       setBinBump((b) => b + 1);
       setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; });
-    } else if (intent === "dip-forceps") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
+    } else if (intent === "dip-forceps" || intent === "dip-spreader") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "sterilize-forceps") setForcepsHot(true);
-    else if (intent === "charge-swab") flashAt("dip", at("culture").x, at("culture").y - 22, 900);
+    else if (intent === "sterilize-spreader") setSpreaderHot(true);
+    else if (intent === "charge-spreader") flashAt("dip", at("culture").x, at("culture").y - 22, 900);
     else if (intent === "spread-3") startDrying();
   }
 
@@ -428,6 +437,10 @@ export function Lab4Workbench() {
     endDrag();
   }
 
+  function measureDisk(diskId: string) {
+    setDisk((g) => applyDiskStep(g, "measure", diskId));
+    recordAction("measure");
+  }
   function classify(diskId: string, sens: Sens) {
     setDisk((g) => ({ ...g, classified: { ...g.classified, [diskId]: sens } }));
     if (modeRef.current === "learn") setReveal(true);
@@ -446,6 +459,7 @@ export function Lab4Workbench() {
     setActionLog([]);
     setExamResult(null);
     setForcepsHot(false);
+    setSpreaderHot(false);
     setCarrying(null);
     setInc(null);
     setIncProg(0);
@@ -466,10 +480,10 @@ export function Lab4Workbench() {
   const sidebarPlaced = new Set([...placedSet, ...LAB4_ITEMS.filter((i) => i.fixed).map((i) => i.id)]) as Set<Lab4ItemId>;
   const draggingDef = drag ? LAB4_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(disk, carrying);
-  // Lift the tube's cotton plug while the swab is being dipped into it.
-  const chargingSwab = hold?.kind === "sample" && hold.intent === "charge-swab";
-  const dippingForceps = hold?.kind === "sample" && hold.intent === "dip-forceps";
-  const renderOpts = { forcepsHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSwab, binBump };
+  // Lift the tube's cotton plug while the spreader is being charged in it.
+  const chargingSpreader = hold?.kind === "sample" && hold.intent === "charge-spreader";
+  const dippingForceps = hold?.kind === "sample" && (hold.intent === "dip-forceps" || hold.intent === "dip-spreader");
+  const renderOpts = { forcepsHot, spreaderHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSpreader, binBump };
   const dishPos = placed["dish"];
   const culturePos = placed["culture"];
   const jarPos = placed["alcohol-jar"];
@@ -604,20 +618,20 @@ export function Lab4Workbench() {
             );
           })()}
 
-          {/* Swab dipping into the open culture tube — it swings to vertical and
-              lowers its cotton tip down through the mouth onto the slant agar. */}
-          {chargingSwab && culturePos && (
+          {/* Spreader charging from the open culture tube — its working head
+              dips down through the mouth to pick up the suspension. */}
+          {chargingSpreader && culturePos && (
             <div className="pointer-events-none absolute z-40" style={{ left: `${culturePos.x}%`, top: `${culturePos.y}%`, transform: "translate(-50%,-50%)" }}>
               <motion.div
                 style={{ transformOrigin: "center center" }}
-                initial={{ rotate: -42, y: -140, opacity: 0 }}
-                animate={{ rotate: -90, y: [-140, -18, -18, -140], opacity: 1 }}
+                initial={{ rotate: -82, y: -120, opacity: 0 }}
+                animate={{ rotate: -82, y: [-120, -8, -8, -120], opacity: 1 }}
                 transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.3, 0.8, 1], ease: "easeInOut" }}
               >
-                <CottonSwab width={150} charged />
+                <DrigalskiSpatula width={150} wet />
               </motion.div>
               <div className="absolute left-1/2 top-[-92px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-                {tg("lab4.act.swab")}
+                {tg("lab4.act.charge")}
               </div>
             </div>
           )}
@@ -705,7 +719,7 @@ export function Lab4Workbench() {
 
           {/* Drag ghost — forceps carrying a disk shows a small disk at its tips.
               Hidden during a dip (the dedicated dip visual takes over). */}
-          {drag && draggingDef && !chargingSwab && !dippingForceps && (
+          {drag && draggingDef && !chargingSpreader && !dippingForceps && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               <div className="relative">
                 {draggingDef.render(disk, renderOpts)}
@@ -736,6 +750,7 @@ export function Lab4Workbench() {
         state={disk}
         reveal={reveal && !isExam}
         isExam={isExam}
+        onMeasure={measureDisk}
         onClassify={classify}
         onClose={() => setMeasureOpen(false)}
         onFinish={() => {

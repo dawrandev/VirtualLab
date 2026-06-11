@@ -173,12 +173,13 @@
       "incubator": "Termostat",
       "matchbox": "Gugurt qutisi",
       "match": "Gugurt",
-      "bin": "Biohazard idishi"
+      "bin": "Biohazard idishi",
+      "spreader": "Drigalski shpateli"
     },
     "hint": {
       "dish": "Oziqa muhitli Petri idishini stolga qo'ying",
       "charge": "Steril paxta tamponni E. coli kulturasiga botiring",
-      "spread": "Tampon bilan «gazon» usulida surting — {n}/3-yo'nalish (idishni ~60° aylantirib)",
+      "spread": "Shpatel bilan «gazon» usulida surting — {n}/3 (idishni ~60° aylantirib)",
       "dry": "Idish yuzasi singguncha ~5 daqiqa quriting",
       "forceps": "Pinsetni spirt bankasiga botirib, olovda sterillang",
       "pickDisk": "Pinset bilan disklar to'plamidan antibiotik diskni oling",
@@ -187,7 +188,10 @@
       "measure": "Tormozlanish zonalarini o'lchab, sezuvchanlikni aniqlang",
       "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
       "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
-      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
+      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang",
+      "dipSpreader": "Shpatel uchini spirt bankasiga botiring",
+      "flameSpreader": "Shpatelni olovda yoqib sterillang (so'ng soviting)",
+      "chargeSpreader": "Steril shpatelni E. coli kulturasiga botiring"
     },
     "toast": {
       "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying"
@@ -195,7 +199,8 @@
     "act": {
       "dir": "🔄 {n}/3-yo'nalish",
       "swab": "💧 Tampon botirilyapti…",
-      "forceps": "🧴 Pinset spirtga botirilyapti…"
+      "forceps": "🧴 Pinset spirtga botirilyapti…",
+      "charge": "💧 Kultura olinmoqda…"
     },
     "dry": {
       "title": "Idish quriyabdi…",
@@ -234,19 +239,23 @@
       "classifyPartial": "Ba'zi disklar noto'g'ri aniqlandi"
     },
     "sens": {
-      "S": "Sezgir",
-      "I": "Oraliq",
-      "R": "Chidamli"
+      "high": "Yuqori sezgir",
+      "medium": "O'rtacha sezgir",
+      "low": "Past sezgir",
+      "resistant": "Chidamli (barqaror)"
     },
     "ab": {
       "amp": "Ampitsillin",
       "gen": "Gentamitsin",
       "tet": "Tetratsiklin",
-      "cip": "Tsiprofloksatsin"
+      "cip": "Tsiprofloksatsin",
+      "pen": "Penitsillin",
+      "chl": "Xloramfenikol",
+      "ery": "Eritromitsin"
     },
     "measure": {
-      "title": "Tormozlanish zonasini o'lchang",
-      "instruction": "Har disk atrofidagi steril zona diametrini o'lchab, har antibiotikning o'z chegaralari bilan baholang: Sezgir (≥ S) / Oraliq / Chidamli (≤ R).",
+      "title": "Tormozlanish zonalarini o'lchang",
+      "instruction": "Lineykani har diskka olib borib zonasini o'lchang, so'ng sezuvchanlikni aniqlang: >25mm yuqori · 15–25mm o'rtacha · <15mm past · zonasiz chidamli.",
       "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
       "sSuffix": " (≥ {s} mm)",
       "rSuffix": " (≤ {r} mm)",
@@ -255,7 +264,12 @@
       "wrong": "✕ Noto'g'ri — to'g'risi: {label}",
       "counted": "{n}/{total} baholandi",
       "finish": "Yakunlash",
-      "viewResult": "Natijani ko'rish"
+      "viewResult": "Natijani ko'rish",
+      "rulerHint": "Lineykani diskka olib borib zonani o'lchang",
+      "zoneMm": "{mm} mm",
+      "notMeasured": "o'lchanmagan",
+      "measureFirst": "Avval lineyka bilan o'lchang",
+      "progress": "O'lchangan {measured}/{total} · baholangan {classified}/{total}"
     },
     "result": {
       "learn": "Disk usuli — o'rganish natijasi",

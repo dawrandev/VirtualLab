@@ -3,7 +3,7 @@ import { freshDiskState, applyDiskStep, ANTIBIOTICS, interpret, allDisksPlaced, 
 import { scoreDiskExam, type ExamAction } from "@/labs/lab4/exam/scoring";
 import { MAX_SCORE } from "@/labs/lab4/exam/protocol";
 
-const other = (s: Sens): Sens => (s === "S" ? "R" : "S");
+const other = (s: Sens): Sens => ({ high: "resistant", medium: "low", low: "medium", resistant: "high" } as const)[s];
 
 function buildDone(correct: boolean) {
   let s = freshDiskState();
@@ -14,7 +14,7 @@ function buildDone(correct: boolean) {
     log.push({ intent: i, ts: (t += 100) });
   };
   s = { ...s, dishPlaced: true };
-  step("charge-swab");
+  step("charge-spreader");
   step("spread-1");
   step("spread-2");
   step("spread-3");
@@ -23,9 +23,10 @@ function buildDone(correct: boolean) {
   step("sterilize-forceps");
   for (const a of ANTIBIOTICS) step("place-disk", a.id);
   step("incubate");
-  // classify each
+  // measure + classify each
   const classified: Record<string, Sens> = {};
   for (const a of ANTIBIOTICS) {
+    step("measure", a.id);
     const right = interpret(a);
     classified[a.id] = correct ? right : other(right);
   }
@@ -34,11 +35,12 @@ function buildDone(correct: boolean) {
 }
 
 describe("Lab 4 — disk diffusion state", () => {
-  it("interprets zones with per-antibiotic breakpoints (S/I/R)", () => {
-    const mk = (zoneMm: number, sv: number, rv: number): Antibiotic => ({ id: "x", code: "X", name: "x", zoneMm, s: sv, r: rv, fx: 0.5, fy: 0.5 });
-    expect(interpret(mk(20, 15, 12))).toBe("S");
-    expect(interpret(mk(13, 15, 11))).toBe("I");
-    expect(interpret(mk(7, 17, 13))).toBe("R");
+  it("interprets zones on the universal 4-category scale", () => {
+    const mk = (zoneMm: number): Antibiotic => ({ id: "x", code: "X", zoneMm, fx: 0.5, fy: 0.5 });
+    expect(interpret(mk(30))).toBe("high"); // > 25
+    expect(interpret(mk(20))).toBe("medium"); // 15–25
+    expect(interpret(mk(12))).toBe("low"); // < 15
+    expect(interpret(mk(0))).toBe("resistant"); // no zone
   });
   it("plate stage progresses: empty → lawn-wet → lawn → grown", () => {
     let s = freshDiskState();

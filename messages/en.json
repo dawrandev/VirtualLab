@@ -178,12 +178,13 @@
       "incubator": "Incubator",
       "matchbox": "Matchbox",
       "match": "Match",
-      "bin": "Biohazard bin"
+      "bin": "Biohazard bin",
+      "spreader": "Drigalski spreader"
     },
     "hint": {
       "dish": "Place the nutrient Petri dish on the bench",
       "charge": "Dip the sterile cotton swab into the E. coli culture",
-      "spread": "Swab the «lawn» — direction {n}/3 (rotate the dish ~60°)",
+      "spread": "Spread a confluent lawn with the spreader — {n}/3 (rotate the plate ~60°)",
       "dry": "Let the surface dry ~5 minutes until absorbed",
       "forceps": "Dip the forceps in the alcohol jar and flame-sterilise",
       "pickDisk": "With the forceps, take an antibiotic disk from the set",
@@ -192,7 +193,10 @@
       "measure": "Measure the inhibition zones and determine sensitivity",
       "strikeMatch": "Strike the match on the box",
       "lightLamp": "Light the spirit lamp with the burning match",
-      "discardMatch": "Drop the burning match into the biohazard bin"
+      "discardMatch": "Drop the burning match into the biohazard bin",
+      "dipSpreader": "Dip the spreader's working end in alcohol",
+      "flameSpreader": "Flame the spreader sterile (then let it cool)",
+      "chargeSpreader": "Charge the sterile spreader from the E. coli culture"
     },
     "toast": {
       "needLawn": "First swab the lawn, dry it and place all the disks"
@@ -200,7 +204,8 @@
     "act": {
       "dir": "🔄 direction {n}/3",
       "swab": "💧 Dipping the swab…",
-      "forceps": "🧴 Sterilising the forceps…"
+      "forceps": "🧴 Sterilising the forceps…",
+      "charge": "💧 Picking up culture…"
     },
     "dry": {
       "title": "The dish is drying…",
@@ -239,19 +244,23 @@
       "classifyPartial": "Some disks were determined incorrectly"
     },
     "sens": {
-      "S": "Susceptible",
-      "I": "Intermediate",
-      "R": "Resistant"
+      "high": "Highly sensitive",
+      "medium": "Moderately sensitive",
+      "low": "Low sensitivity",
+      "resistant": "Resistant"
     },
     "ab": {
       "amp": "Ampicillin",
       "gen": "Gentamicin",
       "tet": "Tetracycline",
-      "cip": "Ciprofloxacin"
+      "cip": "Ciprofloxacin",
+      "pen": "Penicillin",
+      "chl": "Chloramphenicol",
+      "ery": "Erythromycin"
     },
     "measure": {
-      "title": "Measure the inhibition zone",
-      "instruction": "Measure the clear-zone diameter around each disk and judge it by each antibiotic's own breakpoints: Susceptible (≥ S) / Intermediate / Resistant (≤ R).",
+      "title": "Measure the inhibition zones",
+      "instruction": "Drag the ruler onto each disk to measure its zone, then classify the sensitivity: >25mm high · 15–25mm moderate · <15mm low · no zone resistant.",
       "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
       "sSuffix": " (≥ {s} mm)",
       "rSuffix": " (≤ {r} mm)",
@@ -260,7 +269,12 @@
       "wrong": "✕ Incorrect — correct: {label}",
       "counted": "{n}/{total} assessed",
       "finish": "Finish",
-      "viewResult": "See result"
+      "viewResult": "See result",
+      "rulerHint": "Drag the ruler onto a disk to measure its zone",
+      "zoneMm": "{mm} mm",
+      "notMeasured": "not measured",
+      "measureFirst": "Measure with the ruler first",
+      "progress": "Measured {measured}/{total} · classified {classified}/{total}"
     },
     "result": {
       "learn": "Disk method — learning result",

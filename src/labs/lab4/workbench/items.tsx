@@ -12,9 +12,9 @@ import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { Incubator } from "@/labs/lab3/components2d/items/Incubator";
 import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
+import { DrigalskiSpatula } from "@/labs/lab3/components2d/items/DrigalskiSpatula";
 import { PetriLawnDish } from "../components2d/items/PetriLawnDish";
 import { DiskCartridge } from "../components2d/items/DiskCartridge";
-import { CottonSwab } from "../components2d/items/CottonSwab";
 
 export type Lab4ItemId =
   | "dish"
@@ -23,7 +23,7 @@ export type Lab4ItemId =
   | "bin"
   | "lamp"
   | "alcohol-jar"
-  | "swab"
+  | "spreader"
   | "rack"
   | "culture"
   | "cartridge"
@@ -48,7 +48,7 @@ export interface Lab4ItemDef {
   hitDY?: number;
   render: (
     state: DiskState,
-    opts: { forcepsHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number },
+    opts: { forcepsHot?: boolean; spreaderHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number },
   ) => ReactNode;
 }
 
@@ -118,15 +118,16 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     render: () => <AlcoholJar width={110} />,
   },
   {
-    id: "swab",
-    label: "lab4.items.swab",
+    id: "spreader",
+    label: "lab4.items.spreader",
     apparatus: false,
     target: false,
-    w: 200,
-    h: 44,
-    tipX: -80, // cotton head (left end)
-    preview: 0.62,
-    render: (s) => <CottonSwab width={200} charged={s.swabCharged} />,
+    w: 220,
+    h: 96,
+    tipX: -85, // triangular spreading head (left end)
+    tipY: 24,
+    preview: 0.58,
+    render: (s, o) => <DrigalskiSpatula width={220} hot={o.spreaderHot} wet={s.spreaderDipped} />,
   },
   {
     id: "rack",
@@ -146,17 +147,17 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 70,
     h: 231,
     preview: 0.34,
-    render: (s, o) => <CultureTube sampled={s.swabCharged || s.lawnPasses > 0} plugOff={o.tubePlugOff} />,
+    render: (s, o) => <CultureTube sampled={s.spreaderCharged || s.lawnPasses > 0} plugOff={o.tubePlugOff} />,
   },
   {
     id: "cartridge",
     label: "lab4.items.cartridge",
     apparatus: true,
     target: true,
-    w: 150,
-    h: 110,
-    preview: 0.5,
-    render: (s, o) => <DiskCartridge width={150} state={s} carrying={o.carrying} />,
+    w: 160,
+    h: 130,
+    preview: 0.46,
+    render: (s, o) => <DiskCartridge width={160} state={s} carrying={o.carrying} />,
   },
   {
     id: "forceps",
@@ -194,9 +195,11 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
     if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
     if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
-  if (tool === "swab") {
-    if (target === "culture") return !s.swabCharged && s.lawnPasses === 0 ? "charge-swab" : null;
-    if (target === "dish" && s.swabCharged && !s.lawnSpread) {
+  if (tool === "spreader") {
+    if (target === "alcohol-jar") return !s.spreaderDipped && !s.spreaderSterile ? "dip-spreader" : null;
+    if (target === "lamp") return s.spreaderDipped && s.lamp.lit && s.match.discarded ? "sterilize-spreader" : null;
+    if (target === "culture") return s.spreaderSterile && !s.spreaderCharged && s.lawnPasses === 0 ? "charge-spreader" : null;
+    if (target === "dish" && s.spreaderCharged && !s.lawnSpread) {
       if (s.lawnPasses === 0) return "spread-1";
       if (s.lawnPasses === 1) return "spread-2";
       if (s.lawnPasses === 2) return "spread-3";
@@ -216,10 +219,11 @@ export type { DiskIntent };
 /** Next item the student should use (learn-mode highlight + hint). */
 export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId | null {
   if (!s.dishPlaced) return "dish";
-  if (!s.swabCharged && s.lawnPasses === 0) return "swab";
-  if (!s.lawnSpread) return "swab";
   if (!s.lamp.lit) return "match";
   if (!s.match.discarded) return "match";
+  if (!s.spreaderSterile) return "spreader";
+  if (!s.spreaderCharged && s.lawnPasses === 0) return "spreader";
+  if (!s.lawnSpread) return "spreader";
   if (!s.forcepsSterile) return "forceps";
   if (!allDisksPlaced(s)) return "forceps";
   if (!s.incubated) return "incubator";
