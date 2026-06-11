@@ -66,6 +66,8 @@ export interface DiskState {
   lawnPasses: number;
   /** Confluent lawn finished. */
   lawnSpread: boolean;
+  /** Used spreader re-sterilised in the flame after seeding the lawn (hygiene). */
+  spreaderResterilized: boolean;
   /** Plate dried (~30 min) so the agar absorbed the inoculum. */
   dried: boolean;
   /** Forceps dipped in alcohol, then flamed. */
@@ -91,6 +93,7 @@ export function freshDiskState(): DiskState {
     spreaderCharged: false,
     lawnPasses: 0,
     lawnSpread: false,
+    spreaderResterilized: false,
     dried: false,
     forcepsDipped: false,
     forcepsSterile: false,
@@ -150,8 +153,12 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
       s.spreaderDipped = true;
       break;
     case "sterilize-spreader":
-      s.spreaderSterile = true;
-      s.spreaderDipped = false;
+      // Before seeding it sterilises; after the lawn it re-sterilises the used spreader.
+      if (s.lawnSpread) s.spreaderResterilized = true;
+      else {
+        s.spreaderSterile = true;
+        s.spreaderDipped = false;
+      }
       break;
     case "charge-spreader":
       s.spreaderCharged = true;

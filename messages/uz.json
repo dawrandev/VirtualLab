@@ -191,7 +191,8 @@
       "discardMatch": "Yongan gugurtni biohazard idishiga tashlang",
       "dipSpreader": "Shpatel uchini spirt bankasiga botiring",
       "flameSpreader": "Shpatelni olovda yoqib sterillang (so'ng soviting)",
-      "chargeSpreader": "Steril shpatelni E. coli kulturasiga botiring"
+      "chargeSpreader": "Steril shpatelni E. coli kulturasiga botiring",
+      "reflameSpreader": "Ishlatilgan shpatelni olovda qayta sterillang"
     },
     "toast": {
       "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying"
@@ -200,7 +201,8 @@
       "dir": "🔄 {n}/3-yo'nalish",
       "swab": "💧 Tampon botirilyapti…",
       "forceps": "🧴 Pinset spirtga botirilyapti…",
-      "charge": "💧 Kultura olinmoqda…"
+      "charge": "💧 Kultura olinmoqda…",
+      "dipSpreader": "🧴 Shpatel spirtga botirilyapti…"
     },
     "dry": {
       "title": "Idish quriyabdi…",
@@ -255,7 +257,7 @@
     },
     "measure": {
       "title": "Tormozlanish zonalarini o'lchang",
-      "instruction": "Lineykani har diskka olib borib zonasini o'lchang, so'ng sezuvchanlikni aniqlang: >25mm yuqori · 15–25mm o'rtacha · <15mm past · zonasiz chidamli.",
+      "instruction": "Zona-o‘lchagich shablonni har diskka sudrab zonasini o‘lchang, so‘ng diskka bosib mm ni ko‘ring va sezgirligini aniqlang.",
       "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
       "sSuffix": " (≥ {s} mm)",
       "rSuffix": " (≤ {r} mm)",
@@ -265,11 +267,20 @@
       "counted": "{n}/{total} baholandi",
       "finish": "Yakunlash",
       "viewResult": "Natijani ko'rish",
-      "rulerHint": "Lineykani diskka olib borib zonani o'lchang",
+      "rulerHint": "Shablonni disk zonasiga sudrab o‘lchang",
       "zoneMm": "{mm} mm",
       "notMeasured": "o'lchanmagan",
       "measureFirst": "Avval lineyka bilan o'lchang",
-      "progress": "O'lchangan {measured}/{total} · baholangan {classified}/{total}"
+      "progress": "O'lchangan {measured}/{total} · baholangan {classified}/{total}",
+      "clickDisk": "O‘lchangan diskka bosing — zonasi (mm) va sezgirligini aniqlang",
+      "zoneReading": "Tormozlanish zonasi diametri: {mm} mm",
+      "pickSens": "Mm ga qarab sezgirligini aniqlang:",
+      "range": {
+        "high": "> 25 mm",
+        "medium": "15–25 mm",
+        "low": "< 15 mm",
+        "resistant": "zonasiz"
+      }
     },
     "result": {
       "learn": "Disk usuli — o'rganish natijasi",

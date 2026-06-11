@@ -197,7 +197,11 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
   }
   if (tool === "spreader") {
     if (target === "alcohol-jar") return !s.spreaderDipped && !s.spreaderSterile ? "dip-spreader" : null;
-    if (target === "lamp") return s.spreaderDipped && s.lamp.lit && s.match.discarded ? "sterilize-spreader" : null;
+    if (target === "lamp") {
+      if (s.spreaderDipped && s.lamp.lit && s.match.discarded) return "sterilize-spreader"; // sterilise before seeding
+      if (s.lawnSpread && !s.spreaderResterilized && s.lamp.lit) return "sterilize-spreader"; // re-sterilise the used spreader
+      return null;
+    }
     if (target === "culture") return s.spreaderSterile && !s.spreaderCharged && s.lawnPasses === 0 ? "charge-spreader" : null;
     if (target === "dish" && s.spreaderCharged && !s.lawnSpread) {
       if (s.lawnPasses === 0) return "spread-1";
@@ -208,7 +212,7 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
   if (tool === "forceps") {
     if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsSterile ? "dip-forceps" : null;
     if (target === "lamp") return s.forcepsDipped && s.lamp.lit && s.match.discarded ? "sterilize-forceps" : null;
-    if (target === "cartridge") return s.forcepsSterile && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
+    if (target === "cartridge") return s.forcepsSterile && s.spreaderResterilized && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
     if (target === "dish") return carrying && s.dried ? "place-disk" : null;
   }
   return null;
@@ -224,6 +228,7 @@ export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId 
   if (!s.spreaderSterile) return "spreader";
   if (!s.spreaderCharged && s.lawnPasses === 0) return "spreader";
   if (!s.lawnSpread) return "spreader";
+  if (!s.spreaderResterilized) return "spreader";
   if (!s.forcepsSterile) return "forceps";
   if (!allDisksPlaced(s)) return "forceps";
   if (!s.incubated) return "incubator";

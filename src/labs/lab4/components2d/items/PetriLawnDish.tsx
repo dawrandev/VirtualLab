@@ -34,7 +34,10 @@ export function PetriLawnDish({ diameter = 230, stage, lawnPasses = 0, placedDis
   const h = w * (164 / 210);
   const hasLawn = stage === "lawn" || stage === "lawn-wet" || stage === "grown";
   const grown = stage === "grown";
-  const lidOff = hasLawn || Object.values(placedDisks).some(Boolean);
+  const allPlaced = ANTIBIOTICS.length > 0 && ANTIBIOTICS.every((a) => placedDisks[a.id]);
+  // Lid is lifted only while working; it closes once all disks are on (ready to
+  // incubate) and stays closed after incubation.
+  const lidOff = (hasLawn || Object.values(placedDisks).some(Boolean)) && !allPlaced;
   // After incubation the whole surface is confluent; otherwise show the
   // individual directional streak passes the student has made so far.
   const passes = grown ? 3 : lawnPasses;

@@ -80,6 +80,7 @@ function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.spreaderSterile) return s.spreaderDipped ? "lab4.hint.flameSpreader" : "lab4.hint.dipSpreader";
   if (!s.spreaderCharged && s.lawnPasses === 0) return "lab4.hint.chargeSpreader";
   if (!s.lawnSpread) return "lab4.hint.spread";
+  if (!s.spreaderResterilized) return "lab4.hint.reflameSpreader";
   if (!s.dried) return "lab4.hint.dry";
   if (!s.forcepsSterile) return "lab4.hint.forceps";
   if (!allDisksPlaced(s)) return carrying ? "lab4.hint.placeDisk" : "lab4.hint.pickDisk";
@@ -481,15 +482,19 @@ export function Lab4Workbench() {
     setMode(null);
   }
 
-  const placedSet = new Set(Object.keys(placed)) as Set<Lab4ItemId>;
+  // While it incubates, the plate is INSIDE the thermostat — hidden from the
+  // bench (it reappears, grown, once incubation ends).
+  const incubating = inc != null;
+  const placedSet = new Set(Object.keys(placed).filter((id) => !(incubating && id === "dish"))) as Set<Lab4ItemId>;
   const movableCount = [...placedSet].filter((id) => !LAB4_ITEM_BY_ID[id].fixed).length;
-  // Fixed fixtures are never offered in the sidebar.
-  const sidebarPlaced = new Set([...placedSet, ...LAB4_ITEMS.filter((i) => i.fixed).map((i) => i.id)]) as Set<Lab4ItemId>;
+  // The dish stays "in use" (in the thermostat) + fixed fixtures are never offered in the sidebar.
+  const sidebarPlaced = new Set([...Object.keys(placed), ...LAB4_ITEMS.filter((i) => i.fixed).map((i) => i.id)]) as Set<Lab4ItemId>;
   const draggingDef = drag ? LAB4_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(disk, carrying);
   // Lift the tube's cotton plug while the spreader is being charged in it.
   const chargingSpreader = hold?.kind === "sample" && hold.intent === "charge-spreader";
-  const dippingForceps = hold?.kind === "sample" && (hold.intent === "dip-forceps" || hold.intent === "dip-spreader");
+  const dippingForceps = hold?.kind === "sample" && hold.intent === "dip-forceps";
+  const dippingSpreader = hold?.kind === "sample" && hold.intent === "dip-spreader";
   const renderOpts = { forcepsHot, spreaderHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSpreader, binBump };
   const dishPos = placed["dish"];
   const culturePos = placed["culture"];
@@ -646,11 +651,11 @@ export function Lab4Workbench() {
           {/* Forceps dipping into the alcohol jar — tips lower below the alcohol
               level (occluded by the jar's front glass) then lift back out.
               3-layer: jar back (placed) → forceps → jar front. */}
-          {dippingForceps && jarPos && (
+          {(dippingForceps || dippingSpreader) && jarPos && (
             <>
               <div className="pointer-events-none absolute" style={{ left: `${jarPos.x}%`, top: `${jarPos.y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
                 <motion.div initial={{ y: -82, opacity: 0 }} animate={{ y: [-82, -36, -36, -82], opacity: 1 }} transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.32, 0.78, 1], ease: "easeInOut" }}>
-                  <Forceps width={40} />
+                  {dippingSpreader ? <div style={{ transform: "rotate(-82deg)" }}><DrigalskiSpatula width={130} wet /></div> : <Forceps width={40} />}
                 </motion.div>
               </div>
               <div className="pointer-events-none absolute" style={{ left: `${jarPos.x}%`, top: `${jarPos.y}%`, transform: "translate(-50%,-50%)", zIndex: 6 }}>
@@ -665,7 +670,7 @@ export function Lab4Workbench() {
                 </svg>
               </div>
               <div className="pointer-events-none absolute -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow" style={{ left: `${jarPos.x}%`, top: `${jarPos.y - 28}%` }}>
-                {tg("lab4.act.forceps")}
+                {tg(dippingSpreader ? "lab4.act.dipSpreader" : "lab4.act.forceps")}
               </div>
             </>
           )}
@@ -726,7 +731,7 @@ export function Lab4Workbench() {
 
           {/* Drag ghost — forceps carrying a disk shows a small disk at its tips.
               Hidden during a dip (the dedicated dip visual takes over). */}
-          {drag && draggingDef && !chargingSpreader && !dippingForceps && (
+          {drag && draggingDef && !chargingSpreader && !dippingForceps && !dippingSpreader && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               <div className="relative">
                 {draggingDef.render(disk, renderOpts)}

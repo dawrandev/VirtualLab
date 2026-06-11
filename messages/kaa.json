@@ -192,7 +192,8 @@
       "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań",
       "dipSpreader": "Shpatel ushın spirt bankasına malıń",
       "flameSpreader": "Shpateldi jalında sterilizaciyalań (soń suwıtıń)",
-      "chargeSpreader": "Steril shpateldi E. coli kulturasına malıń"
+      "chargeSpreader": "Steril shpateldi E. coli kulturasına malıń",
+      "reflameSpreader": "Isletilgen shpateldi jalında qayta sterilizaciyalań"
     },
     "toast": {
       "needLawn": "Dáslep gazon egip qurıtıń hám barlıq disklerdi qoyıń"
@@ -201,7 +202,8 @@
       "dir": "🔄 {n}/3-baǵdar",
       "swab": "💧 Tampon batırılmaqta…",
       "forceps": "🧴 Pinset spirtke batırılmaqta…",
-      "charge": "💧 Kultura alınbaqta…"
+      "charge": "💧 Kultura alınbaqta…",
+      "dipSpreader": "🧴 Shpatel spirtke malınbaqta…"
     },
     "dry": {
       "title": "Idıs qurımaqta…",
@@ -256,7 +258,7 @@
     },
     "measure": {
       "title": "Tormozlanıw zonaların ólsheń",
-      "instruction": "Sızǵıshtı hár diskke alıp barıp zonasın ólsheń, soń sezgishlikti anıqlań: >25mm joqarı · 15–25mm ortasha · <15mm tómen · zonasız shıdamlı.",
+      "instruction": "Zona-ólshegish shablondı hár diskke súyrep zonasın ólsheń, soń diskke basıp mm di kórıń hám bahalań.",
       "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
       "sSuffix": " (≥ {s} mm)",
       "rSuffix": " (≤ {r} mm)",
@@ -266,11 +268,20 @@
       "counted": "{n}/{total} bahalandı",
       "finish": "Juwmaqlaw",
       "viewResult": "Nátiyjeni kóriw",
-      "rulerHint": "Sızǵıshtı diskke alıp barıp zonanı ólsheń",
+      "rulerHint": "Shablondı disk zonasına súyreń",
       "zoneMm": "{mm} mm",
       "notMeasured": "ólshenbegen",
       "measureFirst": "Aldın sızǵısh penen ólsheń",
-      "progress": "Ólshengen {measured}/{total} · bahalanǵan {classified}/{total}"
+      "progress": "Ólshengen {measured}/{total} · bahalanǵan {classified}/{total}",
+      "clickDisk": "Ólshengen diskke basıń — zonasın (mm) hám sezgishligin anıqlań",
+      "zoneReading": "Tormozlanıw zonası diametri: {mm} mm",
+      "pickSens": "Mm ge qarap sezgishligin anıqlań:",
+      "range": {
+        "high": "> 25 mm",
+        "medium": "15–25 mm",
+        "low": "< 15 mm",
+        "resistant": "zonasız"
+      }
     },
     "result": {
       "learn": "Disk usılı — úyreniw nátiyjesi",

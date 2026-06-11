@@ -196,7 +196,8 @@
       "discardMatch": "Drop the burning match into the biohazard bin",
       "dipSpreader": "Dip the spreader's working end in alcohol",
       "flameSpreader": "Flame the spreader sterile (then let it cool)",
-      "chargeSpreader": "Charge the sterile spreader from the E. coli culture"
+      "chargeSpreader": "Charge the sterile spreader from the E. coli culture",
+      "reflameSpreader": "Re-sterilise the used spreader in the flame"
     },
     "toast": {
       "needLawn": "First swab the lawn, dry it and place all the disks"
@@ -205,7 +206,8 @@
       "dir": "🔄 direction {n}/3",
       "swab": "💧 Dipping the swab…",
       "forceps": "🧴 Sterilising the forceps…",
-      "charge": "💧 Picking up culture…"
+      "charge": "💧 Picking up culture…",
+      "dipSpreader": "🧴 Spreader dipping in alcohol…"
     },
     "dry": {
       "title": "The dish is drying…",
@@ -260,7 +262,7 @@
     },
     "measure": {
       "title": "Measure the inhibition zones",
-      "instruction": "Drag the ruler onto each disk to measure its zone, then classify the sensitivity: >25mm high · 15–25mm moderate · <15mm low · no zone resistant.",
+      "instruction": "Drag the zone-reader template onto each disk to measure its clear zone, then click the disk to read the mm and classify.",
       "diskInfo": "Disk: {code} · S ≥ {s} · R ≤ {r} mm",
       "sSuffix": " (≥ {s} mm)",
       "rSuffix": " (≤ {r} mm)",
@@ -270,11 +272,20 @@
       "counted": "{n}/{total} assessed",
       "finish": "Finish",
       "viewResult": "See result",
-      "rulerHint": "Drag the ruler onto a disk to measure its zone",
+      "rulerHint": "Drag the zone-reader onto a disk’s zone",
       "zoneMm": "{mm} mm",
       "notMeasured": "not measured",
       "measureFirst": "Measure with the ruler first",
-      "progress": "Measured {measured}/{total} · classified {classified}/{total}"
+      "progress": "Measured {measured}/{total} · classified {classified}/{total}",
+      "clickDisk": "Click a measured disk to read its zone (mm) and classify",
+      "zoneReading": "Inhibition zone diameter: {mm} mm",
+      "pickSens": "Determine the sensitivity from the mm:",
+      "range": {
+        "high": "> 25 mm",
+        "medium": "15–25 mm",
+        "low": "< 15 mm",
+        "resistant": "no zone"
+      }
     },
     "result": {
       "learn": "Disk method — learning result",
