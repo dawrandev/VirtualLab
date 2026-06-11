@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { PetriAgarDish } from "./items/PetriAgarDish";
+import type { Growth } from "../state";
 
 interface Props {
   onRestart: () => void;
@@ -13,10 +15,10 @@ interface Props {
  *  three plates yields isolated colonies (a pure culture) on plate 3. */
 export function Lab3LearnResult({ onRestart, onClose }: Props) {
   const t = useTranslations();
-  const plates = [
-    { n: "1", k: "lab3.learn.plate1", color: "#84cc16" },
-    { n: "2", k: "lab3.learn.plate2", color: "#22c55e" },
-    { n: "3", k: "lab3.learn.plate3", color: "#0ea5e9", star: true },
+  const plates: Array<{ n: string; k: string; color: string; growth: Growth; star?: boolean }> = [
+    { n: "1", k: "lab3.learn.plate1", color: "#84cc16", growth: "lawn" },
+    { n: "2", k: "lab3.learn.plate2", color: "#22c55e", growth: "merged" },
+    { n: "3", k: "lab3.learn.plate3", color: "#0ea5e9", growth: "isolated", star: true },
   ];
 
   return (
@@ -32,6 +34,17 @@ export function Lab3LearnResult({ onRestart, onClose }: Props) {
 
         <div className="wb-tray flex-1 space-y-3 overflow-y-auto px-5 py-4">
           <p className="text-[13px] leading-relaxed text-slate-600">{t("lab3.learn.intro")}</p>
+
+          {/* The three plates as images, showing the growth gradient */}
+          <div className="flex justify-center gap-3 pt-1">
+            {plates.map((p) => (
+              <div key={p.n} className="flex flex-col items-center gap-1 rounded-xl px-2 py-2" style={{ background: p.star ? "#e0f2fe" : "#f8fafc", outline: p.star ? "2px solid #0ea5e9" : "1px solid #e2e8f0" }}>
+                <PetriAgarDish diameter={92} spread growth={p.growth} label={p.n} />
+                {p.star && <span className="text-[11px] font-bold text-sky-600">★</span>}
+              </div>
+            ))}
+          </div>
+
           {plates.map((p) => (
             <div key={p.n} className="flex items-start gap-3 rounded-xl bg-slate-50 px-3 py-2.5" style={{ outline: p.star ? "2px solid #0ea5e9" : "none" }}>
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm font-bold text-white" style={{ background: p.color }}>{p.n}</span>
