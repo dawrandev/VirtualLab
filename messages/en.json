@@ -388,6 +388,17 @@
       "ansPositive": "Gram-positive cocci",
       "ansNegative": "Gram-negative",
       "viewScope": "View the microscope"
+    },
+    "learn": {
+      "title": "Pure culture isolated ✓",
+      "subtitle": "Drigalski method — work complete",
+      "intro": "Because the same spreader (un-sterilised) was dragged across the 3 plates in turn, the bacteria were progressively diluted:",
+      "plate1": "Plate 1: confluent growth (lawn) — very many bacteria, colonies merged",
+      "plate2": "Plate 2: partly separated, merging colonies",
+      "plate3": "Plate 3: separate (isolated) colonies — the pure culture is taken from here ✓",
+      "resultLabel": "Result",
+      "result": "A single isolated colony on plate 3 is a pure culture grown from one cell. It can be picked for further tests (Gram stain, biochemical tests).",
+      "viewBtn": "View result"
     }
   },
   "lab2": {

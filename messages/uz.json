@@ -383,6 +383,17 @@
       "ansPositive": "Gram-musbat kokklar",
       "ansNegative": "Gram-manfiy",
       "viewScope": "Mikroskopni ko'rish"
+    },
+    "learn": {
+      "title": "Toza kultura ajratildi ✓",
+      "subtitle": "Drigalski usuli — ish yakunlandi",
+      "intro": "Bir xil shpatel bilan (sterillamasdan) ketma-ket 3 idishga ekkaningiz uchun bakteriyalar asta-sekin suyultirildi:",
+      "plate1": "1-idish: tutash o'sish (gazon) — bakteriya juda ko'p, koloniyalar qo'shilib ketgan",
+      "plate2": "2-idish: qisman ajralgan, qo'shilib ketgan koloniyalar",
+      "plate3": "3-idish: alohida (yakka) koloniyalar — bu yerdan toza kultura olinadi ✓",
+      "resultLabel": "Natija",
+      "result": "3-idishdagi bitta alohida koloniya — bitta hujayradan o'sgan toza kultura. Uni keyingi tekshiruvlar (Gram bo'yash, biokimyoviy testlar) uchun olish mumkin.",
+      "viewBtn": "Natijani ko'rish"
     }
   },
   "lab2": {

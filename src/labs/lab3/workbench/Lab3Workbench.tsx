@@ -16,6 +16,7 @@ import { Lab3Sidebar } from "./Lab3Sidebar";
 import { ModeSelect } from "./ModeSelect";
 import { PlanningSidebar } from "./PlanningSidebar";
 import { Lab3ResultModal } from "../components2d/Lab3ResultModal";
+import { Lab3LearnResult } from "../components2d/Lab3LearnResult";
 import { HourglassWait } from "@/components/HourglassWait";
 
 const DROP_PAD = 26;
@@ -108,6 +109,8 @@ export function Lab3Workbench() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [spatulaHot, setSpatulaHot] = useState(false);
   const [binBump, setBinBump] = useState(0);
+  // Learn-mode completion panel (shown once the incubated plates come out).
+  const [learnResultOpen, setLearnResultOpen] = useState(false);
 
   // Incubation countdown.
   const [inc, setInc] = useState<{ start: number } | null>(null);
@@ -157,6 +160,8 @@ export function Lab3Workbench() {
         setPlaced((pl) => ({ ...pl, ...dishHome.current }));
         setInIncubator(new Set());
         setInc(null);
+        // The work ends here: show the learn-mode result panel.
+        if (modeRef.current !== "exam") setLearnResultOpen(true);
       }
     }, 90);
     return () => window.clearInterval(iv);
@@ -427,6 +432,7 @@ export function Lab3Workbench() {
     setSpatulaHot(false);
     setInc(null);
     setIncProg(0);
+    setLearnResultOpen(false);
     cancelHold();
     lockTargetRef.current = null;
     setExamPhase("planning");
@@ -549,7 +555,9 @@ export function Lab3Workbench() {
                   title={tg(it.label)}
                 >
                   {it.id === "spatula" && (spatulaInAlcohol || spatulaInChlorine) ? (
-                    <div style={{ transform: "rotate(82deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
+                    // Working (triangular) end DOWN, submerged in the liquid; the
+                    // long handle sticks up out of the jar.
+                    <div style={{ transform: "rotate(-82deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
                   ) : (
                     it.render(drig, renderOpts)
                   )}
@@ -662,6 +670,13 @@ export function Lab3Workbench() {
             </div>
           )}
 
+          {/* Result button (learn mode) — the plates are out of the thermostat. */}
+          {!isExam && drig.incubated && !learnResultOpen && (
+            <button onClick={() => setLearnResultOpen(true)} className="absolute bottom-5 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-teal-500">
+              📋 {tg("lab3.learn.viewBtn")}
+            </button>
+          )}
+
           {/* Drag ghost */}
           {drag && draggingDef && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
@@ -686,6 +701,12 @@ export function Lab3Workbench() {
       <AnimatePresence>
         {isExam && examPhase === "result" && examResult && (
           <Lab3ResultModal result={examResult} onRestart={restart} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {!isExam && learnResultOpen && (
+          <Lab3LearnResult onRestart={restart} onClose={() => setLearnResultOpen(false)} />
         )}
       </AnimatePresence>
     </div>

@@ -384,6 +384,17 @@
       "ansPositive": "Gram-oń kokklar",
       "ansNegative": "Gram-teri",
       "viewScope": "Mikroskoptı kóriw"
+    },
+    "learn": {
+      "title": "Taza kultura ajıratıldı ✓",
+      "subtitle": "Drigalski usılı — jumıs juwmaqlandı",
+      "intro": "Sol bir shpatel menen (sterilizaciyalamay) izbe-iz 3 ıdısqa eгilgeni ushın bakteriyalar aqırın suyıltırıldı:",
+      "plate1": "1-ıdıs: tutas ósiw (gazon) — bakteriya júdá kóp, koloniyalar qosılıp ketken",
+      "plate2": "2-ıdıs: bólekley ajıralǵan, qosılıp ketken koloniyalar",
+      "plate3": "3-ıdıs: bólek (jalǵız) koloniyalar — usı jerden taza kultura alınadı ✓",
+      "resultLabel": "Nátiyje",
+      "result": "3-ıdıstaǵı bir bólek koloniya — bir kletkadan ósken taza kultura. Onı keyingi tekseriwler (Gram boyaw, bioximiyalıq testler) ushın alıw múmkin.",
+      "viewBtn": "Nátiyjeni kóriw"
     }
   },
   "lab2": {
