@@ -94,7 +94,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
     target: false,
     w: 100,
     h: 32,
-    tipX: 42,
+    tipX: -32, // burning head (left end) — must match Lab 1 so the flame hits
     preview: 0.7,
     render: (s) => <Match lit={s.match.lit} burnProgress={s.match.lit ? 0.2 : 0} burned={false} />,
   },
