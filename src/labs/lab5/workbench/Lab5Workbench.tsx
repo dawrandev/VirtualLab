@@ -347,8 +347,9 @@ export function Lab5Workbench() {
       const intent = intentFor(d.id, target, wetRef.current);
       if (intent) {
         if (actionKind(intent) === "instant") perform(intent);
-        // The cover slip is consumed onto the slide (not laid on the table).
-        if (intent === "place-cover") {
+        // The cover slip is consumed onto the slide; the spent match drops into
+        // the bin — neither is laid back down on the table.
+        if (intent === "place-cover" || intent === "discard-match") {
           endDrag();
           return;
         }

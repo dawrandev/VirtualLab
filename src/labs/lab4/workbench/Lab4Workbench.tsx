@@ -419,7 +419,14 @@ export function Lab4Workbench() {
     if (target) {
       const intent = intentFor(d.id, target, diskRef.current, carryingRef.current);
       if (intent) {
-        // contact/rub already fired mid-drag; lay the tool down (snap).
+        // Instant actions (e.g. binning the spent match) fire on release;
+        // contact/rub already fired mid-drag. Either way the tool is laid down.
+        if (actionKind(intent) === "instant") perform(intent);
+        // The spent match drops INTO the bin (perform removed it) — don't re-lay it.
+        if (intent === "discard-match") {
+          endDrag();
+          return;
+        }
         const fxp = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
         const fyp = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
         const pos = snapPos(d.id, rect, { x: fxp, y: fyp });
