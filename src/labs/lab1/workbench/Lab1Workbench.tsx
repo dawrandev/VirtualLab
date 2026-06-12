@@ -919,17 +919,14 @@ export function Lab1Workbench() {
             </div>
           )}
 
-          {/* MB contact countdown — learn mode only (guidance). */}
+          {/* MB contact countdown — learn mode only (guidance). Pinned top-centre,
+              matching the wait indicators in the other labs. */}
           {!isExam && slidePos && state.slide.methyleneBlue.applied && !state.slide.methyleneBlue.washed && (
-            <div
-              className="pointer-events-none absolute z-20"
-              style={{ left: `${slidePos.x}%`, top: `${slidePos.y + 12}%`, transform: "translate(-50%,0)" }}
-            >
+            <div className="pointer-events-none absolute left-1/2 top-3 z-40 -translate-x-1/2">
               <HourglassWait
                 progress={mbReady ? 1 : (10 - mbLeft) / 10}
                 time={mbReady ? tg("lab1.mb.ready") : tg("lab1.mb.waiting", { s: mbLeft })}
                 done={mbReady}
-                width={88}
               />
             </div>
           )}
