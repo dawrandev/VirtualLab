@@ -345,6 +345,16 @@ export function Lab5Workbench() {
     const { hx, hy } = hitPoint(d, e.clientX, e.clientY);
     const target = targetAt(hx - rect.left, hy - rect.top, d.id);
 
+    // The cover slip is ALWAYS consumed onto the slide — never laid loose on the
+    // table. (place-cover is a "contact" action: it can fire mid-drag, after
+    // which intentFor() returns null on release; without this guard the slip
+    // would then fall through to table placement and re-appear on the bench.)
+    if (d.id === "coverslip") {
+      if (target === "slide" && wetRef.current.mixed && !wetRef.current.coverPlaced) perform("place-cover");
+      endDrag();
+      return;
+    }
+
     // Slide → microscope: open the eyepiece view.
     if (target === "microscope" && d.id === "slide") {
       if (canObserve(wetRef.current)) perform("observe");
