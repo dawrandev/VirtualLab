@@ -590,6 +590,18 @@ export function Lab5Workbench() {
           {/* Blotting excess — filter paper dabs down onto the slide centre */}
           {blotting && slidePos && (
             <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
+              {/* Excess saline wicking up from the slide edges INTO the filter
+                  paper — the droplets shrink and are drawn upward (absorbed). */}
+              {[-1, 1].map((side) => (
+                <motion.div
+                  key={side}
+                  className="absolute rounded-full"
+                  style={{ left: "50%", top: 8, marginLeft: side * 44, width: 7, height: 9, background: "rgba(150,200,228,0.9)", boxShadow: "0 0 3px rgba(150,200,228,0.7)" }}
+                  initial={{ opacity: 0, y: 8, scale: 1 }}
+                  animate={{ opacity: [0, 0.95, 0.9, 0], y: [8, 0, -8, -16], scale: [1, 0.85, 0.45, 0.15] }}
+                  transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.3, 0.7, 1], ease: "easeIn", delay: side > 0 ? 0.12 : 0 }}
+                />
+              ))}
               <motion.div
                 style={{ transformOrigin: "50% 100%" }}
                 initial={{ y: -26, opacity: 0 }}

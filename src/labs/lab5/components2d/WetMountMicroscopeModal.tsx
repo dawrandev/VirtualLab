@@ -14,50 +14,118 @@ interface Props {
   onClose: () => void;
 }
 
-interface Rod {
+type Kind = "brownian" | "swimmer" | "riser";
+interface Cell {
   id: number;
   left: number;
   top: number;
-  len: number;
+  w: number;
+  h: number;
+  round: boolean;
   angle: number;
-  dx: number[];
-  dy: number[];
+  kind: Kind;
+  x: number[];
+  y: number[];
   rot: number[];
+  opacity: number | number[];
   dur: number;
   delay: number;
+  times?: number[];
 }
 
-/** Deterministic field of drifting, swimming bacilli (no Math.random). */
-function rods(): Rod[] {
-  const seeds = [
-    [18, 30], [40, 20], [62, 28], [78, 44], [30, 52], [52, 46], [70, 64], [24, 72],
-    [46, 70], [66, 36], [34, 38], [58, 60], [82, 26], [16, 50],
-  ];
-  return seeds.map(([l, t], i) => {
-    const s = ((i * 37) % 11) - 5; // -5..5 swing
-    const s2 = ((i * 53) % 9) - 4;
-    return {
-      id: i,
-      left: l,
-      top: t,
-      len: 10 + (i % 4) * 2,
-      angle: (i * 47) % 180,
-      dx: [0, s * 2.2, s2 * 1.6, -s * 1.8, 0],
-      dy: [0, s2 * 1.8, -s * 2.0, s2 * 1.4, 0],
-      rot: [0, s * 6, s2 * 8, s * 5, 0],
-      dur: 3.2 + (i % 5) * 0.6,
-      delay: (i % 6) * 0.25,
-    };
-  });
+/** Deterministic pseudo-random (no Math.random → stable SSR + no hydration mismatch). */
+function rnd(n: number): number {
+  const x = Math.sin(n * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
 }
 
 /**
- * Wet-mount microscope view (×40). A pale, unstained field of living rod-shaped
- * bacteria that swim and jitter — the student decides whether the organism is
- * motile. (In learn mode the answer + a Brownian-vs-true-motility note shows.)
+ * A dense wet-mount field of LIVING E. coli — most cells jiggle in place
+ * (Brownian motion), a good fraction swim across in run-and-tumble paths, and a
+ * few stream upward. Built once, deterministically.
+ */
+function field(): Cell[] {
+  const cells: Cell[] = [];
+  // Brownian crowd — the bulk of the field: small dark cells vibrating in place.
+  for (let i = 0; i < 80; i++) {
+    const j = 1.4 + rnd(i + 3) * 1.6;
+    const rod = i % 3 === 0;
+    cells.push({
+      id: i,
+      left: rnd(i + 1) * 95 + 2.5,
+      top: rnd(i + 7) * 92 + 4,
+      w: rod ? 6 + (i % 3) : 3 + (i % 2),
+      h: rod ? 3 : 3 + (i % 2),
+      round: !rod,
+      angle: rnd(i + 5) * 180,
+      kind: "brownian",
+      x: [0, j, -j * 0.7, j * 0.5, 0],
+      y: [0, -j * 0.6, j, -j * 0.4, 0],
+      rot: [0, 0, 0, 0, 0],
+      opacity: 0.7 + rnd(i + 11) * 0.2,
+      dur: 1.4 + rnd(i + 2) * 1.1,
+      delay: rnd(i + 9) * 1.6,
+    });
+  }
+  // Swimmers — run a straight-ish path then tumble (change direction). Motile.
+  for (let i = 0; i < 16; i++) {
+    const k = 100 + i;
+    const dir = rnd(k + 2) * Math.PI * 2;
+    const run = 20 + rnd(k + 3) * 16;
+    const cx = Math.cos(dir) * run;
+    const cy = Math.sin(dir) * run;
+    const dir2 = dir + (rnd(k + 5) - 0.5) * 2.6;
+    cells.push({
+      id: k,
+      left: rnd(k + 1) * 82 + 9,
+      top: rnd(k + 4) * 74 + 13,
+      w: 8 + (i % 3),
+      h: 3.4,
+      round: false,
+      angle: (dir * 180) / Math.PI,
+      kind: "swimmer",
+      x: [0, cx * 0.5, cx, cx + Math.cos(dir2) * run * 0.7, cx * 0.4, 0],
+      y: [0, cy * 0.5, cy, cy + Math.sin(dir2) * run * 0.7, cy * 0.4, 0],
+      rot: [0, 10, -8, 12, -5, 0],
+      opacity: 0.82,
+      dur: 4 + rnd(k + 7) * 2.5,
+      delay: rnd(k + 8) * 2,
+    });
+  }
+  // Risers — a few cells streaming UPWARD across the field, fading in and out.
+  for (let i = 0; i < 9; i++) {
+    const k = 200 + i;
+    cells.push({
+      id: k,
+      left: rnd(k + 1) * 90 + 5,
+      top: 88,
+      w: 4 + (i % 2) * 3,
+      h: 4,
+      round: i % 2 === 0,
+      angle: 90,
+      kind: "riser",
+      x: [0, rnd(k + 2) * 14 - 7, rnd(k + 3) * 14 - 7],
+      y: [0, -120, -240],
+      rot: [0, 20, -10],
+      opacity: [0, 0.9, 0],
+      times: [0, 0.5, 1],
+      dur: 3.6 + rnd(k + 4) * 2.4,
+      delay: rnd(k + 5) * 3.5,
+    });
+  }
+  return cells;
+}
+
+const CELL_BG = "rgba(38,66,54,0.82)";
+
+/**
+ * Wet-mount microscope view (×40). A teal, unstained field of living rod-shaped
+ * bacteria: most jiggle in place (Brownian), some swim across in run-and-tumble
+ * paths and a few stream upward — true motility. The student decides whether the
+ * organism is motile; learn mode reveals the answer + a Brownian-vs-true note.
  */
 export function WetMountMicroscopeModal({ open, picked, reveal, correct, onClassify, onClose }: Props) {
-  const cells = useMemo(() => rods(), []);
+  const cells = useMemo(() => field(), []);
   const t = useTranslations();
   const isRight = picked === correct;
 
@@ -70,28 +138,30 @@ export function WetMountMicroscopeModal({ open, picked, reveal, correct, onClass
           </button>
 
           <div className="flex flex-col items-center gap-5">
-            {/* Eyepiece */}
+            {/* Eyepiece — a teal living field */}
             <div className="relative h-[min(70vw,440px)] w-[min(70vw,440px)]">
-              <div className="absolute inset-0 overflow-hidden rounded-full ring-4 ring-slate-800 shadow-[0_0_120px_rgba(0,0,0,0.8)]" style={{ background: "radial-gradient(circle, #fcfdfa 0%, #eef2ea 55%, #c7cdbe 88%, #20251c 100%)" }}>
-                {cells.map((r) => (
+              <div className="absolute inset-0 overflow-hidden rounded-full ring-4 ring-slate-800 shadow-[0_0_120px_rgba(0,0,0,0.8)]" style={{ background: "radial-gradient(circle, #c9e7d9 0%, #abd8c6 52%, #84b8a4 84%, #243a32 100%)" }}>
+                {cells.map((c) => (
                   <motion.div
-                    key={r.id}
+                    key={c.id}
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.85, x: r.dx, y: r.dy, rotate: r.rot }}
-                    transition={{ duration: r.dur, delay: r.delay, repeat: Infinity, ease: "easeInOut" }}
+                    animate={{ opacity: c.opacity, x: c.x, y: c.y, rotate: c.rot }}
+                    transition={{ duration: c.dur, delay: c.delay, repeat: Infinity, ease: c.kind === "brownian" ? "easeInOut" : "linear", times: c.times }}
                     style={{
                       position: "absolute",
-                      left: `${r.left}%`,
-                      top: `${r.top}%`,
-                      width: r.len,
-                      height: 4.2,
-                      borderRadius: 3,
-                      transform: `rotate(${r.angle}deg)`,
-                      background: "rgba(70,84,60,0.85)",
-                      boxShadow: "0 0 2px rgba(40,50,30,0.5)",
+                      left: `${c.left}%`,
+                      top: `${c.top}%`,
+                      width: c.w,
+                      height: c.h,
+                      borderRadius: c.round ? "50%" : 3,
+                      transform: `rotate(${c.angle}deg)`,
+                      background: CELL_BG,
+                      boxShadow: "0 0 1.5px rgba(20,35,28,0.5)",
                     }}
                   />
                 ))}
+                {/* soft out-of-focus haze + the central bright disc */}
+                <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.18), transparent 55%)" }} />
                 <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md bg-black/40 px-2.5 py-1 text-[11px] font-bold tracking-wider text-white">{t("lab5.micro.field")}</div>
               </div>
             </div>
