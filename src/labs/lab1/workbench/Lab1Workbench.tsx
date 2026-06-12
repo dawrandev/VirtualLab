@@ -213,23 +213,6 @@ export function Lab1Workbench() {
     }
   }, [state.slide.methyleneBlue.applied, state.slide.methyleneBlue.washed]);
 
-  // Keyboard shortcut for desktop: press "R" to rotate the loop vertical /
-  // horizontal (works any time the loop is placed or being dragged). The
-  // on-screen ↻ button covers touchscreen monitors.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === "r" || e.key === "R") {
-        if (dragRef.current?.id === "loop" || placedRef.current["loop"]) {
-          e.preventDefault();
-          setLoopDeg((d) => (d + 90) % 360);
-        }
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
   // The loop cools after flaming (glowing red → grey over ~4s). Realistic in
   // both modes; in exam, sampling while still hot is a graded mistake.
   useEffect(() => {
@@ -379,11 +362,12 @@ export function Lab1Workbench() {
     holdIv.current = window.setInterval(() => {
       let prog: number;
       if (kind === "hold") {
-        // Loop sterilization: heat in BOTH orientations (student rotates with R).
-        const half = HOLD_DUR / 2;
-        const vert = loopDegRef.current === 90 || loopDegRef.current === 270;
-        if (vert) heatV.current = Math.min(1, heatV.current + TICK / half);
-        else heatH.current = Math.min(1, heatH.current + TICK / half);
+        // Loop sterilization: the loop is held in the flame and SPINS on its own
+        // (see the render), so the whole wire — both orientations — glows red-hot
+        // in one continuous hold. No keyboard, no rotate button: touch-friendly
+        // and true to how a technician twirls the loop in the flame.
+        heatV.current = Math.min(1, heatV.current + TICK / HOLD_DUR);
+        heatH.current = Math.min(1, heatH.current + TICK / HOLD_DUR);
         prog = (heatV.current + heatH.current) / 2;
         if (heatV.current >= 1 && heatH.current >= 1) {
           completeAction(intent, target);
@@ -495,10 +479,11 @@ export function Lab1Workbench() {
         return; // fires on release
       }
 
-      // Inserting the loop into the TUBE needs its ring pointing DOWN (270°).
+      // Inserting the loop into the TUBE: the ring auto-orients DOWN (270°) so the
+      // student never has to rotate it by hand on a touchscreen.
       if (desired.kind === "sample" && desired.target === "culture" && loopDegRef.current !== 270) {
-        if (h) cancelHold();
-        return;
+        setLoopDeg(270);
+        loopDegRef.current = 270;
       }
 
       if (!h || h.target !== desired.target || h.kind !== desired.kind) {
@@ -1006,13 +991,14 @@ export function Lab1Workbench() {
           {drag && draggingDef && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               {drag.id === "loop" ? (
-                // The loop always shows the student's manual orientation (R key):
-                // horizontal or vertical (ring down). It glows while heating and
-                // dips down to touch a colony in the open Petri dish.
+                // While sterilising over the flame the loop spins on its own (two
+                // full turns across the hold) so the whole wire heats — no manual
+                // rotation. Otherwise it follows loopDeg, glowing as it heats and
+                // dipping down to touch a colony in the open Petri dish.
                 <div
                   style={{
-                    transform: `rotate(${loopDeg}deg) translateY(${hold?.kind === "sample" && hold.target === "petri" ? hold.progress * 14 : 0}px)`,
-                    transition: "transform 0.12s ease",
+                    transform: `rotate(${hold?.kind === "hold" && hold.target === "lamp" ? hold.progress * 720 : loopDeg}deg) translateY(${hold?.kind === "sample" && hold.target === "petri" ? hold.progress * 14 : 0}px)`,
+                    transition: "transform 0.12s linear",
                   }}
                 >
                   <BacterialLoop heatLevel={hold?.kind === "hold" ? hold.progress : state.loop.heatLevel} />
@@ -1060,27 +1046,18 @@ export function Lab1Workbench() {
                 </div>
               )}
 
-              {/* Loop orientation indicator (ring direction + R hint) */}
-              {drag.id === "loop" && (
-                <div className="absolute left-1/2 top-[150%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[10px] font-medium text-white">
-                  {loopDeg === 270 ? tg("lab1.loopDown") : loopDeg === 90 ? tg("lab1.loopUp") : tg("lab1.loopSide")} · <span className="text-amber-300">R</span>
-                  {hold?.kind === "hold" && !isExam && ` · V ${heatV.current >= 1 ? "✓" : "…"} G ${heatH.current >= 1 ? "✓" : "…"}`}
+              {/* While sterilising in the flame: a language-neutral heat gauge.
+                  The loop spins on its own, so there is no orientation to choose. */}
+              {drag.id === "loop" && hold?.kind === "hold" && hold.target === "lamp" && (
+                <div className="absolute left-1/2 top-[150%] -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
+                  🔥 {heatV.current >= 1 && heatH.current >= 1 ? "✓" : `${Math.round(hold.progress * 100)}%`}
                 </div>
               )}
             </div>
           )}
 
-          {/* Touch-friendly loop rotation control (no keyboard needed) */}
-          {(placedSet.has("loop") || drag?.id === "loop") && !state.loop.resterilized && (isExam || state.currentStageId === "stage-2") && (
-            <button
-              onClick={() => setLoopDeg((d) => (d + 90) % 360)}
-              className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-violet-500 active:scale-95"
-            >
-              <span className="inline-block" style={{ transform: `rotate(${loopDeg}deg)`, transition: "transform 0.15s ease" }}>↳</span>
-              {tg("lab1.loopRotate")}{" "}
-              {loopDeg === 270 ? tg("lab1.loopDown") : loopDeg === 90 ? tg("lab1.loopUp") : tg("lab1.loopSide")}
-            </button>
-          )}
+          {/* No rotate control — the loop spins itself in the flame and auto-orients
+              when dipped into the tube. Nothing to press on a touchscreen. */}
 
           <AnimatePresence>
             {toast && (
