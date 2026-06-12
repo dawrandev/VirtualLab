@@ -238,7 +238,8 @@ export function intentFor(tool: Lab5ItemId, target: Lab5ItemId, s: WetMountState
     if (target === "culture") return s.loopFlamed && !s.loopCharged && !s.mixed ? "charge-loop" : null;
     if (target === "slide") return s.loopCharged && s.salineApplied && !s.mixed ? "mix-drop" : null;
   }
-  if (tool === "coverslip" && target === "slide") return s.mixed && !s.coverPlaced ? "place-cover" : null;
+  // The used loop must be re-sterilised right after the smear, before the slip goes on.
+  if (tool === "coverslip" && target === "slide") return s.mixed && s.loopResterilized && !s.coverPlaced ? "place-cover" : null;
   if (tool === "filter" && target === "slide") return s.coverPlaced && !s.blotted ? "blot-excess" : null;
   return null;
 }
@@ -253,9 +254,9 @@ export function requiredItem(s: WetMountState): Lab5ItemId | null {
   if (!s.loopFlamed && !s.loopCharged) return "loop";
   if (!s.loopCharged && !s.mixed) return "loop";
   if (!s.mixed) return "loop";
+  if (!s.loopResterilized) return "loop"; // re-sterilise the used loop right after the smear
   if (!s.coverPlaced) return "coverslip";
   if (!s.blotted) return "filter";
-  if (!s.loopResterilized) return "loop"; // re-sterilise the used loop before reading
   if (!s.observed) return "slide";
   return "microscope";
 }

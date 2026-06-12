@@ -72,9 +72,9 @@ function nextHint(s: WetMountState): string {
   if (!s.loopFlamed && !s.loopCharged) return "lab5.hint.flame";
   if (!s.loopCharged && !s.mixed) return "lab5.hint.charge";
   if (!s.mixed) return "lab5.hint.mix";
+  if (!s.loopResterilized) return "lab5.hint.reflame"; // flame the used loop right after the smear
   if (!s.coverPlaced) return "lab5.hint.cover";
   if (!s.blotted) return "lab5.hint.blot";
-  if (!s.loopResterilized) return "lab5.hint.reflame";
   if (!s.observed) return "lab5.hint.observe";
   return "lab5.hint.done";
 }
@@ -350,7 +350,7 @@ export function Lab5Workbench() {
     // which intentFor() returns null on release; without this guard the slip
     // would then fall through to table placement and re-appear on the bench.)
     if (d.id === "coverslip") {
-      if (target === "slide" && wetRef.current.mixed && !wetRef.current.coverPlaced) perform("place-cover");
+      if (target === "slide" && wetRef.current.mixed && wetRef.current.loopResterilized && !wetRef.current.coverPlaced) perform("place-cover");
       endDrag();
       return;
     }
