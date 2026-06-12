@@ -356,7 +356,11 @@ export function Lab5Workbench() {
     if (target) {
       const intent = intentFor(d.id, target, wetRef.current);
       if (intent) {
-        if (actionKind(intent) === "instant") perform(intent);
+        // Instant + contact actions also fire on RELEASE so a tool dropped on its
+        // target (e.g. the NaCl bottle on the slide) always works — even if the
+        // tip never registered mid-drag. Re-evaluated state means no double-fire.
+        const k = actionKind(intent);
+        if (k === "instant" || k === "contact") perform(intent);
         // The cover slip is consumed onto the slide; the spent match drops into
         // the bin — neither is laid back down on the table.
         if (intent === "place-cover" || intent === "discard-match") {
