@@ -485,9 +485,6 @@ export function Lab5Workbench() {
         )}
 
         <div className="flex items-center gap-2">
-          {wet.coverPlaced && !wet.observed && (
-            <button onClick={() => perform("observe")} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-amber-500">{tg("lab5.btnObserve")}</button>
-          )}
           <LanguageSwitcher />
           <button onClick={restart} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-200">↻ {tg("common.restart")}</button>
         </div>
@@ -667,12 +664,8 @@ export function Lab5Workbench() {
             </div>
           )}
 
-          {/* Microscope button (learn) after the cover slip is on */}
-          {!isExam && wet.coverPlaced && !wet.observed && (
-            <button onClick={() => perform("observe")} className="absolute bottom-5 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-amber-500">
-              {tg("lab5.btnObserveBig")}
-            </button>
-          )}
+          {/* No microscope button — the student carries the slide to the
+              microscope and drops it there to read the prep. */}
 
           {/* Drag ghost — hidden while a dedicated dip/dab animation plays. */}
           {drag && draggingDef && !covering && !charging && !blotting && (
