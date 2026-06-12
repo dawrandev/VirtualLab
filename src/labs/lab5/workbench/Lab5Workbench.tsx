@@ -12,7 +12,7 @@ import { FilterPaper } from "@/labs/lab1/components2d/items/FilterPaper";
 import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
 import { CoverSlip } from "../components2d/items/CoverSlip";
 import { LAB5_ITEMS, LAB5_ITEM_BY_ID, intentFor, type Lab5ItemId } from "./items";
-import { freshWetMountState, applyWetStep, canObserve, dropStage, SPECIMEN, type WetMountState, type WetIntent, type Motility } from "../state";
+import { freshWetMountState, applyWetStep, canObserve, dropStage, type WetMountState, type WetIntent, type Motility } from "../state";
 import { type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreWetMountExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab5Sidebar } from "./Lab5Sidebar";
@@ -72,9 +72,9 @@ function nextHint(s: WetMountState): string {
   if (!s.loopFlamed && !s.loopCharged) return "lab5.hint.flame";
   if (!s.loopCharged && !s.mixed) return "lab5.hint.charge";
   if (!s.mixed) return "lab5.hint.mix";
-  if (!s.loopResterilized) return "lab5.hint.reflame";
   if (!s.coverPlaced) return "lab5.hint.cover";
   if (!s.blotted) return "lab5.hint.blot";
+  if (!s.loopResterilized) return "lab5.hint.reflame";
   if (!s.observed) return "lab5.hint.observe";
   return "lab5.hint.done";
 }
@@ -85,6 +85,16 @@ export function Lab5Workbench() {
   const [wet, setWet] = useState<WetMountState>(() => freshWetMountState());
   const wetRef = useRef(wet);
   wetRef.current = wet;
+
+  // The specimen's motility is randomised each session (motile ⇄ non-motile),
+  // so the student must read the field rather than memorise one answer. Picked
+  // after mount (and on restart) to avoid an SSR/hydration mismatch.
+  const [specimenMotile, setSpecimenMotile] = useState(true);
+  const specimenMotileRef = useRef(true);
+  specimenMotileRef.current = specimenMotile;
+  useEffect(() => {
+    setSpecimenMotile(Math.random() < 0.5);
+  }, []);
 
   const tableRef = useRef<HTMLDivElement | null>(null);
   const [placed, setPlaced] = useState<Record<string, { x: number; y: number }>>({});
@@ -395,7 +405,7 @@ export function Lab5Workbench() {
   }
   function finishExam(motile: Motility | null) {
     const next = motile ? { ...wetRef.current, motilePick: motile } : wetRef.current;
-    setExamResult(scoreWetMountExam(actionLog, next));
+    setExamResult(scoreWetMountExam(actionLog, next, specimenMotileRef.current ? "motile" : "nonmotile"));
     setExamPhase("result");
   }
   function restart() {
@@ -410,6 +420,7 @@ export function Lab5Workbench() {
     setReveal(false);
     setExamPhase("planning");
     setMode(null);
+    setSpecimenMotile(Math.random() < 0.5);
   }
 
   const placedSet = new Set(Object.keys(placed)) as Set<Lab5ItemId>;
@@ -587,29 +598,40 @@ export function Lab5Workbench() {
             </>
           )}
 
-          {/* Blotting excess — filter paper dabs down onto the slide centre */}
+          {/* Blotting excess — filter paper dabs onto the slide; a drop of excess
+              saline is squeezed out and DRIPS DOWN from the slide edge, and a wet
+              stain visibly spreads through the filter paper. */}
           {blotting && slidePos && (
             <div className="pointer-events-none absolute z-40" style={{ left: `${slidePos.x}%`, top: `${slidePos.y}%`, transform: "translate(-50%,-50%)" }}>
-              {/* Excess saline wicking up from the slide edges INTO the filter
-                  paper — the droplets shrink and are drawn upward (absorbed). */}
+              {/* excess drops squeezed out at the slide edges, dripping DOWN */}
               {[-1, 1].map((side) => (
                 <motion.div
                   key={side}
-                  className="absolute rounded-full"
-                  style={{ left: "50%", top: 8, marginLeft: side * 44, width: 7, height: 9, background: "rgba(150,200,228,0.9)", boxShadow: "0 0 3px rgba(150,200,228,0.7)" }}
-                  initial={{ opacity: 0, y: 8, scale: 1 }}
-                  animate={{ opacity: [0, 0.95, 0.9, 0], y: [8, 0, -8, -16], scale: [1, 0.85, 0.45, 0.15] }}
-                  transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.3, 0.7, 1], ease: "easeIn", delay: side > 0 ? 0.12 : 0 }}
+                  className="absolute"
+                  style={{ left: "50%", top: 12, marginLeft: side * 46, width: 6, height: 9, borderRadius: "50% 50% 50% 50% / 62% 62% 38% 38%", background: "rgba(150,200,228,0.95)", boxShadow: "0 0 3px rgba(150,200,228,0.7)" }}
+                  initial={{ opacity: 0, y: -2, scaleY: 0.6 }}
+                  animate={{ opacity: [0, 1, 1, 0], y: [-2, 8, 26, 40], scaleY: [0.6, 1, 1.1, 1.2] }}
+                  transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.25, 0.7, 1], ease: "easeIn", delay: side > 0 ? 0.15 : 0 }}
                 />
               ))}
-              <motion.div
-                style={{ transformOrigin: "50% 100%" }}
-                initial={{ y: -26, opacity: 0 }}
-                animate={{ y: [-26, -2, -12, -2, -26], opacity: 1 }}
-                transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.25, 0.5, 0.75, 1], ease: "easeInOut" }}
-              >
-                <FilterPaper width={56} wet />
-              </motion.div>
+              <div className="relative">
+                <motion.div
+                  style={{ transformOrigin: "50% 100%" }}
+                  initial={{ y: -26, opacity: 0 }}
+                  animate={{ y: [-26, -2, -12, -2, -26], opacity: 1 }}
+                  transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.25, 0.5, 0.75, 1], ease: "easeInOut" }}
+                >
+                  <FilterPaper width={56} wet />
+                  {/* wet stain soaking through the filter paper */}
+                  <motion.div
+                    className="absolute left-1/2 top-1/2 rounded-full"
+                    style={{ transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(120,175,205,0.6), rgba(150,200,228,0.25) 70%, transparent)" }}
+                    initial={{ width: 4, height: 4, opacity: 0 }}
+                    animate={{ width: [4, 34, 42], height: [4, 30, 38], opacity: [0, 0.75, 0.7] }}
+                    transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.55, 1], ease: "easeOut" }}
+                  />
+                </motion.div>
+              </div>
               <div className="absolute left-1/2 top-[-30px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">{tg("lab5.act.blotting")}</div>
             </div>
           )}
@@ -661,7 +683,8 @@ export function Lab5Workbench() {
         open={scopeOpen}
         picked={wet.motilePick}
         reveal={reveal && !isExam}
-        correct={SPECIMEN.motility}
+        correct={specimenMotile ? "motile" : "nonmotile"}
+        motile={specimenMotile}
         onClassify={classifyMotility}
         onClose={closeScope}
       />

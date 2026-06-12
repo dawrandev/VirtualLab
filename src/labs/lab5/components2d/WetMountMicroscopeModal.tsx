@@ -10,6 +10,8 @@ interface Props {
   picked: Motility | null;
   reveal: boolean;
   correct: Motility;
+  /** Whether the specimen is motile — drives the field's movement. */
+  motile: boolean;
   onClassify: (m: Motility) => void;
   onClose: () => void;
 }
@@ -44,10 +46,12 @@ function rnd(n: number): number {
  * (Brownian motion), a good fraction swim across in run-and-tumble paths, and a
  * few stream upward. Built once, deterministically.
  */
-function field(): Cell[] {
+function field(motile: boolean): Cell[] {
   const cells: Cell[] = [];
   // Brownian crowd — the bulk of the field: small dark cells vibrating in place.
-  for (let i = 0; i < 80; i++) {
+  // A non-motile specimen is ALL of this (no swimming) — only Brownian jiggle.
+  const brownianN = motile ? 80 : 108;
+  for (let i = 0; i < brownianN; i++) {
     const j = 1.4 + rnd(i + 3) * 1.6;
     const rod = i % 3 === 0;
     cells.push({
@@ -67,6 +71,8 @@ function field(): Cell[] {
       delay: rnd(i + 9) * 1.6,
     });
   }
+  // Swimmers + risers only when the specimen is MOTILE.
+  if (!motile) return cells;
   // Swimmers — run a straight-ish path then tumble (change direction). Motile.
   for (let i = 0; i < 16; i++) {
     const k = 100 + i;
@@ -124,8 +130,8 @@ const CELL_BG = "rgba(38,66,54,0.82)";
  * paths and a few stream upward — true motility. The student decides whether the
  * organism is motile; learn mode reveals the answer + a Brownian-vs-true note.
  */
-export function WetMountMicroscopeModal({ open, picked, reveal, correct, onClassify, onClose }: Props) {
-  const cells = useMemo(() => field(), []);
+export function WetMountMicroscopeModal({ open, picked, reveal, correct, motile, onClassify, onClose }: Props) {
+  const cells = useMemo(() => field(motile), [motile]);
   const t = useTranslations();
   const isRight = picked === correct;
 
