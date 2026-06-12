@@ -99,7 +99,7 @@ export function MeasureModal({ open, state, reveal, onMeasure, onClassify, onClo
           <motion.div initial={{ y: 18, scale: 0.98 }} animate={{ y: 0, scale: 1 }} className="flex max-h-[94vh] w-[min(96vw,960px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="border-b border-slate-200 px-6 py-3">
               <h2 className="text-lg font-bold text-slate-800">{t("lab4.measure.title")}</h2>
-              <p className="text-[13px] text-slate-500">{t("lab4.measure.instruction")}</p>
+              <p className="text-[13px] text-slate-500">{t(isExam ? "lab4.measure.instructionExam" : "lab4.measure.instruction")}</p>
             </div>
 
             <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row">
@@ -181,7 +181,9 @@ export function MeasureModal({ open, state, reveal, onMeasure, onClassify, onClo
                         return (
                           <button key={c} onClick={() => onClassify(sel.id, c)} className="rounded-xl border-2 px-3 py-2.5 text-left text-[12px] font-semibold transition" style={{ borderColor: picked ? CAT_COLOR[c] : "#e2e8f0", background: picked ? CAT_BG[c] : "#fff", color: CAT_COLOR[c] }}>
                             {t(SENS_KEY[c])}
-                            <span className="block text-[10px] font-normal text-slate-400">{t(`lab4.measure.range.${c}`)}</span>
+                            {/* Show the mm range only in LEARN mode — in the exam the
+                                student must recall the scale themselves. */}
+                            {!isExam && <span className="block text-[10px] font-normal text-slate-400">{t(`lab4.measure.range.${c}`)}</span>}
                           </button>
                         );
                       })}

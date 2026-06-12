@@ -285,7 +285,8 @@
         "medium": "15–25 mm",
         "low": "< 15 mm",
         "resistant": "no zone"
-      }
+      },
+      "instructionExam": "Drag the zone-reader onto each disk to measure its zone, then click the disk and determine the sensitivity from the mm yourself."
     },
     "result": {
       "learn": "Disk method — learning result",
