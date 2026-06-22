@@ -164,15 +164,15 @@ export function MicroscopeModal({ open, cellColor, picked, reveal, correct, cocc
             <div className="flex max-h-[92vh] flex-col items-center gap-5 overflow-y-auto py-6">
               <p className="px-4 text-center text-base font-bold text-white">{t("gram.referenceTitle")}</p>
               <div className="flex flex-wrap items-start justify-center gap-6">
-                <div className="flex w-[min(42vw,300px)] flex-col items-center gap-2">
-                  <Eyepiece cellColor="violet" cocciCount={9} redRods={0} size="min(42vw,300px)" fieldLabel={t("gram.field")} />
+                <div className="flex w-[min(44vw,400px)] flex-col items-center gap-2">
+                  <Eyepiece cellColor="violet" cocciCount={9} redRods={0} size="min(44vw,400px)" fieldLabel={t("gram.field")} />
                   <p className="text-[15px] font-bold" style={{ color: "#c4b5fd" }}>{t("gram.positive")}</p>
-                  <p className="max-w-[300px] text-center text-[12px] leading-snug text-slate-200">{t("gram.revealPositive")}</p>
+                  <p className="max-w-[380px] text-center text-[13px] leading-snug text-slate-200">{t("gram.revealPositive")}</p>
                 </div>
-                <div className="flex w-[min(42vw,300px)] flex-col items-center gap-2">
-                  <Eyepiece cellColor="pink" cocciCount={0} redRods={24} size="min(42vw,300px)" fieldLabel={t("gram.field")} />
+                <div className="flex w-[min(44vw,400px)] flex-col items-center gap-2">
+                  <Eyepiece cellColor="pink" cocciCount={0} redRods={24} size="min(44vw,400px)" fieldLabel={t("gram.field")} />
                   <p className="text-[15px] font-bold" style={{ color: "#f9a8d4" }}>{t("gram.negative")}</p>
-                  <p className="max-w-[300px] text-center text-[12px] leading-snug text-slate-200">{t("gram.revealNegative")}</p>
+                  <p className="max-w-[380px] text-center text-[13px] leading-snug text-slate-200">{t("gram.revealNegative")}</p>
                 </div>
               </div>
             </div>
