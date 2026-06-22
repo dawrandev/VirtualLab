@@ -1,4 +1,21 @@
 {
+  "auth": {
+    "eyebrow": "Sheklengen kiriw",
+    "title": "Laboratoriyaǵa kiriw",
+    "subtitle": "Bul virtual laboratoriya mákeme ushın litsenziyalanǵan. Dawam etiw ushın kiriw giltin kiritiń.",
+    "username": "Paydalanıwshı atı",
+    "usernamePlaceholder": "Paydalanıwshı atıńız",
+    "password": "Kiriw gilti",
+    "passwordPlaceholder": "Paroldı kiritiń",
+    "show": "Kórsetiw",
+    "hide": "Jasırıw",
+    "submit": "Kiriw",
+    "verifying": "Tekserilmekte…",
+    "granted": "Kiriw ashıldı",
+    "error": "Paydalanıwshı atı yáki parol qáte",
+    "footer": "Mákeme ushın litsenziyalanǵan",
+    "signOut": "Shıǵıw"
+  },
   "lang": {
     "uz": "O'zbekcha",
     "kaa": "Qaraqalpaqsha",
@@ -350,6 +367,7 @@
       "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
       "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
       "disinfect": "Isletilgen shpateldi 5% xlor (dezrastvor) bankasına salıń",
+      "disinfectPipette": "Isletilgen pipetkani 5% xlor (dezrastvor) bankasına salıń",
       "done": "Tayar — ıdıslar termostattan alındı, jumıs juwmaqlandı",
       "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
     },

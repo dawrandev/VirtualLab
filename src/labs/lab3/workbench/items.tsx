@@ -218,7 +218,7 @@ export function intentFor(tool: Lab3ItemId, target: Lab3ItemId, s: DrigalskiStat
   if (tool === "spatula") {
     if (target === "alcohol-jar") return !s.spatulaDipped && !s.spatulaSterile ? "dip-spatula" : null;
     if (target === "lamp") return s.spatulaDipped && s.lamp.lit && s.match.discarded ? "sterilize-spatula" : null;
-    if (target === "dish-1") return s.d1.material && !s.d1.spread ? "spread-1" : null;
+    if (target === "dish-1") return s.d1.material && s.spatulaSterile && !s.d1.spread ? "spread-1" : null;
     if (target === "dish-2") return s.d1.spread && !s.d2.spread ? "spread-2" : null;
     if (target === "dish-3") return s.d2.spread && !s.d3.spread ? "spread-3" : null;
     if (target === "chlorine-jar") return s.d3.spread && !s.spatulaDisinfected ? "disinfect-spatula" : null;
@@ -226,13 +226,15 @@ export function intentFor(tool: Lab3ItemId, target: Lab3ItemId, s: DrigalskiStat
   if (tool === "pipette") {
     if (target === "suspension") return !s.pipetteLoaded ? "load-pipette" : null;
     if (target === "dish-1") return s.pipetteLoaded && !s.d1.material ? "drop-material" : null;
+    // The used pipette is dropped into the 5% chlorine jar after delivering the drop.
+    if (target === "chlorine-jar") return s.d1.material && !s.pipetteDisinfected ? "disinfect-pipette" : null;
   }
   return null;
 }
 
 /** Dragging any spread dish onto the incubator starts incubation. */
 export function canIncubate(s: DrigalskiState): boolean {
-  return s.d1.spread && s.d2.spread && s.d3.spread && s.spatulaDisinfected && !s.incubated;
+  return s.d1.spread && s.d2.spread && s.d3.spread && s.spatulaDisinfected && s.pipetteDisinfected && !s.incubated;
 }
 
 /** Next item the student is expected to use (learn-mode highlight + hint). */
@@ -240,8 +242,9 @@ export function requiredItem(s: DrigalskiState): Lab3ItemId | null {
   if (!s.dishes) return "dish-1";
   if (!s.lamp.lit) return "match";
   if (!s.match.discarded) return "match";
-  if (!s.spatulaSterile) return "spatula";
   if (!s.d1.material) return "pipette";
+  if (!s.pipetteDisinfected) return "pipette"; // drop the used pipette into the chlorine jar
+  if (!s.spatulaSterile) return "spatula";
   if (!s.d1.spread) return "spatula";
   if (!s.d2.spread) return "spatula";
   if (!s.d3.spread) return "spatula";

@@ -1,4 +1,21 @@
 {
+  "auth": {
+    "eyebrow": "Restricted access",
+    "title": "Enter the laboratory",
+    "subtitle": "This virtual lab is licensed to your institution. Enter the access key to continue.",
+    "username": "Username",
+    "usernamePlaceholder": "Your username",
+    "password": "Access key",
+    "passwordPlaceholder": "Enter password",
+    "show": "Show",
+    "hide": "Hide",
+    "submit": "Sign in",
+    "verifying": "Verifying…",
+    "granted": "Access granted",
+    "error": "Incorrect username or password",
+    "footer": "Licensed to your institution",
+    "signOut": "Sign out"
+  },
   "lang": {
     "uz": "O'zbekcha",
     "kaa": "Qaraqalpaqsha",
@@ -354,6 +371,7 @@
       "strikeMatch": "Strike the match on the box",
       "lightLamp": "Light the spirit lamp with the burning match",
       "disinfect": "Drop the used spreader into the 5% chlorine disinfectant",
+      "disinfectPipette": "Drop the used pipette into the 5% chlorine disinfectant",
       "done": "Done — the plates are out of the thermostat, work complete",
       "discardMatch": "Drop the burning match into the biohazard bin"
     },

@@ -47,8 +47,8 @@ interface Hold {
 function actionKind(intent: DrigalskiIntent): Kind {
   if (intent === "load-pipette") return "sample"; // timed, with a visual
   if (intent === "spread-1" || intent === "spread-2" || intent === "spread-3" || intent === "strike-match") return "rub";
-  if (intent === "discard-match") return "instant"; // drop into the bin
-  return "contact"; // light lamp, dip, flame, drop material, disinfect
+  if (intent === "discard-match" || intent === "disinfect-pipette") return "instant"; // dropped into a vessel
+  return "contact"; // light lamp, dip, flame, drop material, disinfect spreader
 }
 
 const SAMPLE_DUR = 1500;
@@ -63,8 +63,10 @@ function nextHint(s: DrigalskiState): string {
   if (!s.dishes) return "lab3.hint.dishes";
   if (!s.lamp.lit) return s.match.struck ? "lab3.hint.lightLamp" : "lab3.hint.strikeMatch";
   if (!s.match.discarded) return "lab3.hint.discardMatch";
-  if (!s.spatulaSterile) return s.spatulaDipped ? "lab3.hint.flameSpatula" : "lab3.hint.dipSpatula";
+  // Drip the suspension first, dispose the used pipette, THEN dip + flame the spreader.
   if (!s.d1.material) return s.pipetteLoaded ? "lab3.hint.dropMaterial" : "lab3.hint.loadPipette";
+  if (!s.pipetteDisinfected) return "lab3.hint.disinfectPipette";
+  if (!s.spatulaSterile) return s.spatulaDipped ? "lab3.hint.flameSpatula" : "lab3.hint.dipSpatula";
   if (!s.d1.spread) return "lab3.hint.spread1";
   if (!s.d2.spread) return "lab3.hint.spread2";
   if (!s.d3.spread) return "lab3.hint.spread3";
@@ -180,6 +182,10 @@ export function Lab3Workbench() {
       setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; }); // match drops into the bin
     } else if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "disinfect-spatula") flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
+    else if (intent === "disinfect-pipette") {
+      flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
+      setPlaced((p) => { const n = { ...p }; delete n["pipette"]; return n; }); // used pipette goes into the jar
+    }
     else if (intent === "sterilize-spatula") setSpatulaHot(true);
     else if (intent === "drop-material") flashAt("drip-mat", at("dish-1").x, at("dish-1").y);
   }
@@ -391,8 +397,8 @@ export function Lab3Workbench() {
       const intent = intentFor(d.id, target, drigRef.current);
       if (intent) {
         if (actionKind(intent) === "instant") perform(intent);
-        // The spent match drops INTO the bin (perform removed it) — don't re-lay it.
-        if (intent === "discard-match") {
+        // Items dropped INTO a vessel are removed by perform — don't re-lay them.
+        if (intent === "discard-match" || intent === "disinfect-pipette") {
           endDrag();
           return;
         }

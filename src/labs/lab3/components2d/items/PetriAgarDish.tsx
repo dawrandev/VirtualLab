@@ -16,22 +16,25 @@ interface Props {
   pickTarget?: boolean;
 }
 
-/** Deterministic colony scatter inside the agar radius (fractions of diameter). */
-const LAWN = makeScatter(150, 0.40);
-const MERGED = makeScatter(30, 0.34);
+/** Deterministic colony scatter inside the agar radius (fractions of diameter).
+ *  Colony SIZE grows plate 1 → 3 (more nutrients per cell as the inoculum thins):
+ *  plate 1 = a confluent mat of tiny colonies packed so tight they touch; plate 2
+ *  = medium, partly merged; plate 3 = a few large, well-separated isolated ones. */
+const LAWN = makeScatter(220, 0.40, 0.013, 0.0012);
+const MERGED = makeScatter(34, 0.34, 0.020, 0.003);
 const ISOLATED: Array<[number, number, number]> = [
-  [0.34, 0.36, 0.03], [0.62, 0.3, 0.026], [0.7, 0.58, 0.032], [0.4, 0.64, 0.028],
-  [0.52, 0.48, 0.024], [0.28, 0.54, 0.022], [0.66, 0.44, 0.02], [0.46, 0.26, 0.018],
-  [0.58, 0.68, 0.026], [0.36, 0.46, 0.02],
+  [0.34, 0.36, 0.044], [0.62, 0.3, 0.038], [0.7, 0.58, 0.042], [0.4, 0.64, 0.040],
+  [0.52, 0.48, 0.036], [0.28, 0.54, 0.034], [0.66, 0.44, 0.033], [0.46, 0.26, 0.031],
+  [0.58, 0.68, 0.039], [0.36, 0.46, 0.032],
 ];
 
-function makeScatter(n: number, spreadR: number): Array<[number, number, number]> {
+function makeScatter(n: number, spreadR: number, rBase: number, rStep: number): Array<[number, number, number]> {
   const pts: Array<[number, number, number]> = [];
   const ga = 2.399963;
   for (let i = 0; i < n; i++) {
     const r = spreadR * Math.sqrt(i / n);
     const a = i * ga;
-    pts.push([0.5 + r * Math.cos(a), 0.5 + r * Math.sin(a), 0.012 + (i % 4) * 0.003]);
+    pts.push([0.5 + r * Math.cos(a), 0.5 + r * Math.sin(a), rBase + (i % 4) * rStep]);
   }
   return pts;
 }

@@ -1,4 +1,21 @@
 {
+  "auth": {
+    "eyebrow": "Cheklangan kirish",
+    "title": "Laboratoriyaga kirish",
+    "subtitle": "Bu virtual laboratoriya muassasa uchun litsenziyalangan. Davom etish uchun kirish kalitini kiriting.",
+    "username": "Foydalanuvchi nomi",
+    "usernamePlaceholder": "Foydalanuvchi nomingiz",
+    "password": "Kirish kaliti",
+    "passwordPlaceholder": "Parolni kiriting",
+    "show": "Ko'rsatish",
+    "hide": "Yashirish",
+    "submit": "Kirish",
+    "verifying": "Tekshirilmoqda…",
+    "granted": "Kirish ochildi",
+    "error": "Foydalanuvchi nomi yoki parol noto'g'ri",
+    "footer": "Muassasa uchun litsenziyalangan",
+    "signOut": "Chiqish"
+  },
   "lang": {
     "uz": "O'zbekcha",
     "kaa": "Qaraqalpaqsha",
@@ -349,6 +366,7 @@
       "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
       "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
       "disinfect": "Ishlatilgan shpatelni 5% xlor (dezraztvor) bankasiga soling",
+      "disinfectPipette": "Ishlatilgan pipetkani 5% xlor (dezraztvor) bankasiga soling",
       "done": "Tayyor — idishlar termostatdan olindi, ish yakunlandi",
       "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
     },

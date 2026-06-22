@@ -26,6 +26,8 @@ export interface DrigalskiState {
   spatulaDisinfected: boolean;
   /** Suspension drawn into the pipette. */
   pipetteLoaded: boolean;
+  /** Used pipette dropped into the 5% chlorine jar after delivering the drop. */
+  pipetteDisinfected: boolean;
   d1: { material: boolean; spread: boolean };
   d2: { spread: boolean };
   d3: { spread: boolean };
@@ -42,6 +44,7 @@ export function freshDrigalskiState(): DrigalskiState {
     spatulaSterile: false,
     spatulaDisinfected: false,
     pipetteLoaded: false,
+    pipetteDisinfected: false,
     d1: { material: false, spread: false },
     d2: { spread: false },
     d3: { spread: false },
@@ -62,6 +65,7 @@ export type DrigalskiIntent =
   | "spread-2"
   | "spread-3"
   | "disinfect-spatula" // used spreader → 5% chlorine jar
+  | "disinfect-pipette" // used pipette → 5% chlorine jar
   | "incubate";
 
 /** Growth pattern a plate shows after incubation. */
@@ -123,6 +127,9 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
       break;
     case "disinfect-spatula":
       s.spatulaDisinfected = true;
+      break;
+    case "disinfect-pipette":
+      s.pipetteDisinfected = true;
       break;
     case "incubate":
       s.incubated = true;
