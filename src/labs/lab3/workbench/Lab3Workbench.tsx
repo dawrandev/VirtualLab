@@ -47,8 +47,8 @@ interface Hold {
 function actionKind(intent: DrigalskiIntent): Kind {
   if (intent === "load-pipette") return "sample"; // timed, with a visual
   if (intent === "spread-1" || intent === "spread-2" || intent === "spread-3" || intent === "strike-match") return "rub";
-  if (intent === "discard-match" || intent === "disinfect-pipette") return "instant"; // dropped into a vessel
-  return "contact"; // light lamp, dip, flame, drop material, disinfect spreader
+  if (intent === "discard-match") return "instant"; // drop into the bin
+  return "contact"; // light lamp, dip, flame, drop material, disinfect spreader/pipette
 }
 
 const SAMPLE_DUR = 1500;
@@ -182,10 +182,7 @@ export function Lab3Workbench() {
       setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; }); // match drops into the bin
     } else if (intent === "dip-spatula") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
     else if (intent === "disinfect-spatula") flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
-    else if (intent === "disinfect-pipette") {
-      flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
-      setPlaced((p) => { const n = { ...p }; delete n["pipette"]; return n; }); // used pipette goes into the jar
-    }
+    else if (intent === "disinfect-pipette") flashAt("dip-chlorine", at("chlorine-jar").x, at("chlorine-jar").y, 900);
     else if (intent === "sterilize-spatula") setSpatulaHot(true);
     else if (intent === "drop-material") flashAt("drip-mat", at("dish-1").x, at("dish-1").y);
   }
@@ -346,6 +343,11 @@ export function Lab3Workbench() {
       if (drigRef.current.spatulaDisinfected && p["chlorine-jar"]) return { x: p["chlorine-jar"].x, y: p["chlorine-jar"].y + (-47 / rect.height) * 100 };
       if (!drigRef.current.spatulaSterile && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-47 / rect.height) * 100 };
     }
+    // The used pipette stands tip-down in the chlorine jar (offset left of the
+    // spreader so both stay clearly visible). It always seats here once disinfected.
+    if (id === "pipette" && drigRef.current.pipetteDisinfected && p["chlorine-jar"]) {
+      return { x: p["chlorine-jar"].x + (-16 / rect.width) * 100, y: p["chlorine-jar"].y + (-46 / rect.height) * 100 };
+    }
     return fallback;
   }
 
@@ -397,8 +399,11 @@ export function Lab3Workbench() {
       const intent = intentFor(d.id, target, drigRef.current);
       if (intent) {
         if (actionKind(intent) === "instant") perform(intent);
-        // Items dropped INTO a vessel are removed by perform — don't re-lay them.
-        if (intent === "discard-match" || intent === "disinfect-pipette") {
+        // Dropping the used pipette ON the chlorine jar disinfects it even if the
+        // tip never registered mid-drag; snapPos then seats it inside the jar.
+        if (intent === "disinfect-pipette") perform(intent);
+        // The spent match drops INTO the bin (perform removed it) — don't re-lay it.
+        if (intent === "discard-match") {
           endDrag();
           return;
         }
@@ -466,6 +471,8 @@ export function Lab3Workbench() {
   const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
   const spatulaInAlcohol = !!placed["spatula"] && !!placed["alcohol-jar"] && !drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
   const spatulaInChlorine = !!placed["spatula"] && !!placed["chlorine-jar"] && drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["chlorine-jar"].x) < 3;
+  // The used pipette always seats in the chlorine jar once disinfected (snapPos).
+  const pipetteInChlorine = !!placed["pipette"] && !!placed["chlorine-jar"] && drig.pipetteDisinfected;
 
   const validTargets = new Set<Lab3ItemId>();
   if (drag) {
@@ -604,8 +611,9 @@ export function Lab3Workbench() {
               <AlcoholJar width={110} variant="alcohol" front />
             </div>
           )}
-          {/* Front glass of the chlorine jar — over the discarded used spreader. */}
-          {spatulaInChlorine && placed["chlorine-jar"] && (
+          {/* Front glass of the chlorine jar — over the submerged spreader and/or
+              the used pipette so they read as inside the disinfectant. */}
+          {(spatulaInChlorine || pipetteInChlorine) && placed["chlorine-jar"] && (
             <div className="pointer-events-none absolute" style={{ left: `${placed["chlorine-jar"].x}%`, top: `${placed["chlorine-jar"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
               <AlcoholJar width={110} variant="chlorine" front />
             </div>
