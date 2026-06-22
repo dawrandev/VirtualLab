@@ -293,6 +293,7 @@
   },
   "gram": {
     "field": "100× · immersion",
+    "referenceTitle": "Mikroskop astında: Gram boyawdıń eki nátiyjesi",
     "question": "Bul bakteriya qaysı gruppaǵa kiredi?",
     "positive": "Gram-oń (+)",
     "positiveSub": "binafsha",
@@ -457,13 +458,14 @@
     "wait": {
       "developing": "Boyaw tásir qilmaqta…",
       "ready": "Tayar — keyingi basqısh",
-      "realTime": "Real waqıt: 1–2 minutta"
+      "realTime": "Real waqıt: 1–2 minutta",
+      "realTime1": "Real waqıt: 1 minutta"
     },
     "steps": {
       "gvCard": "Gensianviolet menen boyaw",
       "gvResult": "Gensianviolet (filtr qaǵaz ústinen) — 1-2 min, qaǵaz alınıp boyaw tógiledi",
       "lugolCard": "Lyugol eritpesi",
-      "lugolResult": "Lyugol eritpesi menen islew (1-2 min), boyaw tógiledi",
+      "lugolResult": "Lyugol eritpesi menen islew (1 min), boyaw tógiledi",
       "alcoholCard": "Spirt menen reńsizlendiriw",
       "alcoholResult": "Etil spirti menen reńsizlendiriw (30-60 s) hám suw menen juwıw",
       "fuchsinCard": "Fuksin menen boyaw",

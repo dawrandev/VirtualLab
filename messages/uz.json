@@ -292,6 +292,7 @@
   },
   "gram": {
     "field": "100× · immersion",
+    "referenceTitle": "Mikroskop ostida: Gram bo'yashning ikki natijasi",
     "question": "Bu bakteriya qaysi guruhga kiradi?",
     "positive": "Gram-musbat (+)",
     "positiveSub": "binafsha",
@@ -456,13 +457,14 @@
     "wait": {
       "developing": "Bo'yoq ta'sir qilmoqda…",
       "ready": "Tayyor — keyingi bosqich",
-      "realTime": "Real vaqt: 1–2 daqiqa"
+      "realTime": "Real vaqt: 1–2 daqiqa",
+      "realTime1": "Real vaqt: 1 daqiqa"
     },
     "steps": {
       "gvCard": "Gensianviolet bilan bo'yash",
       "gvResult": "Gensianviolet (filtr qog'oz ustidan) — 1-2 daq, qog'oz olinib bo'yoq to'kiladi",
       "lugolCard": "Lyugol eritmasi",
-      "lugolResult": "Lyugol eritmasi bilan ishlov (1-2 daq), bo'yoq to'kiladi",
+      "lugolResult": "Lyugol eritmasi bilan ishlov (1 daq), bo'yoq to'kiladi",
       "alcoholCard": "Spirt bilan rangsizlantirish",
       "alcoholResult": "Etil spirti bilan rangsizlantirish (30-60 s) va suv bilan yuvish",
       "fuchsinCard": "Fuksin bilan bo'yash",

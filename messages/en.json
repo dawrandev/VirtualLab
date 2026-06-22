@@ -297,6 +297,7 @@
   },
   "gram": {
     "field": "100× · immersion",
+    "referenceTitle": "Under the microscope: the two Gram results",
     "question": "Which group does this bacterium belong to?",
     "positive": "Gram-positive (+)",
     "positiveSub": "violet",
@@ -461,13 +462,14 @@
     "wait": {
       "developing": "The dye is developing…",
       "ready": "Ready — next step",
-      "realTime": "Real time: 1–2 min"
+      "realTime": "Real time: 1–2 min",
+      "realTime1": "Real time: 1 min"
     },
     "steps": {
       "gvCard": "Stain with crystal violet",
       "gvResult": "Crystal violet (over filter paper) — 1–2 min, remove the paper and drain the dye",
       "lugolCard": "Lugol's solution",
-      "lugolResult": "Treat with Lugol's solution (1–2 min), drain the dye",
+      "lugolResult": "Treat with Lugol's solution (1 min), drain the dye",
       "alcoholCard": "Decolorize with alcohol",
       "alcoholResult": "Decolorize with ethyl alcohol (30–60 s) and wash with water",
       "fuchsinCard": "Counterstain with fuchsin",

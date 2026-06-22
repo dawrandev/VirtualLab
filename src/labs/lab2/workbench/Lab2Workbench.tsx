@@ -354,6 +354,11 @@ export function Lab2Workbench() {
   const renderOpts = { trayStained, develop, trayColors, specimenPositive: specimen === "positive" };
   // The reaction countdown is a learning aid → learn mode only, while waiting.
   const showCountdown = !isExam && reaction != null && slidePos;
+  // Per-reagent protocol time on the countdown: Lugol's iodine acts for 1 min;
+  // gentian violet and fuchsin run 1–2 min. (Lab spec + standard Gram protocol.)
+  const isLugolWait = reaction?.kind === "apply-lugol";
+  const reagentDisplaySeconds = isLugolWait ? 60 : DISPLAY_WAIT_SECONDS;
+  const reagentRealTimeKey = isLugolWait ? "lab2.wait.realTime1" : "lab2.wait.realTime";
 
   const validTargets = new Set<Lab2ItemId>();
   if (drag) {
@@ -512,11 +517,11 @@ export function Lab2Workbench() {
                   {reactionProg >= 1 ? tg("lab2.wait.ready") : tg("lab2.wait.developing")}
                 </p>
                 {reactionProg < 1 ? (
-                  <p className="font-mono text-[40px] font-extrabold leading-none tabular-nums text-amber-600">{fmtClock(DISPLAY_WAIT_SECONDS * (1 - reactionProg))}</p>
+                  <p className="font-mono text-[40px] font-extrabold leading-none tabular-nums text-amber-600">{fmtClock(reagentDisplaySeconds * (1 - reactionProg))}</p>
                 ) : (
                   <p className="text-[40px] leading-none text-emerald-600">✓</p>
                 )}
-                <p className="text-[12px] font-semibold text-slate-600">{tg("lab2.wait.realTime")}</p>
+                <p className="text-[12px] font-semibold text-slate-600">{tg(reagentRealTimeKey)}</p>
               </div>
             </div>
           )}
@@ -542,7 +547,8 @@ export function Lab2Workbench() {
 
       <MicroscopeModal
         open={scopeOpen}
-        cellColor="violet"
+        reference={!isExam}
+        cellColor={specimen === "positive" ? "violet" : "pink"}
         picked={gram.classification}
         reveal={reveal && !isExam}
         correct={specimen}
