@@ -17,7 +17,8 @@ export interface DrigalskiState {
   /** Spirit lamp lit by hand: match struck on the box, touched to the wick,
    *  then the burning match dropped into the biohazard bin. */
   match: { struck: boolean; lit: boolean; discarded: boolean };
-  lamp: { lit: boolean };
+  /** Spirit lamp: lit by hand; `capped` = put out by re-capping it at the end. */
+  lamp: { lit: boolean; capped: boolean };
   /** Working end dipped in alcohol (before flaming). */
   spatulaDipped: boolean;
   /** Spreader flamed/sterile before plate 1. */
@@ -39,7 +40,7 @@ export function freshDrigalskiState(): DrigalskiState {
   return {
     dishes: false,
     match: { struck: false, lit: false, discarded: false },
-    lamp: { lit: false },
+    lamp: { lit: false, capped: false },
     spatulaDipped: false,
     spatulaSterile: false,
     spatulaDisinfected: false,
@@ -66,6 +67,7 @@ export type DrigalskiIntent =
   | "spread-3"
   | "disinfect-spatula" // used spreader → 5% chlorine jar
   | "disinfect-pipette" // used pipette → 5% chlorine jar
+  | "extinguish-lamp" // re-cap the spirit lamp by hand to put it out
   | "incubate";
 
 /** Growth pattern a plate shows after incubation. */
@@ -130,6 +132,10 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
       break;
     case "disinfect-pipette":
       s.pipetteDisinfected = true;
+      break;
+    case "extinguish-lamp":
+      s.lamp.lit = false;
+      s.lamp.capped = true;
       break;
     case "incubate":
       s.incubated = true;

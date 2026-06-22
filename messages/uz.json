@@ -91,6 +91,7 @@
     "empty": ""
   },
   "lab5": {
+    "extinguish": "Spirtovkani qopqoq bilan o'chirish",
     "items": {
       "slide": "Buyum oynasi",
       "coverslip": "Qoplag'ich oyna",
@@ -191,14 +192,20 @@
       "matchbox": "Gugurt qutisi",
       "match": "Gugurt",
       "bin": "Biohazard idishi",
-      "spreader": "Drigalski shpateli"
+      "spreader": "Drigalski shpateli",
+      "pipette": "Pipetka",
+      "chlorineJar": "5% xlor (dezraztvor)"
     },
     "hint": {
       "dish": "Oziqa muhitli Petri idishini stolga qo'ying",
       "charge": "Steril paxta tamponni E. coli kulturasiga botiring",
+      "loadPipette": "Pipetka bilan E. coli kulturasidan suspenziya oling",
+      "dropMaterial": "Pipetkadagi suspenziyani agar yuzasiga tomizing",
       "spread": "Shpatel bilan «gazon» usulida surting — {n}/3 (idishni ~60° aylantirib)",
+      "disinfect": "Ishlatilgan shpatelni 5% xlor (dezraztvor) bankasiga soling",
       "dry": "Idish yuzasi singguncha ~5 daqiqa quriting",
       "forceps": "Pinsetni spirt bankasiga botirib, olovda sterillang",
+      "reheatForceps": "Pinsetni olovda qayta qizdirib sterillang",
       "pickDisk": "Pinset bilan disklar to'plamidan antibiotik diskni oling",
       "placeDisk": "Pinsetdagi diskni agar yuzasiga qo'ying",
       "incubate": "Idishni ag'darib termostatga qo'ying (37°C, 24 soat)",
@@ -219,6 +226,7 @@
       "swab": "💧 Tampon botirilyapti…",
       "forceps": "🧴 Pinset spirtga botirilyapti…",
       "charge": "💧 Kultura olinmoqda…",
+      "load": "💧 Suspenziya olinmoqda…",
       "dipSpreader": "🧴 Shpatel spirtga botirilyapti…"
     },
     "dry": {
@@ -234,9 +242,9 @@
     "btnMeasureBig": "🔍 Tormozlanish zonalarini o'lchash",
     "steps": {
       "lawnCard": "Kulturani gazon usulida ekish",
-      "lawnResult": "Steril paxta tamponni kulturaga botirib, idishni ~60° aylantirib 3 yo'nalishda «gazon» eking va ~5 daqiqa quriting",
+      "lawnResult": "Pipetka bilan suspenziyani agarga tomizib, steril shpatel bilan idishni ~60° aylantirib 3 yo'nalishda «gazon» eking, ishlatilgan shpatelni 5% xlorga soling va ~5 daqiqa quriting",
       "disksCard": "Antibiotik disklarini qo'yish",
-      "disksResult": "Antibiotik shimdirilgan qog'oz disklarni pinset bilan agar yuzasiga joylashtirish",
+      "disksResult": "Antibiotik shimdirilgan qog'oz disklarni har biridan oldin pinsetni olovda qizdirib, agar yuzasiga joylashtirish",
       "incubateCard": "Termostat 37°C, 24 soat",
       "incubateResult": "Ekilgan idishni ag'darilgan holda 37°C da 24 soat termostatda saqlash",
       "measureCard": "Tormozlanish zonasini o'lchash",
@@ -250,6 +258,7 @@
       "notDried": "Idish ~5 daqiqa quritilmadi",
       "disksZero": "Antibiotik disklari qo'yilmadi",
       "forcepsNotSterile": "Pinset sterillanmagan",
+      "forcepsNotReheated": "Har disk oldidan pinset qayta qizdirilmadi",
       "disksIncomplete": "Disklar to'liq qo'yilmadi",
       "incubateZero": "Termostatga qo'yilmadi (24 soat inkubatsiya yo'q)",
       "measureZero": "Zonalar o'lchanmadi / aniqlanmadi",
@@ -321,6 +330,7 @@
     "revealNegative": "Bu Gram-manfiy bakteriya — spirtda rangsizlanadi, fuksin bilan qizil rangga bo'yaladi."
   },
   "lab3": {
+    "extinguish": "Spirtovkani qopqoq bilan o'chirish",
     "items": {
       "dish": "Oziqa muhitli idish",
       "lamp": "Spirt lampasi",

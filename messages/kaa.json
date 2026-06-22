@@ -92,6 +92,7 @@
     "empty": ""
   },
   "lab5": {
+    "extinguish": "Spirtovkanı qapaq penen óshiriw",
     "items": {
       "slide": "Buyım aynası",
       "coverslip": "Qaplaǵısh ayna",
@@ -192,14 +193,20 @@
       "matchbox": "Gugurt qutısı",
       "match": "Gugurt",
       "bin": "Biohazard ıdısı",
-      "spreader": "Drigalski shpateli"
+      "spreader": "Drigalski shpateli",
+      "pipette": "Pipetka",
+      "chlorineJar": "5% xlor (dezraztvor)"
     },
     "hint": {
       "dish": "Azuqlıq ortalıqlı Petri ıdısın stolǵa qoyıń",
       "charge": "Steril paxta tampondı E. coli kulturasına batırıń",
+      "loadPipette": "Pipetka menen E. coli kulturasınan suspenziya alıń",
+      "dropMaterial": "Pipettedegi suspenziyanı agar júzesine tamızıń",
       "spread": "Shpatel menen «gazon» usılında jaǵıń — {n}/3 (ıdıstı ~60° aylandırıp)",
+      "disinfect": "Isletilgen shpateldi 5% xlor (dezraztvor) bankasına salıń",
       "dry": "Idıs júzesi sińgansha ~5 minutta qurıtıń",
       "forceps": "Pinsetti spirt bankasına batırıp, jalında sterilleń",
+      "reheatForceps": "Pinsetti jalında qayta qızdırıp sterilleń",
       "pickDisk": "Pinset menen diskler toplamınan antibiotik diskin alıń",
       "placeDisk": "Pinsettegi diskti agar júzesine qoyıń",
       "incubate": "Idıstı awdarılıp termostatqa qoyıń (37°C, 24 saat)",
@@ -220,6 +227,7 @@
       "swab": "💧 Tampon batırılmaqta…",
       "forceps": "🧴 Pinset spirtke batırılmaqta…",
       "charge": "💧 Kultura alınbaqta…",
+      "load": "💧 Suspenziya alınbaqta…",
       "dipSpreader": "🧴 Shpatel spirtke malınbaqta…"
     },
     "dry": {
@@ -251,6 +259,7 @@
       "notDried": "Idıs ~5 minutta qurıtılmadı",
       "disksZero": "Antibiotik diskleri qoyılmadı",
       "forcepsNotSterile": "Pinset sterillenbegen",
+      "forcepsNotReheated": "Hár disk aldınan pinset qayta qızdırılmadı",
       "disksIncomplete": "Diskler tolıq qoyılmadı",
       "incubateZero": "Termostatqa qoyılmadı (24 saat inkubatsiya joq)",
       "measureZero": "Zonalar ólşenmedi / anıqlanmadı",
@@ -322,6 +331,7 @@
     "revealNegative": "Bul Gram-teri bakteriya — spirtte reńsizlenedi, fuksin menen qızıl reńge boyaladı."
   },
   "lab3": {
+    "extinguish": "Spirtovkanı qapaq penen óshiriw",
     "items": {
       "dish": "Azuqlıq ortalıqlı ıdıs",
       "lamp": "Spirt lampasi",

@@ -23,7 +23,8 @@ export interface WetMountState {
   /** Spirit lamp lit by hand: strike the match, touch the wick, then drop the
    *  burning match into the biohazard bin. */
   match: { struck: boolean; lit: boolean; discarded: boolean };
-  lamp: { lit: boolean };
+  /** Spirit lamp: lit by hand; `capped` = put out by re-capping it at the end. */
+  lamp: { lit: boolean; capped: boolean };
   /** Passed through the flame to clean/degrease the glass. */
   slideDegreased: boolean;
   /** Drop of physiological saline on the slide. */
@@ -50,7 +51,7 @@ export function freshWetMountState(): WetMountState {
   return {
     slidePlaced: false,
     match: { struck: false, lit: false, discarded: false },
-    lamp: { lit: false },
+    lamp: { lit: false, capped: false },
     slideDegreased: false,
     salineApplied: false,
     loopFlamed: false,
@@ -75,6 +76,7 @@ export type WetIntent =
   | "mix-drop" // loop → slide (rub)
   | "place-cover" // cover slip → slide
   | "blot-excess" // filter paper → slide
+  | "extinguish-lamp" // re-cap the spirit lamp by hand to put it out
   | "observe"; // slide → microscope
 
 /** Visual stage of the drop on the slide. */
@@ -96,6 +98,10 @@ export function applyWetStep(state: WetMountState, intent: WetIntent): WetMountS
       break;
     case "light-lamp":
       s.lamp.lit = true;
+      break;
+    case "extinguish-lamp":
+      s.lamp.lit = false;
+      s.lamp.capped = true;
       break;
     case "discard-match":
       s.match.discarded = true;

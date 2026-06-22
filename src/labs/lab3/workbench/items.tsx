@@ -126,7 +126,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: (s) => <SpiritLamp uncapped lit={s.lamp.lit} />,
+    render: (s) => <SpiritLamp uncapped={!s.lamp.capped} lit={s.lamp.lit} />,
   },
   {
     id: "alcohol-jar",

@@ -96,6 +96,7 @@
     "empty": ""
   },
   "lab5": {
+    "extinguish": "Put out the lamp with the cap",
     "items": {
       "slide": "Slide",
       "coverslip": "Cover slip",
@@ -196,14 +197,20 @@
       "matchbox": "Matchbox",
       "match": "Match",
       "bin": "Biohazard bin",
-      "spreader": "Drigalski spreader"
+      "spreader": "Drigalski spreader",
+      "pipette": "Pipette",
+      "chlorineJar": "5% chlorine (disinfectant)"
     },
     "hint": {
       "dish": "Place the nutrient Petri dish on the bench",
       "charge": "Dip the sterile cotton swab into the E. coli culture",
+      "loadPipette": "Draw up suspension from the E. coli culture with the pipette",
+      "dropMaterial": "Drip the suspension from the pipette onto the agar",
       "spread": "Spread a confluent lawn with the spreader — {n}/3 (rotate the plate ~60°)",
+      "disinfect": "Drop the used spreader into the 5% chlorine (disinfectant) jar",
       "dry": "Let the surface dry ~5 minutes until absorbed",
       "forceps": "Dip the forceps in the alcohol jar and flame-sterilise",
+      "reheatForceps": "Re-flame the forceps in the flame to sterilise again",
       "pickDisk": "With the forceps, take an antibiotic disk from the set",
       "placeDisk": "Place the disk held in the forceps onto the agar",
       "incubate": "Invert the dish and place it in the incubator (37°C, 24 h)",
@@ -224,6 +231,7 @@
       "swab": "💧 Dipping the swab…",
       "forceps": "🧴 Sterilising the forceps…",
       "charge": "💧 Picking up culture…",
+      "load": "💧 Drawing up suspension…",
       "dipSpreader": "🧴 Spreader dipping in alcohol…"
     },
     "dry": {
@@ -239,9 +247,9 @@
     "btnMeasureBig": "🔍 Measure the inhibition zones",
     "steps": {
       "lawnCard": "Lawn-inoculate the culture",
-      "lawnResult": "Dip the sterile swab in the culture, rotate the dish ~60° and swab a «lawn» in 3 directions, then dry ~5 min",
+      "lawnResult": "Drip the suspension onto the agar with a pipette, spread a «lawn» in 3 directions with a sterile spreader (rotate ~60°), drop the used spreader into 5% chlorine, then dry ~5 min",
       "disksCard": "Place the antibiotic disks",
-      "disksResult": "Place the antibiotic-impregnated paper disks onto the agar with forceps",
+      "disksResult": "Place the antibiotic-impregnated paper disks onto the agar with forceps, re-flaming the forceps before each disk",
       "incubateCard": "Thermostat 37°C, 24 h",
       "incubateResult": "Keep the inoculated dish inverted at 37°C in the thermostat for 24 h",
       "measureCard": "Measure the inhibition zone",
@@ -255,6 +263,7 @@
       "notDried": "The dish was not dried ~5 min",
       "disksZero": "No antibiotic disks were placed",
       "forcepsNotSterile": "The forceps were not sterilised",
+      "forcepsNotReheated": "The forceps were not re-flamed before each disk",
       "disksIncomplete": "Not all the disks were placed",
       "incubateZero": "Not placed in the thermostat (no 24 h incubation)",
       "measureZero": "Zones were not measured / determined",
@@ -326,6 +335,7 @@
     "revealNegative": "This is a Gram-negative bacterium — it decolorizes in alcohol and is counterstained red by fuchsin."
   },
   "lab3": {
+    "extinguish": "Put out the lamp with the cap",
     "items": {
       "dish": "Nutrient dish",
       "lamp": "Spirit lamp",

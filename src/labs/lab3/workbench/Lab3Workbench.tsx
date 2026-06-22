@@ -573,6 +573,20 @@ export function Lab3Workbench() {
                     it.render(drig, renderOpts)
                   )}
                 </div>
+                {/* Re-cap the lamp by hand to put it out (click the cap). */}
+                {it.id === "lamp" && drig.lamp.lit && (
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      perform("extinguish-lamp");
+                    }}
+                    title={tg("lab3.extinguish")}
+                    className="absolute right-0 top-0 z-30 grid h-7 w-7 place-items-center rounded-full bg-slate-700/90 text-[13px] text-white shadow ring-1 ring-white/40 transition hover:bg-slate-800"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             );
           })}
