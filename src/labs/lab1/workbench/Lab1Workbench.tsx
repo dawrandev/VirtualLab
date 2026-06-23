@@ -572,15 +572,29 @@ export function Lab1Workbench() {
     // Place / reposition the tool on the bench (stays until manually removed).
     let xPct = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
     let yPct = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
-    // The loop stands upright in its rack's centre sleeve — snap there and
-    // orient it vertically (ring up, handle down into the sleeve). Offset is in
-    // px (loop centre 55px below the stand centre) so seating is bench-height
-    // independent, matching the loop's full-size rotated geometry.
+    // The loop seats upright in its stand's centre sleeve ONLY when let go near
+    // the stand — otherwise it stays wherever it's dropped, so the student can
+    // park it anywhere on the bench and rotate it in place (the ↻ button rides
+    // along with the loop). When seated it orients vertically (ring up, handle
+    // down into the sleeve); the px offset (loop centre 55px below the stand
+    // centre) keeps seating bench-height independent.
     if (d.id === "loop" && placedRef.current["loop-stand"]) {
       const st = placedRef.current["loop-stand"];
-      xPct = st.x;
-      yPct = st.y + (-55 / rect.height) * 100;
-      setLoopDeg(90);
+      const def = ITEM_BY_ID["loop-stand"];
+      const scx = (st.x / 100) * rect.width;
+      const scy = (st.y / 100) * rect.height;
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const nearStand =
+        px >= scx - def.w / 2 - DROP_PAD &&
+        px <= scx + def.w / 2 + DROP_PAD &&
+        py >= scy - def.h / 2 - DROP_PAD &&
+        py <= scy + def.h / 2 + DROP_PAD;
+      if (nearStand) {
+        xPct = st.x;
+        yPct = st.y + (-55 / rect.height) * 100;
+        setLoopDeg(90);
+      }
     }
     // The culture tube seats in its rack (shtativ) ONLY when dropped over the
     // rack — otherwise it stays where it's dropped, so the student can take it
@@ -1090,7 +1104,7 @@ export function Lab1Workbench() {
         {isExam && examPhase === "planning" && <PlanningSidebar onStart={startExam} />}
       </div>
 
-      <Lab1ResultModal />
+      <Lab1ResultModal examMode={isExam} />
 
       <AnimatePresence>{mode === null && <ModeSelect onPick={setMode} />}</AnimatePresence>
 

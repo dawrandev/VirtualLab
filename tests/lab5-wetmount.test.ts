@@ -78,11 +78,11 @@ describe("Lab 5 — exam scoring", () => {
     expect(res.steps.find((x) => x.id === "cover")!.status).toBe("partial");
   });
 
-  it("wrong motility call → micro step partial", () => {
+  it("micro step is observation-only: observed → full, not observed → zero", () => {
     const { s } = perfect();
-    const s2 = { ...s, motilePick: "nonmotile" as const };
-    const res = scoreWetMountExam([], s2);
-    expect(res.steps.find((x) => x.id === "micro")!.status).toBe("partial");
+    expect(scoreWetMountExam([], s).steps.find((x) => x.id === "micro")!.status).toBe("full");
+    const s2 = { ...s, observed: false };
+    expect(scoreWetMountExam([], s2).steps.find((x) => x.id === "micro")!.status).toBe("zero");
   });
 
   it("nothing done → zero", () => {

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { freshDiskState, applyDiskStep, ANTIBIOTICS, interpret, allDisksPlaced, plateStage, type DiskIntent, type Sens, type Antibiotic } from "@/labs/lab4/state";
 import { scoreDiskExam, type ExamAction } from "@/labs/lab4/exam/scoring";
 import { MAX_SCORE } from "@/labs/lab4/exam/protocol";
+import { intentFor } from "@/labs/lab4/workbench/items";
 
 const other = (s: Sens): Sens => ({ high: "resistant", medium: "low", low: "medium", resistant: "high" } as const)[s];
 
@@ -14,14 +15,21 @@ function buildDone(correct: boolean) {
     log.push({ intent: i, ts: (t += 100) });
   };
   s = { ...s, dishPlaced: true };
-  step("charge-spreader");
+  step("load-pipette");
+  step("drip-lawn");
+  step("dip-spreader");
+  step("sterilize-spreader");
   step("spread-1");
   step("spread-2");
   step("spread-3");
+  step("disinfect-spreader");
   s = { ...s, dried: true };
   step("dip-forceps");
-  step("sterilize-forceps");
-  for (const a of ANTIBIOTICS) step("place-disk", a.id);
+  // Re-sterilise the forceps before each disk.
+  for (const a of ANTIBIOTICS) {
+    step("sterilize-forceps");
+    step("place-disk", a.id);
+  }
   step("incubate");
   // measure + classify each
   const classified: Record<string, Sens> = {};
@@ -69,12 +77,49 @@ describe("Lab 4 — disk diffusion state", () => {
     for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     expect(allDisksPlaced(s)).toBe(true);
   });
-  it("sterilize-forceps clears the dipped flag", () => {
+  it("sterilize-forceps clears the dipped flag and primes the forceps", () => {
     let s = applyDiskStep(freshDiskState(), "dip-forceps");
     expect(s.forcepsDipped).toBe(true);
     s = applyDiskStep(s, "sterilize-forceps");
     expect(s.forcepsSterile).toBe(true);
     expect(s.forcepsDipped).toBe(false);
+    expect(s.forcepsPrimed).toBe(true);
+  });
+  it("forceps: dip in alcohol → flame → pick disk is reachable via intentFor", () => {
+    // A bench state that is ready for the disk-placement phase.
+    let s = {
+      ...freshDiskState(),
+      dishPlaced: true,
+      lamp: { lit: true },
+      match: { struck: true, lit: true, discarded: true },
+      dripped: true,
+      spreaderSterile: true,
+      lawnSpread: true,
+      spreaderDisinfected: true,
+      dried: true,
+    };
+    // First the forceps are dipped in the alcohol jar…
+    expect(intentFor("forceps", "alcohol-jar", s, null)).toBe("dip-forceps");
+    expect(intentFor("forceps", "lamp", s, null)).toBeNull(); // can't flame before dipping
+    s = applyDiskStep(s, "dip-forceps");
+    // …then flame-sterilised over the lit lamp…
+    expect(intentFor("forceps", "lamp", s, null)).toBe("sterilize-forceps");
+    s = applyDiskStep(s, "sterilize-forceps");
+    // …then they can pick up a disk; and the alcohol dip is no longer offered.
+    expect(intentFor("forceps", "cartridge", s, null)).toBe("pick-disk");
+    expect(intentFor("forceps", "alcohol-jar", s, null)).toBeNull();
+    // After placing, the forceps must be re-flamed before the next disk.
+    s = applyDiskStep(s, "place-disk", ANTIBIOTICS[0].id);
+    expect(intentFor("forceps", "lamp", s, null)).toBe("sterilize-forceps"); // re-flame (no re-dip)
+    expect(intentFor("forceps", "cartridge", s, null)).toBeNull(); // not sterile yet
+  });
+  it("placing a disk clears forcepsSterile (must re-flame before the next)", () => {
+    let s = applyDiskStep(freshDiskState(), "sterilize-forceps");
+    expect(s.forcepsSterile).toBe(true);
+    s = applyDiskStep(s, "place-disk", ANTIBIOTICS[0].id);
+    expect(s.disks[ANTIBIOTICS[0].id]).toBe(true);
+    expect(s.forcepsSterile).toBe(false);
+    expect(s.forcepsPrimed).toBe(true);
   });
 });
 

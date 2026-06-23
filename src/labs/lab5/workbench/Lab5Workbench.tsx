@@ -12,7 +12,7 @@ import { FilterPaper } from "@/labs/lab1/components2d/items/FilterPaper";
 import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
 import { CoverSlip } from "../components2d/items/CoverSlip";
 import { LAB5_ITEMS, LAB5_ITEM_BY_ID, intentFor, type Lab5ItemId } from "./items";
-import { freshWetMountState, applyWetStep, canObserve, dropStage, type WetMountState, type WetIntent, type Motility } from "../state";
+import { freshWetMountState, applyWetStep, canObserve, dropStage, type WetMountState, type WetIntent } from "../state";
 import { type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreWetMountExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab5Sidebar } from "./Lab5Sidebar";
@@ -86,16 +86,6 @@ export function Lab5Workbench() {
   const wetRef = useRef(wet);
   wetRef.current = wet;
 
-  // The specimen's motility is randomised each session (motile ⇄ non-motile),
-  // so the student must read the field rather than memorise one answer. Picked
-  // after mount (and on restart) to avoid an SSR/hydration mismatch.
-  const [specimenMotile, setSpecimenMotile] = useState(true);
-  const specimenMotileRef = useRef(true);
-  specimenMotileRef.current = specimenMotile;
-  useEffect(() => {
-    setSpecimenMotile(Math.random() < 0.5);
-  }, []);
-
   const tableRef = useRef<HTMLDivElement | null>(null);
   const [placed, setPlaced] = useState<Record<string, { x: number; y: number }>>({});
   const placedRef = useRef(placed);
@@ -127,7 +117,6 @@ export function Lab5Workbench() {
   const [examResult, setExamResult] = useState<ExamResult | null>(null);
 
   const [scopeOpen, setScopeOpen] = useState(false);
-  const [reveal, setReveal] = useState(false);
 
   const isExam = mode === "exam";
   const examActive = isExam && examPhase === "execution";
@@ -160,7 +149,6 @@ export function Lab5Workbench() {
     if (intent === "observe") {
       setWet((g) => applyWetStep(g, "observe"));
       recordAction("observe");
-      setReveal(false);
       setScopeOpen(true);
       return;
     }
@@ -398,28 +386,21 @@ export function Lab5Workbench() {
     endDrag();
   }
 
-  function classifyMotility(m: Motility) {
-    setWet((g) => ({ ...g, motilePick: m }));
-    if (modeRef.current === "exam") {
-      setScopeOpen(false);
-      finishExam(m);
-    } else {
-      setReveal(true);
-    }
-  }
   function closeScope() {
     setScopeOpen(false);
-    // Learn mode is for practice — no grade. Just a completion message.
-    if (modeRef.current !== "exam" && wetRef.current.motilePick) {
+    if (modeRef.current === "exam") {
+      // Observing the living, motile wet mount is the final exam step.
+      finishExam();
+    } else if (wetRef.current.observed) {
+      // Learn mode is for practice — no grade. Just a completion message.
       showToast(tg("lab5.toast.success"), true, 3600);
     }
   }
   function startExam() {
     setExamPhase("execution");
   }
-  function finishExam(motile: Motility | null) {
-    const next = motile ? { ...wetRef.current, motilePick: motile } : wetRef.current;
-    setExamResult(scoreWetMountExam(actionLog, next, specimenMotileRef.current ? "motile" : "nonmotile"));
+  function finishExam() {
+    setExamResult(scoreWetMountExam(actionLog, wetRef.current));
     setExamPhase("result");
   }
   function restart() {
@@ -431,10 +412,8 @@ export function Lab5Workbench() {
     cancelHold();
     lockTargetRef.current = null;
     setScopeOpen(false);
-    setReveal(false);
     setExamPhase("planning");
     setMode(null);
-    setSpecimenMotile(Math.random() < 0.5);
   }
 
   const placedSet = new Set(Object.keys(placed)) as Set<Lab5ItemId>;
@@ -700,15 +679,7 @@ export function Lab5Workbench() {
         {isExam && examPhase === "planning" && <PlanningSidebar onStart={startExam} />}
       </div>
 
-      <WetMountMicroscopeModal
-        open={scopeOpen}
-        picked={wet.motilePick}
-        reveal={reveal && !isExam}
-        correct={specimenMotile ? "motile" : "nonmotile"}
-        motile={specimenMotile}
-        onClassify={classifyMotility}
-        onClose={closeScope}
-      />
+      <WetMountMicroscopeModal open={scopeOpen} onClose={closeScope} />
 
       <AnimatePresence>{mode === null && <ModeSelect onPick={setMode} />}</AnimatePresence>
 

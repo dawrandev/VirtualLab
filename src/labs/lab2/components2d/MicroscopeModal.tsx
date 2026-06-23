@@ -67,8 +67,13 @@ function rods(n: number): Rod[] {
   return seeds.slice(0, n).map(([l, t], i) => ({ id: i, left: l, top: t, len: 13 + (i % 4) * 2.4, angle: (i * 47) % 180 }));
 }
 
-const VIOLET_FIELD = "radial-gradient(circle, #f3eefb 0%, #e6d9f5 60%, #b39ccf 90%, #1f1430 100%)";
-const PINK_FIELD = "radial-gradient(circle, #fdf4f8 0%, #f7e6ee 60%, #d4abc1 90%, #2a1622 100%)";
+// `closest-side` makes the gradient reach 100% exactly at the circle's edge, so
+// the rim — and everything in the square's corners beyond it — is dark. That way
+// no light rectangle can show around the circle even if a backdrop-filter ancestor
+// causes the rounded clip to leak its square bounding box, and it doubles as a
+// natural microscope vignette.
+const VIOLET_FIELD = "radial-gradient(circle closest-side, #f3eefb 0%, #e6d9f5 56%, #b69ad5 82%, #4a3470 94%, #0b0712 100%)";
+const PINK_FIELD = "radial-gradient(circle closest-side, #fdf4f8 0%, #f7e6ee 56%, #d4abc1 82%, #7e4660 94%, #0d070a 100%)";
 
 /** One static microscope eyepiece field: vignetted circle of stained cocci
  *  (violet) and/or counterstained rods (red). Cells are STILL — a fixed smear,

@@ -338,15 +338,18 @@ export function Lab3Workbench() {
   function snapPos(id: Lab3ItemId, rect: DOMRect, fallback: { x: number; y: number }): { x: number; y: number } {
     const p = placedRef.current;
     if (id === "suspension" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
-    // The used spreader rests in whichever jar matches its state.
+    // The used spreader rests in whichever jar matches its state. In the wide
+    // chlorine jar it leans to the RIGHT wall (working end down in the liquid)
+    // so it sits clear of the pipette on the left.
     if (id === "spatula") {
-      if (drigRef.current.spatulaDisinfected && p["chlorine-jar"]) return { x: p["chlorine-jar"].x, y: p["chlorine-jar"].y + (-47 / rect.height) * 100 };
+      if (drigRef.current.spatulaDisinfected && p["chlorine-jar"]) return { x: p["chlorine-jar"].x + (18 / rect.width) * 100, y: p["chlorine-jar"].y + (-37 / rect.height) * 100 };
       if (!drigRef.current.spatulaSterile && p["alcohol-jar"]) return { x: p["alcohol-jar"].x, y: p["alcohol-jar"].y + (-47 / rect.height) * 100 };
     }
-    // The used pipette stands tip-down in the chlorine jar (offset left of the
-    // spreader so both stay clearly visible). It always seats here once disinfected.
+    // The used pipette sinks tip-down to the bottom of the wide chlorine jar,
+    // leaning against the LEFT wall (it's denser than the liquid — it doesn't
+    // float). It always seats here once disinfected.
     if (id === "pipette" && drigRef.current.pipetteDisinfected && p["chlorine-jar"]) {
-      return { x: p["chlorine-jar"].x + (-16 / rect.width) * 100, y: p["chlorine-jar"].y + (-46 / rect.height) * 100 };
+      return { x: p["chlorine-jar"].x + (-34 / rect.width) * 100, y: p["chlorine-jar"].y + (-30 / rect.height) * 100 };
     }
     return fallback;
   }
@@ -470,7 +473,9 @@ export function Lab3Workbench() {
   };
   const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
   const spatulaInAlcohol = !!placed["spatula"] && !!placed["alcohol-jar"] && !drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
-  const spatulaInChlorine = !!placed["spatula"] && !!placed["chlorine-jar"] && drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["chlorine-jar"].x) < 3;
+  // Once disinfected the spreader always re-seats in the chlorine jar (snapPos),
+  // so the flag alone is enough — no x-tolerance check (it now sits offset right).
+  const spatulaInChlorine = !!placed["spatula"] && !!placed["chlorine-jar"] && drig.spatulaDisinfected;
   // The used pipette always seats in the chlorine jar once disinfected (snapPos).
   const pipetteInChlorine = !!placed["pipette"] && !!placed["chlorine-jar"] && drig.pipetteDisinfected;
 
@@ -576,6 +581,9 @@ export function Lab3Workbench() {
                     // Working (triangular) end DOWN, submerged in the liquid; the
                     // long handle sticks up out of the jar.
                     <div style={{ transform: "rotate(-82deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
+                  ) : it.id === "pipette" && pipetteInChlorine ? (
+                    // Sunk to the bottom of the disinfectant, leaning on the wall.
+                    <div style={{ transform: "rotate(-15deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
                   ) : (
                     it.render(drig, renderOpts)
                   )}
@@ -615,7 +623,7 @@ export function Lab3Workbench() {
               the used pipette so they read as inside the disinfectant. */}
           {(spatulaInChlorine || pipetteInChlorine) && placed["chlorine-jar"] && (
             <div className="pointer-events-none absolute" style={{ left: `${placed["chlorine-jar"].x}%`, top: `${placed["chlorine-jar"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
-              <AlcoholJar width={110} variant="chlorine" front />
+              <AlcoholJar width={180} variant="chlorine" wide front />
             </div>
           )}
 
@@ -670,24 +678,47 @@ export function Lab3Workbench() {
               </svg>
             </div>
           )}
-          {/* Jar dip — expanding ripple rings on the liquid surface */}
+          {/* Jar dip — a splash at the liquid surface: expanding ripple rings, a
+              central crown and droplets thrown up and falling back. Gives the
+              dip a clear, physical "plunged into the liquid" read. */}
           {(fx?.kind === "dip" || fx?.kind === "dip-chlorine") && (
-            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 18}%`, transform: "translate(-50%,-50%)" }}>
-              <svg width="90" height="40" viewBox="0 0 90 40">
-                {[0, 1, 2].map((i) => (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 4}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="130" height="80" viewBox="0 0 130 80" style={{ overflow: "visible" }}>
+                {/* Expanding surface ripples */}
+                {[0, 1, 2, 3].map((i) => (
                   <motion.ellipse
                     key={i}
-                    cx="45"
-                    cy="20"
-                    initial={{ rx: 5, ry: 2, opacity: 0.7 }}
-                    animate={{ rx: 26, ry: 9, opacity: 0 }}
-                    transition={{ duration: 0.8, delay: i * 0.18, ease: "easeOut" }}
+                    cx="65"
+                    cy="46"
+                    initial={{ rx: 6, ry: 2.4, opacity: 0.75 }}
+                    animate={{ rx: 40, ry: 13, opacity: 0 }}
+                    transition={{ duration: 0.95, delay: i * 0.16, ease: "easeOut" }}
                     fill="none"
-                    stroke={fx.kind === "dip-chlorine" ? "#c4d98a" : "#bfe0ee"}
-                    strokeWidth="1.6"
+                    stroke={fx.kind === "dip-chlorine" ? "#bcd57e" : "#a9d4e8"}
+                    strokeWidth="2"
                   />
                 ))}
-                <motion.circle cx="45" cy="18" r="2.5" initial={{ y: -10, opacity: 0.9 }} animate={{ y: 0, opacity: 0 }} transition={{ duration: 0.35 }} fill={fx.kind === "dip-chlorine" ? "#d6e6a0" : "#cfe6f0"} />
+                {/* Central splash crown */}
+                <motion.ellipse
+                  cx="65"
+                  cy="44"
+                  initial={{ rx: 2, ry: 1, opacity: 0.85 }}
+                  animate={{ rx: 16, ry: 6, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  fill={fx.kind === "dip-chlorine" ? "#e7f1c4" : "#dff0f8"}
+                />
+                {/* Droplets thrown up, arcing back down */}
+                {[-22, -11, 0, 11, 22].map((dx, i) => (
+                  <motion.circle
+                    key={i}
+                    cx={65 + dx}
+                    r={2.6}
+                    initial={{ cy: 44, opacity: 0 }}
+                    animate={{ cy: [44, 26 - Math.abs(dx) * 0.3, 44], opacity: [0.9, 0.9, 0] }}
+                    transition={{ duration: 0.6, delay: 0.04, ease: "easeOut" }}
+                    fill={fx.kind === "dip-chlorine" ? "#d6e6a0" : "#cfe6f0"}
+                  />
+                ))}
               </svg>
             </div>
           )}

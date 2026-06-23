@@ -35,7 +35,7 @@ function buildParticles(count: number, sizeRange: [number, number], opacity: num
  * (no Gram differentiation); the result conveys morphology + preparation
  * quality.
  */
-export function Lab1ResultModal() {
+export function Lab1ResultModal({ examMode = false }: { examMode?: boolean }) {
   const t = useTranslations();
   const open = useLab2DStore((s) => s.state.microscopeOpen);
   const setOpen = useLab2DStore((s) => s.setMicroscopeOpen);
@@ -107,10 +107,14 @@ export function Lab1ResultModal() {
             </div>
 
             <div className="absolute -bottom-44 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 w-[440px]">
-              <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-3 shadow-2xl text-center text-white">
-                <p className="text-[11px] uppercase tracking-widest opacity-80">{t("lab1.result.title")}</p>
-                <p className="text-3xl font-bold">{state.score.outOfTen.toFixed(1)} / 10</p>
-              </div>
+              {/* The numeric score belongs to EXAM mode only. In learn mode the
+                  student just studies the smear, so we hide the X/10 badge. */}
+              {examMode && (
+                <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-3 shadow-2xl text-center text-white">
+                  <p className="text-[11px] uppercase tracking-widest opacity-80">{t("lab1.result.title")}</p>
+                  <p className="text-3xl font-bold">{state.score.outOfTen.toFixed(1)} / 10</p>
+                </div>
+              )}
               <div className="rounded-xl bg-white/95 px-4 py-2 text-sm text-slate-800 shadow-md text-center">
                 {result.notes.map((n, i) => (
                   <p key={i} className={i === 0 ? "font-semibold" : "text-xs text-slate-600"}>

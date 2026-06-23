@@ -3,16 +3,9 @@
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import type { Motility } from "../state";
 
 interface Props {
   open: boolean;
-  picked: Motility | null;
-  reveal: boolean;
-  correct: Motility;
-  /** Whether the specimen is motile — drives the field's movement. */
-  motile: boolean;
-  onClassify: (m: Motility) => void;
   onClose: () => void;
 }
 
@@ -125,15 +118,14 @@ function field(motile: boolean): Cell[] {
 const CELL_BG = "rgba(38,66,54,0.82)";
 
 /**
- * Wet-mount microscope view (×40). A teal, unstained field of living rod-shaped
- * bacteria: most jiggle in place (Brownian), some swim across in run-and-tumble
- * paths and a few stream upward — true motility. The student decides whether the
- * organism is motile; learn mode reveals the answer + a Brownian-vs-true note.
+ * Wet-mount microscope view (×40). A teal, unstained field of LIVING, motile
+ * rod-shaped bacteria: most jiggle in place (Brownian), many swim across in
+ * run-and-tumble paths and a few stream upward — a purely observational view of
+ * true motility (no classification step).
  */
-export function WetMountMicroscopeModal({ open, picked, reveal, correct, motile, onClassify, onClose }: Props) {
-  const cells = useMemo(() => field(motile), [motile]);
+export function WetMountMicroscopeModal({ open, onClose }: Props) {
+  const cells = useMemo(() => field(true), []);
   const t = useTranslations();
-  const isRight = picked === correct;
 
   return (
     <AnimatePresence>
@@ -172,32 +164,10 @@ export function WetMountMicroscopeModal({ open, picked, reveal, correct, motile,
               </div>
             </div>
 
-            {/* Motility classification */}
-            <div className="w-[min(90vw,460px)] rounded-2xl bg-white/95 p-4 text-center shadow-2xl">
-              <p className="mb-3 text-sm font-semibold text-slate-700">{t("lab5.micro.question")}</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => onClassify("motile")}
-                  className="flex-1 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition"
-                  style={{ borderColor: picked === "motile" ? "#0d9488" : "#e2e8f0", background: picked === "motile" ? "#f0fdfa" : "#fff", color: "#0f766e" }}
-                >
-                  {t("lab5.micro.motile")}<br /><span className="text-[11px] font-normal text-slate-500">{t("lab5.micro.motileSub")}</span>
-                </button>
-                <button
-                  onClick={() => onClassify("nonmotile")}
-                  className="flex-1 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold transition"
-                  style={{ borderColor: picked === "nonmotile" ? "#b45309" : "#e2e8f0", background: picked === "nonmotile" ? "#fffbeb" : "#fff", color: "#b45309" }}
-                >
-                  {t("lab5.micro.nonmotile")}<br /><span className="text-[11px] font-normal text-slate-500">{t("lab5.micro.nonmotileSub")}</span>
-                </button>
-              </div>
-
-              {reveal && picked && (
-                <div className="mt-3 rounded-lg px-3 py-2 text-[13px] font-medium" style={{ background: isRight ? "#ecfdf5" : "#fef2f2", color: isRight ? "#059669" : "#dc2626" }}>
-                  {isRight ? t("lab5.micro.right") : t("lab5.micro.wrong")}
-                  {correct === "motile" ? t("lab5.micro.revealMotile") : t("lab5.micro.revealNonmotile")}
-                </div>
-              )}
+            {/* Observation caption — living, motile bacteria (no classification) */}
+            <div className="text-center">
+              <p className="text-[15px] font-bold text-teal-300">{t("lab5.micro.motile")}</p>
+              <p className="mt-1 max-w-[420px] text-[13px] leading-snug text-slate-300">{t("lab5.micro.motileSub")}</p>
             </div>
           </div>
         </motion.div>

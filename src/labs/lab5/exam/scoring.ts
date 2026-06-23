@@ -1,5 +1,5 @@
 import { MAIN_STEPS, MAX_SCORE } from "./protocol";
-import { SPECIMEN, type Motility, type WetMountState } from "../state";
+import { type WetMountState } from "../state";
 
 export interface ExamAction {
   intent: string;
@@ -24,7 +24,7 @@ export interface ExamResult {
   steps: StepResult[];
 }
 
-export function scoreWetMountExam(_log: ExamAction[], s: WetMountState, correctMotility: Motility = SPECIMEN.motility): ExamResult {
+export function scoreWetMountExam(_log: ExamAction[], s: WetMountState): ExamResult {
   const byId = Object.fromEntries(MAIN_STEPS.map((m) => [m.id, m]));
   const grade = (id: string, status: StepStatus, notes: string[]): StepResult => {
     const def = byId[id];
@@ -53,11 +53,8 @@ export function scoreWetMountExam(_log: ExamAction[], s: WetMountState, correctM
   else if (!s.blotted) steps.push(grade("cover", "partial", ["lab5.score.coverPartial"]));
   else steps.push(grade("cover", "full", []));
 
-  // 6 — microscopy + motility call
-  if (!s.observed) steps.push(grade("micro", "zero", ["lab5.score.microZero"]));
-  else if (s.motilePick == null) steps.push(grade("micro", "partial", ["lab5.score.microNoPick"]));
-  else if (s.motilePick !== correctMotility) steps.push(grade("micro", "partial", ["lab5.score.microWrong"]));
-  else steps.push(grade("micro", "full", []));
+  // 6 — microscopy: observe the living, motile wet mount
+  steps.push(s.observed ? grade("micro", "full", []) : grade("micro", "zero", ["lab5.score.microZero"]));
 
   const total = steps.reduce((a, x) => a + x.earned, 0);
   return { total, max: MAX_SCORE, steps };

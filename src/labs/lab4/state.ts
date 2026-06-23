@@ -1,11 +1,13 @@
 /**
  * Lab 4 (paper-disk diffusion / Kirby-Bauer) runtime state.
  *
- * Per the assignment PDF: the culture is seeded as a confluent LAWN ("gazon")
- * with a sterile glass SPREADER (Drigalski spatula), the plate dries, antibiotic
- * paper disks are placed with flame-sterilised forceps, the plate is incubated
- * inverted at 37 °C for 18–24 h, and each zone of inhibition is MEASURED WITH A
- * RULER and interpreted on the universal zone-diameter scale:
+ * Per the assignment PDF + standard spread-plate technique: a measured drop of
+ * the culture suspension is delivered onto the agar WITH A PIPETTE, spread into
+ * a confluent LAWN ("gazon") with a sterile glass SPREADER (Drigalski spatula)
+ * which is then dropped into the 5% chlorine jar (not re-flamed), the plate
+ * dries, antibiotic paper disks are placed with forceps that are flame-sterilised
+ * before EACH disk, the plate is incubated inverted at 37 °C for 18–24 h, and
+ * each zone of inhibition is MEASURED WITH A RULER and interpreted:
  *   > 25 mm  = highly sensitive,
  *   15–25 mm = moderately sensitive,
  *   < 15 mm  = low sensitivity,
@@ -57,21 +59,23 @@ export interface DiskState {
   /** Spirit lamp lit by hand: strike the match, touch the wick, bin the match. */
   match: { struck: boolean; lit: boolean; discarded: boolean };
   lamp: { lit: boolean };
-  /** Glass spreader dipped in alcohol, then flamed sterile. */
+  /** Pipette charged from the culture tube, then dripped onto the agar. */
+  pipetteLoaded: boolean;
+  dripped: boolean;
+  /** Glass spreader dipped in alcohol, then flamed sterile (before spreading). */
   spreaderDipped: boolean;
   spreaderSterile: boolean;
-  /** Spreader charged with culture (ready to seed the lawn). */
-  spreaderCharged: boolean;
   /** Number of completed spreading passes (rotate the plate between them). */
   lawnPasses: number;
   /** Confluent lawn finished. */
   lawnSpread: boolean;
-  /** Used spreader re-sterilised in the flame after seeding the lawn (hygiene). */
-  spreaderResterilized: boolean;
+  /** Used spreader dropped into the 5% chlorine jar afterwards (not re-flamed). */
+  spreaderDisinfected: boolean;
   /** Plate dried (~30 min) so the agar absorbed the inoculum. */
   dried: boolean;
-  /** Forceps dipped in alcohol, then flamed. */
+  /** Forceps dipped in alcohol once (primed), then flame-sterilised before each disk. */
   forcepsDipped: boolean;
+  forcepsPrimed: boolean;
   forcepsSterile: boolean;
   disks: Record<string, boolean>;
   /** Placed in the thermostat (inverted) and the 24 h incubation elapsed. */
@@ -88,14 +92,16 @@ export function freshDiskState(): DiskState {
     dishPlaced: false,
     match: { struck: false, lit: false, discarded: false },
     lamp: { lit: false },
+    pipetteLoaded: false,
+    dripped: false,
     spreaderDipped: false,
     spreaderSterile: false,
-    spreaderCharged: false,
     lawnPasses: 0,
     lawnSpread: false,
-    spreaderResterilized: false,
+    spreaderDisinfected: false,
     dried: false,
     forcepsDipped: false,
+    forcepsPrimed: false,
     forcepsSterile: false,
     disks: {},
     incubated: false,
@@ -116,14 +122,16 @@ export type DiskIntent =
   | "strike-match" // match → matchbox
   | "light-lamp" // lit match → lamp
   | "discard-match" // burning match → biohazard bin
+  | "load-pipette" // pipette → culture tube (draw the suspension)
+  | "drip-lawn" // pipette → dish (deliver the drop)
   | "dip-spreader" // spreader → alcohol jar
-  | "sterilize-spreader" // spreader → flame
-  | "charge-spreader" // spreader → culture
+  | "sterilize-spreader" // spreader → flame (before seeding)
   | "spread-1" // spreader → dish (1st pass)
   | "spread-2" // spreader → dish (rotate)
   | "spread-3" // spreader → dish (rotate)
-  | "dip-forceps" // forceps → alcohol jar
-  | "sterilize-forceps" // forceps → flame
+  | "disinfect-spreader" // used spreader → 5% chlorine jar
+  | "dip-forceps" // forceps → alcohol jar (first time)
+  | "sterilize-forceps" // forceps → flame (before each disk)
   | "pick-disk" // forceps → cartridge
   | "place-disk" // forceps → dish
   | "incubate"
@@ -149,19 +157,20 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
     case "discard-match":
       s.match.discarded = true;
       break;
+    case "load-pipette":
+      s.pipetteLoaded = true;
+      break;
+    case "drip-lawn":
+      s.dripped = true;
+      s.pipetteLoaded = false; // the drop has been delivered onto the agar
+      break;
     case "dip-spreader":
       s.spreaderDipped = true;
       break;
     case "sterilize-spreader":
-      // Before seeding it sterilises; after the lawn it re-sterilises the used spreader.
-      if (s.lawnSpread) s.spreaderResterilized = true;
-      else {
-        s.spreaderSterile = true;
-        s.spreaderDipped = false;
-      }
-      break;
-    case "charge-spreader":
-      s.spreaderCharged = true;
+      // Sterilises the spreader before seeding the lawn (then it cools).
+      s.spreaderSterile = true;
+      s.spreaderDipped = false;
       break;
     case "spread-1":
       s.lawnPasses = Math.max(s.lawnPasses, 1);
@@ -173,15 +182,22 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
       s.lawnPasses = LAWN_PASSES;
       s.lawnSpread = true;
       break;
+    case "disinfect-spreader":
+      s.spreaderDisinfected = true;
+      break;
     case "dip-forceps":
       s.forcepsDipped = true;
       break;
     case "sterilize-forceps":
+      // First flame needs the alcohol dip; later disks re-flame straight away.
       s.forcepsSterile = true;
+      s.forcepsPrimed = true;
       s.forcepsDipped = false;
       break;
     case "place-disk":
       if (disk) s.disks[disk] = true;
+      // Used on a disk → must be flame-sterilised again before the next one.
+      s.forcepsSterile = false;
       break;
     case "incubate":
       s.incubated = true;

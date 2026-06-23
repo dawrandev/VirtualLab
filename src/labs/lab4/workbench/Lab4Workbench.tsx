@@ -10,6 +10,7 @@ import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
 import { DrigalskiSpatula } from "@/labs/lab3/components2d/items/DrigalskiSpatula";
+import { Pipette } from "@/labs/lab3/components2d/items/Pipette";
 import { LAB4_ITEMS, LAB4_ITEM_BY_ID, intentFor, type Lab4ItemId } from "./items";
 import {
   freshDiskState,
@@ -31,7 +32,7 @@ import { HourglassWait } from "@/components/HourglassWait";
 
 const DROP_PAD = 26;
 const GHOST_SCALE = 1.06;
-const FORCEPS_COOL_MS = 3200;
+const FORCEPS_COOL_MS = 1600; // brief cool-down after flaming (tip never glows red)
 const DRY_MS = 5000; // real ~5 min compressed
 const DISPLAY_DRY_MIN = 5;
 const RUB_K = 0.0016;
@@ -54,7 +55,7 @@ interface Hold {
   progress: number;
 }
 interface Fx {
-  kind: "drip-mat" | "dip" | "spark";
+  kind: "drip-mat" | "dip" | "spark" | "flame";
   x: number;
   y: number;
   key: number;
@@ -68,22 +69,25 @@ function isSpread(i: DiskIntent): boolean {
 function actionKind(intent: DiskIntent): Kind {
   // Mirrors Lab 1: strike the match with a rub on the box; bin it on release.
   if (isSpread(intent) || intent === "strike-match") return "rub";
-  if (intent === "charge-spreader" || intent === "dip-forceps" || intent === "dip-spreader") return "sample"; // timed dip
+  if (intent === "load-pipette" || intent === "dip-forceps" || intent === "dip-spreader") return "sample"; // timed dip/draw
   if (intent === "discard-match") return "instant";
-  return "contact"; // light lamp, flame forceps/spreader, place disk, etc.
+  return "contact"; // light lamp, drip, flame forceps/spreader, disinfect, place disk, etc.
 }
 
 function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.dishPlaced) return "lab4.hint.dish";
   if (!s.lamp.lit) return s.match.struck ? "lab4.hint.lightLamp" : "lab4.hint.strikeMatch";
   if (!s.match.discarded) return "lab4.hint.discardMatch";
+  if (!s.dripped) return s.pipetteLoaded ? "lab4.hint.dropMaterial" : "lab4.hint.loadPipette";
   if (!s.spreaderSterile) return s.spreaderDipped ? "lab4.hint.flameSpreader" : "lab4.hint.dipSpreader";
-  if (!s.spreaderCharged && s.lawnPasses === 0) return "lab4.hint.chargeSpreader";
   if (!s.lawnSpread) return "lab4.hint.spread";
-  if (!s.spreaderResterilized) return "lab4.hint.reflameSpreader";
+  if (!s.spreaderDisinfected) return "lab4.hint.disinfect";
   if (!s.dried) return "lab4.hint.dry";
-  if (!s.forcepsSterile) return "lab4.hint.forceps";
-  if (!allDisksPlaced(s)) return carrying ? "lab4.hint.placeDisk" : "lab4.hint.pickDisk";
+  if (!allDisksPlaced(s)) {
+    if (carrying) return "lab4.hint.placeDisk";
+    if (!s.forcepsSterile) return s.forcepsDipped || s.forcepsPrimed ? "lab4.hint.reheatForceps" : "lab4.hint.forceps";
+    return "lab4.hint.pickDisk";
+  }
   if (!s.incubated) return "lab4.hint.incubate";
   return "lab4.hint.measure";
 }
@@ -116,7 +120,7 @@ export function Lab4Workbench() {
   const fxKey = useRef(0);
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [forcepsHot, setForcepsHot] = useState(false);
+  const [forcepsCooling, setForcepsCooling] = useState(false);
   const [spreaderHot, setSpreaderHot] = useState(false);
   const [binBump, setBinBump] = useState(0);
   // Antibiotic disk currently held in the forceps.
@@ -159,10 +163,10 @@ export function Lab4Workbench() {
   }, []);
 
   useEffect(() => {
-    if (!forcepsHot) return;
-    const t = window.setTimeout(() => setForcepsHot(false), FORCEPS_COOL_MS);
+    if (!forcepsCooling) return;
+    const t = window.setTimeout(() => setForcepsCooling(false), FORCEPS_COOL_MS);
     return () => window.clearTimeout(t);
-  }, [forcepsHot]);
+  }, [forcepsCooling]);
 
   useEffect(() => {
     if (!spreaderHot) return;
@@ -225,9 +229,15 @@ export function Lab4Workbench() {
       setBinBump((b) => b + 1);
       setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; });
     } else if (intent === "dip-forceps" || intent === "dip-spreader") flashAt("dip", at("alcohol-jar").x, at("alcohol-jar").y, 900);
-    else if (intent === "sterilize-forceps") setForcepsHot(true);
+    else if (intent === "sterilize-forceps") {
+      // No red-hot tip (would scorch a paper disk) — show a flame burst at the
+      // lamp instead, so the student clearly sees the forceps were flamed.
+      setForcepsCooling(true);
+      flashAt("flame", at("lamp").x, at("lamp").y, 650);
+    }
     else if (intent === "sterilize-spreader") setSpreaderHot(true);
-    else if (intent === "charge-spreader") flashAt("dip", at("culture").x, at("culture").y - 22, 900);
+    else if (intent === "drip-lawn") flashAt("drip-mat", at("dish").x, at("dish").y);
+    else if (intent === "disinfect-spreader") flashAt("dip", at("chlorine-jar").x, at("chlorine-jar").y, 900);
     else if (intent === "spread-3") startDrying();
   }
 
@@ -329,7 +339,7 @@ export function Lab4Workbench() {
         return;
       }
       // Picking up a paper disk needs the flamed forceps to cool first.
-      if (intent === "pick-disk" && forcepsHot) {
+      if (intent === "pick-disk" && forcepsCooling) {
         if (h) cancelHold();
         return;
       }
@@ -371,7 +381,7 @@ export function Lab4Workbench() {
       window.removeEventListener("pointerup", onUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [drag?.id, forcepsHot]);
+  }, [drag?.id, forcepsCooling]);
 
   function endDrag() {
     setDrag(null);
@@ -381,6 +391,10 @@ export function Lab4Workbench() {
   function snapPos(id: Lab4ItemId, rect: DOMRect, fallback: { x: number; y: number }): { x: number; y: number } {
     const p = placedRef.current;
     if (id === "culture" && p["rack"]) return { x: p["rack"].x, y: p["rack"].y + (-59.5 / rect.height) * 100 };
+    // The used spreader leans tip-down in the wide chlorine jar (right wall).
+    if (id === "spreader" && diskRef.current.spreaderDisinfected && p["chlorine-jar"]) {
+      return { x: p["chlorine-jar"].x + (18 / rect.width) * 100, y: p["chlorine-jar"].y + (-37 / rect.height) * 100 };
+    }
     return fallback;
   }
 
@@ -466,7 +480,7 @@ export function Lab4Workbench() {
     setPlaced({ incubator: FIXED_INCUBATOR });
     setActionLog([]);
     setExamResult(null);
-    setForcepsHot(false);
+    setForcepsCooling(false);
     setSpreaderHot(false);
     setCarrying(null);
     setInc(null);
@@ -491,16 +505,19 @@ export function Lab4Workbench() {
   const sidebarPlaced = new Set([...Object.keys(placed), ...LAB4_ITEMS.filter((i) => i.fixed).map((i) => i.id)]) as Set<Lab4ItemId>;
   const draggingDef = drag ? LAB4_ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(disk, carrying);
-  // Lift the tube's cotton plug while the spreader is being charged in it.
-  const chargingSpreader = hold?.kind === "sample" && hold.intent === "charge-spreader";
+  // Lift the tube's cotton plug while the pipette is drawing the suspension.
+  const loadingPipette = hold?.kind === "sample" && hold.intent === "load-pipette";
   const dippingForceps = hold?.kind === "sample" && hold.intent === "dip-forceps";
   const dippingSpreader = hold?.kind === "sample" && hold.intent === "dip-spreader";
-  const renderOpts = { forcepsHot, spreaderHot, incubatorRunning: inc != null, carrying, tubePlugOff: chargingSpreader, binBump };
+  const renderOpts = { forcepsCooling, spreaderHot, incubatorRunning: inc != null, carrying, tubePlugOff: loadingPipette, binBump };
   const dishPos = placed["dish"];
   const culturePos = placed["culture"];
   const jarPos = placed["alcohol-jar"];
+  const chlorinePos = placed["chlorine-jar"];
   const spreading = hold && isSpread(hold.intent) ? hold : null;
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
+  // Used spreader resting in the chlorine jar (rotated, working end submerged).
+  const spreaderInChlorine = !!placed["spreader"] && !!placed["chlorine-jar"] && disk.spreaderDisinfected;
 
   const validTargets = new Set<Lab4ItemId>();
   if (drag) {
@@ -591,7 +608,12 @@ export function Lab4Workbench() {
                   style={{ cursor: it.fixed ? "default" : "grab" }}
                   title={tg(it.label)}
                 >
-                  {it.render(disk, renderOpts)}
+                  {it.id === "spreader" && spreaderInChlorine ? (
+                    // Used spreader: working end DOWN, submerged in the disinfectant.
+                    <div style={{ transform: "rotate(-82deg)", transition: "transform 0.15s ease" }}>{it.render(disk, renderOpts)}</div>
+                  ) : (
+                    it.render(disk, renderOpts)
+                  )}
                 </div>
               </div>
             );
@@ -601,6 +623,12 @@ export function Lab4Workbench() {
           {tubeInRack && placed["rack"] && (
             <div className="pointer-events-none absolute" style={{ left: `${placed["rack"].x}%`, top: `${placed["rack"].y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
               <TestTubeRack width={340} front />
+            </div>
+          )}
+          {/* Front glass of the chlorine jar — over the submerged used spreader. */}
+          {spreaderInChlorine && chlorinePos && (
+            <div className="pointer-events-none absolute" style={{ left: `${chlorinePos.x}%`, top: `${chlorinePos.y}%`, transform: "translate(-50%,-50%)", zIndex: 5 }}>
+              <AlcoholJar width={180} variant="chlorine" wide front />
             </div>
           )}
           {/* Gazon streak building on the plate during the active pass —
@@ -630,20 +658,20 @@ export function Lab4Workbench() {
             );
           })()}
 
-          {/* Spreader charging from the open culture tube — its working head
-              dips down through the mouth to pick up the suspension. */}
-          {chargingSpreader && culturePos && (
+          {/* Pipette drawing the suspension from the open culture tube — the
+              tip dips through the mouth and the barrel fills. */}
+          {loadingPipette && culturePos && (
             <div className="pointer-events-none absolute z-40" style={{ left: `${culturePos.x}%`, top: `${culturePos.y}%`, transform: "translate(-50%,-50%)" }}>
               <motion.div
                 style={{ transformOrigin: "center center" }}
-                initial={{ rotate: -82, y: -120, opacity: 0 }}
-                animate={{ rotate: -82, y: [-120, -8, -8, -120], opacity: 1 }}
+                initial={{ y: -70, opacity: 0 }}
+                animate={{ y: [-70, 8, 8, -70], opacity: 1 }}
                 transition={{ duration: SAMPLE_DUR / 1000, times: [0, 0.3, 0.8, 1], ease: "easeInOut" }}
               >
-                <DrigalskiSpatula width={150} wet />
+                <Pipette width={30} loaded />
               </motion.div>
               <div className="absolute left-1/2 top-[-92px] -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-                {tg("lab4.act.charge")}
+                {tg("lab4.act.load")}
               </div>
             </div>
           )}
@@ -690,6 +718,23 @@ export function Lab4Workbench() {
               </svg>
             </div>
           )}
+          {fx?.kind === "flame" && (
+            <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y - 11}%`, transform: "translate(-50%,-50%)" }}>
+              <svg width="64" height="84" viewBox="0 0 64 84" style={{ overflow: "visible" }}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <motion.path
+                    key={i}
+                    d={`M32 76 C ${20 + i * 2} 52, ${24 + i * 3} 36, 32 ${22 + i * 5} C ${40 - i * 3} 36, ${44 - i * 2} 52, 32 76 Z`}
+                    fill={["#fde68a", "#fbbf24", "#fb923c", "#f59e0b", "#fcd34d"][i]}
+                    initial={{ opacity: 0, scaleY: 0.5 }}
+                    animate={{ opacity: [0, 0.9, 0], scaleY: [0.5, 1.15, 0.6] }}
+                    transition={{ duration: 0.62, delay: i * 0.05, ease: "easeOut" }}
+                    style={{ transformOrigin: "32px 76px" }}
+                  />
+                ))}
+              </svg>
+            </div>
+          )}
           {fx?.kind === "spark" && (
             <div key={fx.key} className="pointer-events-none absolute z-30" style={{ left: `${fx.x}%`, top: `${fx.y}%`, transform: "translate(-50%,-50%)" }}>
               <svg width="60" height="60" viewBox="0 0 60 60">
@@ -731,7 +776,7 @@ export function Lab4Workbench() {
 
           {/* Drag ghost — forceps carrying a disk shows a small disk at its tips.
               Hidden during a dip (the dedicated dip visual takes over). */}
-          {drag && draggingDef && !chargingSpreader && !dippingForceps && !dippingSpreader && (
+          {drag && draggingDef && !loadingPipette && !dippingForceps && !dippingSpreader && (
             <div className="pointer-events-none fixed z-50" style={{ left: drag.px, top: drag.py, transform: "translate(-50%,-50%) scale(1.06)", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}>
               <div className="relative">
                 {draggingDef.render(disk, renderOpts)}

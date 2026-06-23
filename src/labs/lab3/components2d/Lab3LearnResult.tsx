@@ -23,7 +23,7 @@ export function Lab3LearnResult({ onRestart, onClose }: Props) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-      <motion.div initial={{ y: 20, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 240, damping: 24 }} className="flex max-h-[92vh] w-[min(96vw,680px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+      <motion.div initial={{ y: 20, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 240, damping: 24 }} className="flex max-h-[92vh] w-[min(96vw,720px)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
         <div className="flex items-center gap-4 px-6 py-5" style={{ background: "linear-gradient(135deg,#14b8a622,#ffffff)" }}>
           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-teal-500 text-3xl text-white shadow-lg">✓</div>
           <div>
@@ -36,10 +36,10 @@ export function Lab3LearnResult({ onRestart, onClose }: Props) {
           <p className="text-[13px] leading-relaxed text-slate-600">{t("lab3.learn.intro")}</p>
 
           {/* The three plates as images, showing the growth gradient */}
-          <div className="flex justify-center gap-3 pt-1">
+          <div className="flex justify-center gap-2 pt-1">
             {plates.map((p) => (
-              <div key={p.n} className="flex flex-col items-center gap-1 rounded-xl px-1.5 py-2" style={{ background: p.star ? "#e0f2fe" : "#f8fafc", outline: p.star ? "2px solid #0ea5e9" : "1px solid #e2e8f0" }}>
-                <PetriAgarDish diameter={150} spread growth={p.growth} label={p.n} />
+              <div key={p.n} className="flex flex-col items-center gap-1 rounded-xl px-1 py-2" style={{ background: p.star ? "#e0f2fe" : "#f8fafc", outline: p.star ? "2px solid #0ea5e9" : "1px solid #e2e8f0" }}>
+                <PetriAgarDish diameter={196} spread growth={p.growth} label={p.n} />
                 {p.star && <span className="text-[11px] font-bold text-sky-600">★</span>}
               </div>
             ))}

@@ -55,9 +55,12 @@ export function scoreDiskExam(log: ExamAction[], s: DiskState): ExamResult {
   if (placedCount === 0) steps.push(grade("disks", "zero", ["lab4.score.disksZero"]));
   else {
     const notes: string[] = [];
-    if (!s.forcepsSterile) notes.push("lab4.score.forcepsNotSterile");
+    // The flow requires sterile forceps to pick up each disk, and place-disk
+    // clears `forcepsSterile` afterwards — so grade on `forcepsPrimed` (the
+    // forceps were flame-sterilised during the run), not the end-state flag.
+    if (!s.forcepsPrimed) notes.push("lab4.score.forcepsNotSterile");
     if (!allDisksPlaced(s)) notes.push("lab4.score.disksIncomplete");
-    steps.push(grade("disks", allDisksPlaced(s) && s.forcepsSterile ? "full" : "partial", notes));
+    steps.push(grade("disks", allDisksPlaced(s) && s.forcepsPrimed ? "full" : "partial", notes));
   }
 
   // 3 — incubation

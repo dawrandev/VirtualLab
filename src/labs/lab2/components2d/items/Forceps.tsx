@@ -4,6 +4,9 @@ interface Props {
   width?: number;
   /** Tips glowing red-hot just after flame sterilisation. */
   hot?: boolean;
+  /** Just flamed and cooling — faint colourless heat haze, NO red tip (so it
+   *  never reads as hot enough to scorch a paper disk). */
+  cooling?: boolean;
 }
 
 /**
@@ -11,7 +14,7 @@ interface Props {
  * top, tapering to fine tips. Used to lift the filter paper off the smear.
  * Drawn vertically (tips at the bottom) so it reads as held in the hand.
  */
-export function Forceps({ width = 40, hot }: Props) {
+export function Forceps({ width = 40, hot, cooling }: Props) {
   const w = width;
   const h = w * (150 / 40);
   return (
@@ -62,6 +65,16 @@ export function Forceps({ width = 40, hot }: Props) {
 
       {/* Hot glow halo around the tips */}
       {hot && <ellipse cx="20" cy="146" rx="16" ry="12" fill="url(#fcGlow)" />}
+
+      {/* Cooling — colourless heat haze rising off the (steel-coloured) tips, so
+          the just-flamed forceps reads as sterilised without any red-hot glow. */}
+      {cooling && !hot && (
+        <g opacity="0.62" stroke="#e8eef1" strokeWidth="1.2" fill="none" strokeLinecap="round">
+          <path d="M16 134 q -2.5 -5 0 -10 q 2.5 -5 0 -10" />
+          <path d="M20 137 q -2.5 -5 0 -10 q 2.5 -5 0 -10" />
+          <path d="M24 134 q -2.5 -5 0 -10 q 2.5 -5 0 -10" />
+        </g>
+      )}
 
       {/* Fine tips */}
       <path d="M16 140 L17 148 L17.6 148 L18 140 Z" fill={hot ? "url(#fcHot)" : "#aeb7bd"} stroke={hot ? "#d2491f" : "#6c757b"} strokeWidth="0.4" />

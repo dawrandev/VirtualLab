@@ -7,6 +7,8 @@ interface Props {
   stage: PlateStage;
   /** Completed streak passes (0–3) — each one drawn in its own direction. */
   lawnPasses?: number;
+  /** A drop of culture suspension dripped on the agar, before it is spread. */
+  material?: boolean;
   placedDisks?: Record<string, boolean>;
   highlight?: string | null;
   classified?: Record<string, Sens | null>;
@@ -29,15 +31,15 @@ function onAgar(fx: number, fy: number) {
  * that lifts off, and (for disk diffusion) a confluent bacterial lawn with the
  * antibiotic paper disks and their clear zones of inhibition after incubation.
  */
-export function PetriLawnDish({ diameter = 230, stage, lawnPasses = 0, placedDisks = {}, highlight, classified = {} }: Props) {
+export function PetriLawnDish({ diameter = 230, stage, lawnPasses = 0, material, placedDisks = {}, highlight, classified = {} }: Props) {
   const w = diameter;
   const h = w * (164 / 210);
   const hasLawn = stage === "lawn" || stage === "lawn-wet" || stage === "grown";
   const grown = stage === "grown";
   const allPlaced = ANTIBIOTICS.length > 0 && ANTIBIOTICS.every((a) => placedDisks[a.id]);
-  // Lid is lifted only while working; it closes once all disks are on (ready to
-  // incubate) and stays closed after incubation.
-  const lidOff = (hasLawn || Object.values(placedDisks).some(Boolean)) && !allPlaced;
+  // Lid is lifted while working (drip / lawn / placing disks); it closes once all
+  // disks are on (ready to incubate) and stays closed after incubation.
+  const lidOff = (hasLawn || material || Object.values(placedDisks).some(Boolean)) && !allPlaced;
   // After incubation the whole surface is confluent; otherwise show the
   // individual directional streak passes the student has made so far.
   const passes = grown ? 3 : lawnPasses;
@@ -76,6 +78,13 @@ export function PetriLawnDish({ diameter = 230, stage, lawnPasses = 0, placedDis
         <ellipse cx="86" cy="93" rx="26" ry="7" fill="#ffffff" opacity="0.2" />
 
         <g clipPath="url(#pldClip)">
+          {/* Suspension drop sitting on the agar before it is spread */}
+          {material && !hasLawn && (
+            <>
+              <ellipse cx={CX} cy={CY} rx={20} ry={6} fill="#cfe0d6" opacity="0.7" />
+              <ellipse cx={CX - 5} cy={CY - 1.5} rx={7} ry={2} fill="#ffffff" opacity="0.4" />
+            </>
+          )}
           {/* Confluent lawn — fills in as the passes accumulate */}
           {hasLawn && <ellipse cx={CX} cy={CY} rx={RX} ry={RY} fill="url(#pldLawn)" opacity={grown ? 0.85 : 0.18 + 0.22 * passes} />}
           {/* Directional streak sets: each completed pass streaks in a new

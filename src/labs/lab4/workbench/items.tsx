@@ -13,6 +13,7 @@ import { Incubator } from "@/labs/lab3/components2d/items/Incubator";
 import { AlcoholJar } from "@/labs/lab3/components2d/items/AlcoholJar";
 import { Forceps } from "@/labs/lab2/components2d/items/Forceps";
 import { DrigalskiSpatula } from "@/labs/lab3/components2d/items/DrigalskiSpatula";
+import { Pipette } from "@/labs/lab3/components2d/items/Pipette";
 import { PetriLawnDish } from "../components2d/items/PetriLawnDish";
 import { DiskCartridge } from "../components2d/items/DiskCartridge";
 
@@ -23,7 +24,9 @@ export type Lab4ItemId =
   | "bin"
   | "lamp"
   | "alcohol-jar"
+  | "chlorine-jar"
   | "spreader"
+  | "pipette"
   | "rack"
   | "culture"
   | "cartridge"
@@ -48,7 +51,7 @@ export interface Lab4ItemDef {
   hitDY?: number;
   render: (
     state: DiskState,
-    opts: { forcepsHot?: boolean; spreaderHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number },
+    opts: { forcepsCooling?: boolean; spreaderHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number },
   ) => ReactNode;
 }
 
@@ -61,7 +64,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 230,
     h: 180,
     preview: 0.3,
-    render: (s, o) => <PetriLawnDish diameter={230} stage={plateStage(s)} lawnPasses={s.lawnPasses} placedDisks={s.disks} classified={s.classified} highlight={o.highlight} />,
+    render: (s, o) => <PetriLawnDish diameter={230} stage={plateStage(s)} lawnPasses={s.lawnPasses} material={s.dripped && s.lawnPasses === 0} placedDisks={s.disks} classified={s.classified} highlight={o.highlight} />,
   },
   {
     id: "matchbox",
@@ -118,6 +121,16 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     render: () => <AlcoholJar width={110} />,
   },
   {
+    id: "chlorine-jar",
+    label: "lab4.items.chlorineJar",
+    apparatus: true,
+    target: true,
+    w: 180,
+    h: 150,
+    preview: 0.4,
+    render: () => <AlcoholJar width={180} variant="chlorine" wide />,
+  },
+  {
     id: "spreader",
     label: "lab4.items.spreader",
     apparatus: false,
@@ -128,6 +141,17 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     tipY: 24,
     preview: 0.58,
     render: (s, o) => <DrigalskiSpatula width={220} hot={o.spreaderHot} wet={s.spreaderDipped} />,
+  },
+  {
+    id: "pipette",
+    label: "lab4.items.pipette",
+    apparatus: false,
+    target: false,
+    w: 30,
+    h: 190,
+    tipY: 86,
+    preview: 0.5,
+    render: (s) => <Pipette width={30} loaded={s.pipetteLoaded} />,
   },
   {
     id: "rack",
@@ -147,7 +171,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     w: 70,
     h: 231,
     preview: 0.34,
-    render: (s, o) => <CultureTube sampled={s.spreaderCharged || s.lawnPasses > 0} plugOff={o.tubePlugOff} />,
+    render: (s, o) => <CultureTube sampled={s.pipetteLoaded || s.dripped || s.lawnPasses > 0} plugOff={o.tubePlugOff} />,
   },
   {
     id: "cartridge",
@@ -168,7 +192,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     h: 150,
     tipY: 66,
     preview: 0.5,
-    render: (_s, o) => <Forceps width={40} hot={o.forcepsHot} />,
+    render: (_s, o) => <Forceps width={40} cooling={o.forcepsCooling} />,
   },
   {
     id: "incubator",
@@ -195,24 +219,28 @@ export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, ca
     if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
     if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
+  // Pipette: draw the suspension from the culture tube, then drip onto the agar.
+  if (tool === "pipette") {
+    if (target === "culture") return !s.pipetteLoaded && !s.dripped ? "load-pipette" : null;
+    if (target === "dish") return s.pipetteLoaded && !s.dripped ? "drip-lawn" : null;
+  }
   if (tool === "spreader") {
     if (target === "alcohol-jar") return !s.spreaderDipped && !s.spreaderSterile ? "dip-spreader" : null;
-    if (target === "lamp") {
-      if (s.spreaderDipped && s.lamp.lit && s.match.discarded) return "sterilize-spreader"; // sterilise before seeding
-      if (s.lawnSpread && !s.spreaderResterilized && s.lamp.lit) return "sterilize-spreader"; // re-sterilise the used spreader
-      return null;
-    }
-    if (target === "culture") return s.spreaderSterile && !s.spreaderCharged && s.lawnPasses === 0 ? "charge-spreader" : null;
-    if (target === "dish" && s.spreaderCharged && !s.lawnSpread) {
+    // Sterilise (alcohol burns off) before seeding — only before the lawn.
+    if (target === "lamp") return s.spreaderDipped && !s.spreaderSterile && s.lamp.lit && s.match.discarded ? "sterilize-spreader" : null;
+    if (target === "dish" && s.spreaderSterile && s.dripped && !s.lawnSpread) {
       if (s.lawnPasses === 0) return "spread-1";
       if (s.lawnPasses === 1) return "spread-2";
       if (s.lawnPasses === 2) return "spread-3";
     }
+    // Used spreader is disposed in the 5% chlorine jar (not re-flamed).
+    if (target === "chlorine-jar") return s.lawnSpread && !s.spreaderDisinfected ? "disinfect-spreader" : null;
   }
   if (tool === "forceps") {
-    if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsSterile ? "dip-forceps" : null;
-    if (target === "lamp") return s.forcepsDipped && s.lamp.lit && s.match.discarded ? "sterilize-forceps" : null;
-    if (target === "cartridge") return s.forcepsSterile && s.spreaderResterilized && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
+    // Alcohol dip only the first time; afterwards re-flame straight away.
+    if (target === "alcohol-jar") return !s.forcepsDipped && !s.forcepsPrimed && !s.forcepsSterile ? "dip-forceps" : null;
+    if (target === "lamp") return !s.forcepsSterile && (s.forcepsDipped || s.forcepsPrimed) && s.lamp.lit && s.match.discarded ? "sterilize-forceps" : null;
+    if (target === "cartridge") return s.forcepsSterile && s.spreaderDisinfected && !carrying && !allDisksPlaced(s) ? "pick-disk" : null;
     if (target === "dish") return carrying && s.dried ? "place-disk" : null;
   }
   return null;
@@ -225,11 +253,10 @@ export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId 
   if (!s.dishPlaced) return "dish";
   if (!s.lamp.lit) return "match";
   if (!s.match.discarded) return "match";
+  if (!s.dripped) return "pipette";
   if (!s.spreaderSterile) return "spreader";
-  if (!s.spreaderCharged && s.lawnPasses === 0) return "spreader";
   if (!s.lawnSpread) return "spreader";
-  if (!s.spreaderResterilized) return "spreader";
-  if (!s.forcepsSterile) return "forceps";
+  if (!s.spreaderDisinfected) return "spreader";
   if (!allDisksPlaced(s)) return "forceps";
   if (!s.incubated) return "incubator";
   return "dish";

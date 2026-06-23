@@ -20,7 +20,7 @@ interface Props {
  *  Colony SIZE grows plate 1 → 3 (more nutrients per cell as the inoculum thins):
  *  plate 1 = a confluent mat of tiny colonies packed so tight they touch; plate 2
  *  = medium, partly merged; plate 3 = a few large, well-separated isolated ones. */
-const LAWN = makeScatter(220, 0.40, 0.013, 0.0012);
+const LAWN = makeScatter(320, 0.40, 0.017, 0.0008);
 const MERGED = makeScatter(34, 0.34, 0.020, 0.003);
 const ISOLATED: Array<[number, number, number]> = [
   [0.34, 0.36, 0.044], [0.62, 0.3, 0.038], [0.7, 0.58, 0.042], [0.4, 0.64, 0.040],
