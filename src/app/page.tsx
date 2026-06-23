@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { LABS, type LabEntry } from "@/labs/catalog";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 /**
  * Home menu — the project entry screen. Shows the 6 microbiology laboratories
@@ -28,9 +29,10 @@ export default function Home() {
         }}
       />
 
-      {/* Language switcher — fixed top-right */}
-      <div className="absolute right-5 top-5 z-50">
+      {/* Top-right controls — language switcher + sign out */}
+      <div className="absolute right-5 top-5 z-50 flex items-center gap-2">
         <LanguageSwitcher />
+        <LogoutButton />
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10">
