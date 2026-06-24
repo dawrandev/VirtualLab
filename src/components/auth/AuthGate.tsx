@@ -13,11 +13,25 @@ import { LoginScreen } from "./LoginScreen";
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const authed = useAuthStore((s) => s.authed);
+  const expiresAt = useAuthStore((s) => s.expiresAt);
+  const logout = useAuthStore((s) => s.logout);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
   }, []);
+
+  // Expire the session 1.5 h after sign-in — even if the tab is left open: when
+  // it lapses the timer signs the student out (back to the login screen).
+  useEffect(() => {
+    if (!hydrated || !authed) return;
+    if (expiresAt == null || Date.now() >= expiresAt) {
+      logout();
+      return;
+    }
+    const t = window.setTimeout(logout, expiresAt - Date.now());
+    return () => window.clearTimeout(t);
+  }, [hydrated, authed, expiresAt, logout]);
 
   if (!hydrated) {
     return (
@@ -30,7 +44,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!authed) return <LoginScreen />;
+  const valid = authed && expiresAt != null && Date.now() < expiresAt;
+  if (!valid) return <LoginScreen />;
 
   return <>{children}</>;
 }

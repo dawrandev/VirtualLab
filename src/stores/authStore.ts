@@ -15,8 +15,13 @@ export function verifyCredentials(username: string, password: string): boolean {
   return username.trim().toLowerCase() === VALID_USERNAME && password === VALID_PASSWORD;
 }
 
+/** How long a sign-in stays valid before the student must log in again (1.5 h). */
+export const SESSION_MS = 90 * 60 * 1000;
+
 interface AuthState {
   authed: boolean;
+  /** Epoch ms when the current session expires (null when signed out). */
+  expiresAt: number | null;
   /** Mark the session as authenticated (call only after verifyCredentials). */
   signIn: () => void;
   logout: () => void;
@@ -26,12 +31,16 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       authed: false,
-      signIn: () => set({ authed: true }),
-      logout: () => set({ authed: false }),
+      expiresAt: null,
+      signIn: () => set({ authed: true, expiresAt: Date.now() + SESSION_MS }),
+      logout: () => set({ authed: false, expiresAt: null }),
     }),
     {
       name: "vcl_auth_v1",
-      version: 1,
+      version: 2,
+      // v1 had no expiry — drop any old session so everyone starts a fresh,
+      // time-boxed one.
+      migrate: () => ({ authed: false, expiresAt: null }),
     },
   ),
 );
