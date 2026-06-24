@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { GramState } from "../state";
 import { LAB2_ITEMS, requiredItem, type Lab2ItemId } from "./items";
+import { startToolDrag } from "@/lib/toolDrag";
 
 interface Props {
   state: GramState;
@@ -41,10 +42,7 @@ export function Lab2Sidebar({ state, placed, draggingId, trayStained, onStartDra
             <div key={item.id} className="relative">
               <button
                 type="button"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  onStartDrag(item.id, e);
-                }}
+                onPointerDown={(e) => startToolDrag(e, item.id, onStartDrag)}
                 onPointerEnter={() => setHovered(item.id)}
                 onPointerLeave={() => setHovered((h) => (h === item.id ? null : h))}
                 className="wb-grab group flex w-full flex-col items-center gap-1 rounded-xl bg-white px-1.5 py-2 transition"

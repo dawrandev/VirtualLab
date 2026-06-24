@@ -67,10 +67,11 @@ html, body {
   user-select: none;
   -webkit-touch-callout: none;
 }
-/* A draggable tool in the tray — a finger-press starts a drag, not a scroll.
-   The tray itself stays scrollable (touch its gaps / use the scrollbar). */
+/* A draggable tool in the tray. `pan-y` lets a vertical swipe scroll the tray
+   normally; a horizontal pull (toward the bench) is handed to JS as a drag —
+   see startToolDrag(). Mouse is unaffected (touch-action only governs touch). */
 .wb-grab {
-  touch-action: none;
+  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;

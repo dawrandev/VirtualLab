@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { DiskState } from "../state";
 import { LAB4_ITEMS, requiredItem, type Lab4ItemId } from "./items";
+import { startToolDrag } from "@/lib/toolDrag";
 
 interface Props {
   state: DiskState;
@@ -35,10 +36,7 @@ export function Lab4Sidebar({ state, placed, draggingId, carrying, onStartDrag, 
             <div key={item.id} className="relative">
               <button
                 type="button"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  onStartDrag(item.id, e);
-                }}
+                onPointerDown={(e) => startToolDrag(e, item.id, onStartDrag)}
                 onPointerEnter={() => setHovered(item.id)}
                 onPointerLeave={() => setHovered((h) => (h === item.id ? null : h))}
                 className="wb-grab group flex w-full flex-col items-center gap-1 rounded-xl bg-white px-1.5 py-2 transition"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Lab2DState } from "@/engine2d/types";
 import { ITEMS, requiredItem, type ItemId } from "./items";
+import { startToolDrag } from "@/lib/toolDrag";
 
 interface Props {
   state: Lab2DState;
@@ -46,10 +47,7 @@ export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag, s
             <div key={item.id} className="relative">
               <button
                 type="button"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  onStartDrag(item.id, e);
-                }}
+                onPointerDown={(e) => startToolDrag(e, item.id, onStartDrag)}
                 onPointerEnter={() => setHovered(item.id)}
                 onPointerLeave={() => setHovered((h) => (h === item.id ? null : h))}
                 className="wb-grab group flex w-full flex-col items-center gap-1 rounded-xl bg-white px-1.5 py-2 transition"
