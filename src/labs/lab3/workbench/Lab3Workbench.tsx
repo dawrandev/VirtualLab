@@ -524,7 +524,7 @@ export function Lab3Workbench() {
           <Lab3Sidebar state={drig} placed={sidebarPlaced} draggingId={drag?.id ?? null} onStartDrag={startDrag} showHints={!isExam} />
         )}
 
-        <div ref={tableRef} className="relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
+        <div ref={tableRef} className="wb-surface relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
           <button onClick={() => setSidebarOpen((o) => !o)} className="absolute left-2 top-1/2 z-40 grid h-14 w-7 -translate-y-1/2 place-items-center rounded-lg bg-white/90 text-xl font-bold text-slate-600 shadow-md transition hover:bg-white">
             {sidebarOpen ? "‹" : "›"}
           </button>

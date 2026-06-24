@@ -755,7 +755,7 @@ export function Lab1Workbench() {
           <ToolSidebar state={state} placed={placedSet} draggingId={drag?.id ?? null} binBump={binBump} onStartDrag={startDrag} showHints={!isExam} />
         )}
 
-        <div ref={tableRef} className="relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
+        <div ref={tableRef} className="wb-surface relative flex-1 overflow-hidden" style={{ background: "linear-gradient(180deg,#ededed 0%,#e6e6e6 55%,#8f8f8f 55%,#9a9a9a 100%)" }}>
           {/* During planning the bench is idle — focus is on the right panel. */}
           {isExam && examPhase === "planning" && (
             <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-500/10">

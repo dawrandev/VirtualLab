@@ -52,7 +52,7 @@ export function ToolSidebar({ state, placed, draggingId, binBump, onStartDrag, s
                 }}
                 onPointerEnter={() => setHovered(item.id)}
                 onPointerLeave={() => setHovered((h) => (h === item.id ? null : h))}
-                className="group flex w-full flex-col items-center gap-1 rounded-xl bg-white px-1.5 py-2 transition"
+                className="wb-grab group flex w-full flex-col items-center gap-1 rounded-xl bg-white px-1.5 py-2 transition"
                 style={{
                   border: isRequired ? "2px solid #d97706" : "2px solid #e2e8f0",
                   boxShadow: isRequired ? "0 0 0 1px #f59e0b, 0 0 12px rgba(217,119,6,0.45)" : "0 1px 2px rgba(0,0,0,0.08)",
