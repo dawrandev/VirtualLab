@@ -1,5 +1,6 @@
 import { MAIN_STEPS, MAX_SCORE } from "./protocol";
-import { ANTIBIOTICS, allDisksPlaced, interpret, type DiskState, type Sens } from "../state";
+import { gradeLampOut, LAMP_OUT_STEP_ID } from "@/lib/spiritLampScoring";
+import { ANTIBIOTICS, FLAME_INTENTS, allDisksPlaced, interpret, type DiskState, type Sens } from "../state";
 
 export interface ExamAction {
   intent: string;
@@ -61,6 +62,12 @@ export function scoreDiskExam(log: ExamAction[], s: DiskState): ExamResult {
     if (!s.forcepsPrimed) notes.push("lab4.score.forcepsNotSterile");
     if (!allDisksPlaced(s)) notes.push("lab4.score.disksIncomplete");
     steps.push(grade("disks", allDisksPlaced(s) && s.forcepsPrimed ? "full" : "partial", notes));
+  }
+
+  // Spirit lamp put out with its cap once the flame work is done
+  {
+    const g = gradeLampOut(log, s.lamp.lit, FLAME_INTENTS);
+    steps.push(grade(LAMP_OUT_STEP_ID, g.status, g.notes));
   }
 
   // 3 — incubation

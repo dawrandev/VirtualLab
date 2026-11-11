@@ -17,7 +17,8 @@ export interface DrigalskiState {
   /** Spirit lamp lit by hand: match struck on the box, touched to the wick,
    *  then the burning match dropped into the biohazard bin. */
   match: { struck: boolean; lit: boolean; discarded: boolean };
-  /** Spirit lamp: lit by hand; `capped` = put out by re-capping it at the end. */
+  /** Spirit lamp: starts CAPPED — the student lifts the cap off by hand
+   *  before lighting and puts it back on to put the flame out at the end. */
   lamp: { lit: boolean; capped: boolean };
   /** Working end dipped in alcohol (before flaming). */
   spatulaDipped: boolean;
@@ -40,7 +41,7 @@ export function freshDrigalskiState(): DrigalskiState {
   return {
     dishes: false,
     match: { struck: false, lit: false, discarded: false },
-    lamp: { lit: false, capped: false },
+    lamp: { lit: false, capped: true },
     spatulaDipped: false,
     spatulaSterile: false,
     spatulaDisinfected: false,
@@ -56,6 +57,7 @@ export function freshDrigalskiState(): DrigalskiState {
 export type DrigalskiIntent =
   | "get-dishes"
   | "strike-match" // match → matchbox
+  | "uncap-lamp" // lift the cap off the lamp by hand (before lighting)
   | "light-lamp" // lit match → lamp
   | "discard-match" // burning match → biohazard bin
   | "dip-spatula"
@@ -67,7 +69,7 @@ export type DrigalskiIntent =
   | "spread-3"
   | "disinfect-spatula" // used spreader → 5% chlorine jar
   | "disinfect-pipette" // used pipette → 5% chlorine jar
-  | "extinguish-lamp" // re-cap the spirit lamp by hand to put it out
+  | "extinguish-lamp" // put the cap back on by hand (smothers the flame)
   | "incubate";
 
 /** Growth pattern a plate shows after incubation. */
@@ -97,8 +99,11 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
       s.match.struck = true;
       s.match.lit = true;
       break;
+    case "uncap-lamp":
+      s.lamp.capped = false;
+      break;
     case "light-lamp":
-      s.lamp.lit = true;
+      if (!s.lamp.capped) s.lamp.lit = true; // a capped wick can't catch
       break;
     case "discard-match":
       s.match.discarded = true;
@@ -142,4 +147,12 @@ export function applyDrigalskiStep(state: DrigalskiState, intent: DrigalskiInten
       break;
   }
   return s;
+}
+
+/** Intents performed AT the flame — the lamp must stay lit until the last one. */
+export const FLAME_INTENTS: DrigalskiIntent[] = ["light-lamp", "sterilize-spatula", "spread-1", "spread-2", "spread-3"];
+
+/** All the work that needs the flame is done → the lamp may be put out. */
+export function lampWorkDone(s: DrigalskiState): boolean {
+  return s.d3.spread;
 }

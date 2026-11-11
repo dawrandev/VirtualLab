@@ -17,6 +17,7 @@ import {
   applyDiskStep,
   ANTIBIOTICS,
   allDisksPlaced,
+  lampWorkDone,
   type DiskState,
   type DiskIntent,
   type Sens,
@@ -76,7 +77,7 @@ function actionKind(intent: DiskIntent): Kind {
 
 function nextHint(s: DiskState, carrying: string | null): string {
   if (!s.dishPlaced) return "lab4.hint.dish";
-  if (!s.lamp.lit) return s.match.struck ? "lab4.hint.lightLamp" : "lab4.hint.strikeMatch";
+  if (!s.lamp.lit && !s.match.discarded) return s.lamp.capped ? "lab4.hint.uncapLamp" : s.match.struck ? "lab4.hint.lightLamp" : "lab4.hint.strikeMatch";
   if (!s.match.discarded) return "lab4.hint.discardMatch";
   if (!s.dripped) return s.pipetteLoaded ? "lab4.hint.dropMaterial" : "lab4.hint.loadPipette";
   if (!s.spreaderSterile) return s.spreaderDipped ? "lab4.hint.flameSpreader" : "lab4.hint.dipSpreader";
@@ -88,6 +89,7 @@ function nextHint(s: DiskState, carrying: string | null): string {
     if (!s.forcepsSterile) return s.forcepsDipped || s.forcepsPrimed ? "lab4.hint.reheatForceps" : "lab4.hint.forceps";
     return "lab4.hint.pickDisk";
   }
+  if (s.lamp.lit) return "lab4.hint.extinguish";
   if (!s.incubated) return "lab4.hint.incubate";
   return "lab4.hint.measure";
 }
@@ -249,6 +251,22 @@ export function Lab4Workbench() {
   function startIncubation() {
     setIncProg(0);
     setInc({ start: Date.now() });
+  }
+
+  /** Click on the lamp's cap: lift it off (before lighting) or put it back on
+   *  — a burning flame is smothered. Learn mode keeps the flame going while
+   *  the work still needs it; the exam allows it (graded at the end). */
+  function toggleLampCap() {
+    const s = diskRef.current;
+    if (s.lamp.capped) {
+      perform("uncap-lamp");
+      return;
+    }
+    if (s.lamp.lit && modeRef.current !== "exam" && !lampWorkDone(s)) {
+      showToast(tg("spiritLamp.toast.stillNeeded"));
+      return;
+    }
+    perform("extinguish-lamp");
   }
 
   function hitPoint(d: DragState, clientX: number, clientY: number) {
@@ -510,6 +528,13 @@ export function Lab4Workbench() {
   const dippingForceps = hold?.kind === "sample" && hold.intent === "dip-forceps";
   const dippingSpreader = hold?.kind === "sample" && hold.intent === "dip-spreader";
   const renderOpts = { forcepsCooling, spreaderHot, incubatorRunning: inc != null, carrying, tubePlugOff: loadingPipette, binBump };
+  // The lamp ON THE BENCH gets a clickable cap (never the tray preview / ghost).
+  const lampOpts = {
+    ...renderOpts,
+    onLampCap: toggleLampCap,
+    lampCapHint: !isExam && (hint === "lab4.hint.uncapLamp" || hint === "lab4.hint.extinguish"),
+    lampCapTitle: tg(disk.lamp.capped ? "spiritLamp.uncap" : disk.lamp.lit ? "spiritLamp.extinguish" : "spiritLamp.cap"),
+  };
   const dishPos = placed["dish"];
   const culturePos = placed["culture"];
   const jarPos = placed["alcohol-jar"];
@@ -612,7 +637,7 @@ export function Lab4Workbench() {
                     // Used spreader: working end DOWN, submerged in the disinfectant.
                     <div style={{ transform: "rotate(-82deg)", transition: "transform 0.15s ease" }}>{it.render(disk, renderOpts)}</div>
                   ) : (
-                    it.render(disk, renderOpts)
+                    it.render(disk, it.id === "lamp" ? lampOpts : renderOpts)
                   )}
                 </div>
               </div>

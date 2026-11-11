@@ -15,6 +15,10 @@ function buildDone(correct: boolean) {
     log.push({ intent: i, ts: (t += 100) });
   };
   s = { ...s, dishPlaced: true };
+  step("uncap-lamp");
+  step("strike-match");
+  step("light-lamp");
+  step("discard-match");
   step("load-pipette");
   step("drip-lawn");
   step("dip-spreader");
@@ -30,6 +34,7 @@ function buildDone(correct: boolean) {
     step("sterilize-forceps");
     step("place-disk", a.id);
   }
+  step("extinguish-lamp");
   step("incubate");
   // measure + classify each
   const classified: Record<string, Sens> = {};
@@ -90,7 +95,7 @@ describe("Lab 4 — disk diffusion state", () => {
     let s = {
       ...freshDiskState(),
       dishPlaced: true,
-      lamp: { lit: true },
+      lamp: { lit: true, capped: false },
       match: { struck: true, lit: true, discarded: true },
       dripped: true,
       spreaderSterile: true,
@@ -170,5 +175,26 @@ describe("Lab 4 — exam scoring", () => {
     for (const a of ANTIBIOTICS) s = applyDiskStep(s, "place-disk", a.id);
     const res = scoreDiskExam([], s);
     expect(res.steps.find((x) => x.id === "disks")!.status).toBe("partial");
+  });
+});
+
+describe("Lab 4 — spirit lamp", () => {
+  it("starts capped; the match lights it only once the cap is off", () => {
+    let s = applyDiskStep(freshDiskState(), "strike-match");
+    expect(s.lamp.capped).toBe(true);
+    expect(intentFor("match", "lamp", s, null)).toBeNull();
+    s = applyDiskStep(s, "uncap-lamp");
+    expect(intentFor("match", "lamp", s, null)).toBe("light-lamp");
+    s = applyDiskStep(s, "light-lamp");
+    expect(s.lamp.lit).toBe(true);
+    s = applyDiskStep(s, "extinguish-lamp");
+    expect(s.lamp).toEqual({ lit: false, capped: true });
+  });
+
+  it("left burning at the end → lamp-out step zero", () => {
+    const { s, log } = buildDone(true);
+    const lit = applyDiskStep(applyDiskStep(s, "uncap-lamp"), "light-lamp");
+    const res = scoreDiskExam(log, lit);
+    expect(res.steps.find((x) => x.id === "lamp-out")!.status).toBe("zero");
   });
 });

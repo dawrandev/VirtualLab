@@ -1,5 +1,6 @@
 import { MAIN_STEPS, MAX_SCORE } from "./protocol";
-import { type WetMountState } from "../state";
+import { gradeLampOut, LAMP_OUT_STEP_ID } from "@/lib/spiritLampScoring";
+import { FLAME_INTENTS, type WetMountState } from "../state";
 
 export interface ExamAction {
   intent: string;
@@ -24,7 +25,7 @@ export interface ExamResult {
   steps: StepResult[];
 }
 
-export function scoreWetMountExam(_log: ExamAction[], s: WetMountState): ExamResult {
+export function scoreWetMountExam(log: ExamAction[], s: WetMountState): ExamResult {
   const byId = Object.fromEntries(MAIN_STEPS.map((m) => [m.id, m]));
   const grade = (id: string, status: StepStatus, notes: string[]): StepResult => {
     const def = byId[id];
@@ -47,6 +48,12 @@ export function scoreWetMountExam(_log: ExamAction[], s: WetMountState): ExamRes
 
   // 4 — mix to an even suspension
   steps.push(s.mixed ? grade("mix", "full", []) : grade("mix", "zero", ["lab5.score.mixZero"]));
+
+  // Spirit lamp put out with its cap once the flame work is done
+  {
+    const g = gradeLampOut(log, s.lamp.lit, FLAME_INTENTS);
+    steps.push(grade(LAMP_OUT_STEP_ID, g.status, g.notes));
+  }
 
   // 5 — cover slip + blot excess
   if (!s.coverPlaced) steps.push(grade("cover", "zero", ["lab5.score.coverZero"]));

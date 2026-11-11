@@ -9,7 +9,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TestTubeRack } from "@/labs/lab1/components2d/items/TestTubeRack";
 import { AlcoholJar } from "../components2d/items/AlcoholJar";
 import { LAB3_ITEMS, LAB3_ITEM_BY_ID, intentFor, canIncubate, type Lab3ItemId } from "./items";
-import { freshDrigalskiState, applyDrigalskiStep, type DrigalskiState, type DrigalskiIntent } from "../state";
+import { freshDrigalskiState, applyDrigalskiStep, lampWorkDone, type DrigalskiState, type DrigalskiIntent } from "../state";
 import { INCUBATE_MS, DISPLAY_INCUBATE_HOURS, type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreDrigalskiExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab3Sidebar } from "./Lab3Sidebar";
@@ -61,7 +61,7 @@ interface Fx {
 
 function nextHint(s: DrigalskiState): string {
   if (!s.dishes) return "lab3.hint.dishes";
-  if (!s.lamp.lit) return s.match.struck ? "lab3.hint.lightLamp" : "lab3.hint.strikeMatch";
+  if (!s.lamp.lit && !s.match.discarded) return s.lamp.capped ? "lab3.hint.uncapLamp" : s.match.struck ? "lab3.hint.lightLamp" : "lab3.hint.strikeMatch";
   if (!s.match.discarded) return "lab3.hint.discardMatch";
   // Drip the suspension first, dispose the used pipette, THEN dip + flame the spreader.
   if (!s.d1.material) return s.pipetteLoaded ? "lab3.hint.dropMaterial" : "lab3.hint.loadPipette";
@@ -71,6 +71,7 @@ function nextHint(s: DrigalskiState): string {
   if (!s.d2.spread) return "lab3.hint.spread2";
   if (!s.d3.spread) return "lab3.hint.spread3";
   if (!s.spatulaDisinfected) return "lab3.hint.disinfect";
+  if (s.lamp.lit) return "lab3.hint.extinguish";
   if (!s.incubated) return "lab3.hint.incubate";
   return "lab3.hint.done";
 }
@@ -190,6 +191,22 @@ export function Lab3Workbench() {
   function startIncubation() {
     setIncProg(0);
     setInc({ start: Date.now() });
+  }
+
+  /** Click on the lamp's cap: lift it off (before lighting) or put it back on
+   *  — a burning flame is smothered. Learn mode keeps the flame going while
+   *  the work still needs it; the exam allows it (graded at the end). */
+  function toggleLampCap() {
+    const s = drigRef.current;
+    if (s.lamp.capped) {
+      perform("uncap-lamp");
+      return;
+    }
+    if (s.lamp.lit && modeRef.current !== "exam" && !lampWorkDone(s)) {
+      showToast(tg("spiritLamp.toast.stillNeeded"));
+      return;
+    }
+    perform("extinguish-lamp");
   }
 
   function hitPoint(d: DragState, clientX: number, clientY: number) {
@@ -471,6 +488,13 @@ export function Lab3Workbench() {
     suspensionPlugOff: hold?.kind === "sample" && hold?.intent === "load-pipette",
     binBump,
   };
+  // The lamp ON THE BENCH gets a clickable cap (never the tray preview / ghost).
+  const lampOpts = {
+    ...renderOpts,
+    onLampCap: toggleLampCap,
+    lampCapHint: !isExam && (hint === "lab3.hint.uncapLamp" || hint === "lab3.hint.extinguish"),
+    lampCapTitle: tg(drig.lamp.capped ? "spiritLamp.uncap" : drig.lamp.lit ? "spiritLamp.extinguish" : "spiritLamp.cap"),
+  };
   const tubeInRack = !!placed["suspension"] && !!placed["rack"] && Math.abs(placed["suspension"].x - placed["rack"].x) < 2;
   const spatulaInAlcohol = !!placed["spatula"] && !!placed["alcohol-jar"] && !drig.spatulaDisinfected && Math.abs(placed["spatula"].x - placed["alcohol-jar"].x) < 3;
   // Once disinfected the spreader always re-seats in the chlorine jar (snapPos),
@@ -585,23 +609,9 @@ export function Lab3Workbench() {
                     // Sunk to the bottom of the disinfectant, leaning on the wall.
                     <div style={{ transform: "rotate(-15deg)", transition: "transform 0.15s ease" }}>{it.render(drig, renderOpts)}</div>
                   ) : (
-                    it.render(drig, renderOpts)
+                    it.render(drig, it.id === "lamp" ? lampOpts : renderOpts)
                   )}
                 </div>
-                {/* Re-cap the lamp by hand to put it out (click the cap). */}
-                {it.id === "lamp" && drig.lamp.lit && (
-                  <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      perform("extinguish-lamp");
-                    }}
-                    title={tg("lab3.extinguish")}
-                    className="absolute right-0 top-0 z-30 grid h-7 w-7 place-items-center rounded-full bg-slate-700/90 text-[13px] text-white shadow ring-1 ring-white/40 transition hover:bg-slate-800"
-                  >
-                    ✕
-                  </button>
-                )}
               </div>
             );
           })}

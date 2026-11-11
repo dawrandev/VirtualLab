@@ -55,6 +55,10 @@ export interface Lab3ItemDef {
       incubatorRunning?: boolean;
       suspensionPlugOff?: boolean;
       binBump?: number;
+      /** Bench only: click handler + learn-mode cue for the spirit-lamp cap. */
+      onLampCap?: () => void;
+      lampCapHint?: boolean;
+      lampCapTitle?: string;
     },
   ) => ReactNode;
 }
@@ -126,7 +130,7 @@ export const LAB3_ITEMS: Lab3ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: (s) => <SpiritLamp uncapped={!s.lamp.capped} lit={s.lamp.lit} />,
+    render: (s, o) => <SpiritLamp uncapped={!s.lamp.capped} lit={s.lamp.lit} onCapClick={o.onLampCap} capHint={o.lampCapHint} capTitle={o.lampCapTitle} />,
   },
   {
     id: "alcohol-jar",
@@ -212,7 +216,7 @@ export const LAB3_ITEM_BY_ID: Record<Lab3ItemId, Lab3ItemDef> = Object.fromEntri
 export function intentFor(tool: Lab3ItemId, target: Lab3ItemId, s: DrigalskiState): DrigalskiIntent | null {
   if (tool === "match") {
     if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
-    if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+    if (target === "lamp") return s.match.lit && !s.lamp.lit && !s.lamp.capped ? "light-lamp" : null;
     if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
   if (tool === "spatula") {
@@ -240,7 +244,8 @@ export function canIncubate(s: DrigalskiState): boolean {
 /** Next item the student is expected to use (learn-mode highlight + hint). */
 export function requiredItem(s: DrigalskiState): Lab3ItemId | null {
   if (!s.dishes) return "dish-1";
-  if (!s.lamp.lit) return "match";
+  if (!s.lamp.lit && s.lamp.capped && !s.match.discarded) return "lamp"; // lift the cap off first
+  if (!s.lamp.lit && !s.match.discarded) return "match";
   if (!s.match.discarded) return "match";
   if (!s.d1.material) return "pipette";
   if (!s.pipetteDisinfected) return "pipette"; // drop the used pipette into the chlorine jar
@@ -249,6 +254,7 @@ export function requiredItem(s: DrigalskiState): Lab3ItemId | null {
   if (!s.d2.spread) return "spatula";
   if (!s.d3.spread) return "spatula";
   if (!s.spatulaDisinfected) return "spatula";
+  if (s.lamp.lit) return "lamp"; // flame work done → cap it to put it out
   if (!s.incubated) return "incubator";
   return null;
 }

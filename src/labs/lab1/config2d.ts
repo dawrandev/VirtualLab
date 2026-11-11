@@ -44,6 +44,14 @@ const STAGES: Stage2D[] = [
     titleKey: "lab1.stage1.title",
     steps: [
       {
+        // The lamp stands capped — the student lifts the cap off by hand first.
+        id: "uncap-lamp",
+        hintKey: "lab1.hint.uncapLamp",
+        effect: (d) => {
+          d.lamp.uncapped = true;
+        },
+      },
+      {
         id: "strike-match",
         hintKey: "lab1.hint.strikeMatch",
         effect: (d) => {
@@ -55,10 +63,9 @@ const STAGES: Stage2D[] = [
         id: "light-lamp",
         hintKey: "lab1.hint.lightLamp",
         effect: (d) => {
-          d.lamp.uncapped = true;
           d.lamp.lit = true;
         },
-        precondition: (s) => s.match.lit,
+        precondition: (s) => s.match.lit && s.lamp.uncapped,
       },
       {
         id: "discard-match",

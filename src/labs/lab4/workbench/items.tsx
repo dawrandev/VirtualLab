@@ -51,7 +51,7 @@ export interface Lab4ItemDef {
   hitDY?: number;
   render: (
     state: DiskState,
-    opts: { forcepsCooling?: boolean; spreaderHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number },
+    opts: { forcepsCooling?: boolean; spreaderHot?: boolean; incubatorRunning?: boolean; carrying?: string | null; highlight?: string | null; tubePlugOff?: boolean; binBump?: number; onLampCap?: () => void; lampCapHint?: boolean; lampCapTitle?: string },
   ) => ReactNode;
 }
 
@@ -108,7 +108,7 @@ export const LAB4_ITEMS: Lab4ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: (s) => <SpiritLamp uncapped lit={s.lamp.lit} />,
+    render: (s, o) => <SpiritLamp uncapped={!s.lamp.capped} lit={s.lamp.lit} onCapClick={o.onLampCap} capHint={o.lampCapHint} capTitle={o.lampCapTitle} />,
   },
   {
     id: "alcohol-jar",
@@ -216,7 +216,7 @@ export const LAB4_ITEM_BY_ID: Record<Lab4ItemId, Lab4ItemDef> = Object.fromEntri
 export function intentFor(tool: Lab4ItemId, target: Lab4ItemId, s: DiskState, carrying: string | null): DiskIntent | null {
   if (tool === "match") {
     if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
-    if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+    if (target === "lamp") return s.match.lit && !s.lamp.lit && !s.lamp.capped ? "light-lamp" : null;
     if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
   // Pipette: draw the suspension from the culture tube, then drip onto the agar.
@@ -251,13 +251,15 @@ export type { DiskIntent };
 /** Next item the student should use (learn-mode highlight + hint). */
 export function requiredItem(s: DiskState, carrying: string | null): Lab4ItemId | null {
   if (!s.dishPlaced) return "dish";
-  if (!s.lamp.lit) return "match";
+  if (!s.lamp.lit && s.lamp.capped && !s.match.discarded) return "lamp"; // lift the cap off first
+  if (!s.lamp.lit && !s.match.discarded) return "match";
   if (!s.match.discarded) return "match";
   if (!s.dripped) return "pipette";
   if (!s.spreaderSterile) return "spreader";
   if (!s.lawnSpread) return "spreader";
   if (!s.spreaderDisinfected) return "spreader";
   if (!allDisksPlaced(s)) return "forceps";
+  if (s.lamp.lit) return "lamp"; // flame work done → cap it to put it out
   if (!s.incubated) return "incubator";
   return "dish";
 }

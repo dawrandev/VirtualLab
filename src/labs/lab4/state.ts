@@ -58,7 +58,9 @@ export interface DiskState {
   dishPlaced: boolean;
   /** Spirit lamp lit by hand: strike the match, touch the wick, bin the match. */
   match: { struck: boolean; lit: boolean; discarded: boolean };
-  lamp: { lit: boolean };
+  /** Spirit lamp: starts CAPPED — the cap is lifted off by hand before
+   *  lighting and put back on to put the flame out at the end. */
+  lamp: { lit: boolean; capped: boolean };
   /** Pipette charged from the culture tube, then dripped onto the agar. */
   pipetteLoaded: boolean;
   dripped: boolean;
@@ -91,7 +93,7 @@ export function freshDiskState(): DiskState {
   return {
     dishPlaced: false,
     match: { struck: false, lit: false, discarded: false },
-    lamp: { lit: false },
+    lamp: { lit: false, capped: true },
     pipetteLoaded: false,
     dripped: false,
     spreaderDipped: false,
@@ -120,6 +122,7 @@ export function allMeasured(s: DiskState): boolean {
 
 export type DiskIntent =
   | "strike-match" // match → matchbox
+  | "uncap-lamp" // lift the cap off the lamp by hand (before lighting)
   | "light-lamp" // lit match → lamp
   | "discard-match" // burning match → biohazard bin
   | "load-pipette" // pipette → culture tube (draw the suspension)
@@ -134,6 +137,7 @@ export type DiskIntent =
   | "sterilize-forceps" // forceps → flame (before each disk)
   | "pick-disk" // forceps → cartridge
   | "place-disk" // forceps → dish
+  | "extinguish-lamp" // put the cap back on by hand (smothers the flame)
   | "incubate"
   | "measure"; // ruler → a disk's zone
 
@@ -151,8 +155,11 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
       s.match.struck = true;
       s.match.lit = true;
       break;
+    case "uncap-lamp":
+      s.lamp.capped = false;
+      break;
     case "light-lamp":
-      s.lamp.lit = true;
+      if (!s.lamp.capped) s.lamp.lit = true; // a capped wick can't catch
       break;
     case "discard-match":
       s.match.discarded = true;
@@ -199,6 +206,10 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
       // Used on a disk → must be flame-sterilised again before the next one.
       s.forcepsSterile = false;
       break;
+    case "extinguish-lamp":
+      s.lamp.lit = false;
+      s.lamp.capped = true;
+      break;
     case "incubate":
       s.incubated = true;
       break;
@@ -209,4 +220,20 @@ export function applyDiskStep(state: DiskState, intent: DiskIntent, disk?: strin
       break;
   }
   return s;
+}
+
+/** Intents performed AT the flame — the lamp must stay lit until the last one. */
+export const FLAME_INTENTS: DiskIntent[] = [
+  "light-lamp",
+  "sterilize-spreader",
+  "spread-1",
+  "spread-2",
+  "spread-3",
+  "sterilize-forceps",
+  "place-disk",
+];
+
+/** All the work that needs the flame is done → the lamp may be put out. */
+export function lampWorkDone(s: DiskState): boolean {
+  return allDisksPlaced(s);
 }

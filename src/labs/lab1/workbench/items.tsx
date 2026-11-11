@@ -69,7 +69,16 @@ export interface ItemDef {
   hitDY?: number;
   render: (
     state: Lab2DState,
-    opts: { binBump: number; tubePlugOff?: boolean; petriLidOff?: boolean; trayStained?: boolean },
+    opts: {
+      binBump: number;
+      tubePlugOff?: boolean;
+      petriLidOff?: boolean;
+      trayStained?: boolean;
+      /** Bench only: click handler + learn-mode cue for the spirit-lamp cap. */
+      onLampCap?: () => void;
+      lampCapHint?: boolean;
+      lampCapTitle?: string;
+    },
   ) => ReactNode;
 }
 
@@ -108,7 +117,7 @@ export const ITEMS: ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: (s) => <SpiritLamp uncapped={s.lamp.uncapped} lit={s.lamp.lit} />,
+    render: (s, o) => <SpiritLamp uncapped={s.lamp.uncapped} lit={s.lamp.lit} onCapClick={o.onLampCap} capHint={o.lampCapHint} capTitle={o.lampCapTitle} />,
   },
   {
     id: "tray",
@@ -299,7 +308,7 @@ export function intentFor(tool: ItemId, target: ItemId, s: Lab2DState): StepId |
   switch (tool) {
     case "match":
       if (target === "matchbox") return s.match.struck ? null : "strike-match";
-      if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+      if (target === "lamp") return s.match.lit && !s.lamp.lit && s.lamp.uncapped ? "light-lamp" : null;
       if (target === "bin") return "discard-match";
       return null;
     case "alcohol-pad":
@@ -332,6 +341,7 @@ export function intentFor(tool: ItemId, target: ItemId, s: Lab2DState): StepId |
 export function requiredItem(s: Lab2DState): ItemId | null {
   switch (s.currentStageId) {
     case "stage-1":
+      if (!s.lamp.uncapped && !s.lamp.lit) return "lamp"; // lift the cap off first
       return "match";
     case "stage-2":
       // Prepare the slide first (clean + NaCl), then sterilize the loop right
@@ -345,6 +355,7 @@ export function requiredItem(s: Lab2DState): ItemId | null {
       if (!s.loop.resterilized) return "loop";
       return null;
     case "stage-3":
+      if (s.slide.fixPasses >= 3 && s.lamp.lit) return "lamp"; // flame work done → cap it
       return "slide";
     case "stage-4":
       if (!s.slide.methyleneBlue.applied) return "mb";

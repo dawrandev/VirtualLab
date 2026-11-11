@@ -12,7 +12,7 @@ import { FilterPaper } from "@/labs/lab1/components2d/items/FilterPaper";
 import { LoopStand } from "@/labs/lab1/components2d/items/LoopStand";
 import { CoverSlip } from "../components2d/items/CoverSlip";
 import { LAB5_ITEMS, LAB5_ITEM_BY_ID, intentFor, type Lab5ItemId } from "./items";
-import { freshWetMountState, applyWetStep, canObserve, dropStage, type WetMountState, type WetIntent } from "../state";
+import { freshWetMountState, applyWetStep, canObserve, dropStage, lampWorkDone, type WetMountState, type WetIntent } from "../state";
 import { type LabMode, type ExamPhase } from "../exam/protocol";
 import { scoreWetMountExam, type ExamAction, type ExamResult } from "../exam/scoring";
 import { Lab5Sidebar } from "./Lab5Sidebar";
@@ -65,7 +65,7 @@ function actionKind(intent: WetIntent): Kind {
 }
 
 function nextHint(s: WetMountState): string {
-  if (!s.lamp.lit) return s.match.struck ? "lab5.hint.lightLamp" : "lab5.hint.strikeMatch";
+  if (!s.lamp.lit && !s.match.discarded) return s.lamp.capped ? "lab5.hint.uncapLamp" : s.match.struck ? "lab5.hint.lightLamp" : "lab5.hint.strikeMatch";
   if (!s.match.discarded) return "lab5.hint.discardMatch";
   if (!s.slideDegreased) return "lab5.hint.degrease";
   if (!s.salineApplied) return "lab5.hint.saline";
@@ -73,6 +73,7 @@ function nextHint(s: WetMountState): string {
   if (!s.loopCharged && !s.mixed) return "lab5.hint.charge";
   if (!s.mixed) return "lab5.hint.mix";
   if (!s.loopResterilized) return "lab5.hint.reflame"; // flame the used loop right after the smear
+  if (s.lamp.lit) return "lab5.hint.extinguish";
   if (!s.coverPlaced) return "lab5.hint.cover";
   if (!s.blotted) return "lab5.hint.blot";
   if (!s.observed) return "lab5.hint.observe";
@@ -160,6 +161,22 @@ export function Lab5Workbench() {
       setBinBump((b) => b + 1);
       setPlaced((p) => { const n = { ...p }; delete n["match"]; return n; });
     } else if (intent === "apply-saline") flashAt("drip-saline", at("slide").x, at("slide").y - 6, 900);
+  }
+
+  /** Click on the lamp's cap: lift it off (before lighting) or put it back on
+   *  — a burning flame is smothered. Learn mode keeps the flame going while
+   *  the work still needs it; the exam allows it (graded at the end). */
+  function toggleLampCap() {
+    const s = wetRef.current;
+    if (s.lamp.capped) {
+      perform("uncap-lamp");
+      return;
+    }
+    if (s.lamp.lit && modeRef.current !== "exam" && !lampWorkDone(s)) {
+      showToast(tg("spiritLamp.toast.stillNeeded"));
+      return;
+    }
+    perform("extinguish-lamp");
   }
 
   function hitPoint(d: DragState, clientX: number, clientY: number) {
@@ -427,6 +444,13 @@ export function Lab5Workbench() {
   const mixing = hold?.kind === "rub" && hold.intent === "mix-drop" ? hold : null;
 
   const renderOpts = { loopHeat: loopHot ? 1 : 0, slideWarming: degreasing, tubePlugOff: charging, filterWet: wet.blotted, binBump };
+  // The lamp ON THE BENCH gets a clickable cap (never the tray preview / ghost).
+  const lampOpts = {
+    ...renderOpts,
+    onLampCap: toggleLampCap,
+    lampCapHint: !isExam && (hint === "lab5.hint.uncapLamp" || hint === "lab5.hint.extinguish"),
+    lampCapTitle: tg(wet.lamp.capped ? "spiritLamp.uncap" : wet.lamp.lit ? "spiritLamp.extinguish" : "spiritLamp.cap"),
+  };
   const slidePos = placed["slide"];
   const culturePos = placed["culture"];
   const tubeInRack = !!placed["culture"] && !!placed["rack"] && Math.abs(placed["culture"].x - placed["rack"].x) < 2;
@@ -521,23 +545,9 @@ export function Lab5Workbench() {
                   {it.id === "loop" && loopOnStand ? (
                     <div style={{ transform: "rotate(90deg)", transition: "transform 0.12s ease" }}>{it.render(wet, renderOpts)}</div>
                   ) : (
-                    it.render(wet, renderOpts)
+                    it.render(wet, it.id === "lamp" ? lampOpts : renderOpts)
                   )}
                 </div>
-                {/* Re-cap the lamp by hand to put it out (click the cap). */}
-                {it.id === "lamp" && wet.lamp.lit && (
-                  <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      perform("extinguish-lamp");
-                    }}
-                    title={tg("lab5.extinguish")}
-                    className="absolute right-0 top-0 z-30 grid h-7 w-7 place-items-center rounded-full bg-slate-700/90 text-[13px] text-white shadow ring-1 ring-white/40 transition hover:bg-slate-800"
-                  >
-                    ✕
-                  </button>
-                )}
               </div>
             );
           })}

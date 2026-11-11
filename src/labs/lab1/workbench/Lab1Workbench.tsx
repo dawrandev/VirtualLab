@@ -67,6 +67,7 @@ function actionKind(tool: ItemId, target: ItemId): Kind {
 function nextHint(s: Lab2DState): string {
   switch (s.currentStageId) {
     case "stage-1":
+      if (!s.lamp.uncapped && !s.lamp.lit) return "lab1.hint.uncapLamp";
       if (!s.match.struck) return "lab1.hint.strikeMatch";
       if (!s.lamp.lit) return "lab1.hint.lightLamp";
       if (!s.trash.match) return "lab1.hint.discardMatch";
@@ -85,6 +86,7 @@ function nextHint(s: Lab2DState): string {
     case "stage-3":
       if (!s.slide.airDried) return "lab1.hint.airDry";
       if (s.slide.fixPasses < 3) return "lab1.hint.fix";
+      if (s.lamp.lit) return "lab1.hint.extinguish";
       return "lab1.hint.stageReady";
     case "stage-4":
       if (!s.slide.methyleneBlue.applied) return "lab1.hint.applyMb";
@@ -658,15 +660,30 @@ export function Lab1Workbench() {
     }
   }
 
-  /** Re-cap the lamp to put it out (a click, when lit). */
-  function extinguishLamp() {
+  /** Click on the lamp's cap: lift it off (before lighting) or put it back on
+   *  — a burning flame is smothered. Learn mode keeps the flame going until the
+   *  smear is heat-fixed; the exam allows it (graded at the end). */
+  function toggleLampCap() {
     const store = useLab2DStore.getState();
-    if (!store.state.lamp.lit) return;
+    const { lamp } = store.state;
+    const exam = modeRef.current === "exam";
+    if (!lamp.uncapped) {
+      if (exam) store.applyStepRaw("uncap-lamp");
+      else store.dispatchStep("uncap-lamp");
+      // Outside stage 1 (re-opening later) the engine has no such step → patch.
+      if (!useLab2DStore.getState().state.lamp.uncapped) store.patchState((d) => { d.lamp.uncapped = true; });
+      if (exam) recordAction("uncap-lamp");
+      return;
+    }
+    if (lamp.lit && !exam && store.state.slide.fixPasses < 3) {
+      showToast(tg("spiritLamp.toast.stillNeeded"));
+      return;
+    }
     store.patchState((d) => {
       d.lamp.lit = false;
       d.lamp.uncapped = false;
     });
-    if (modeRef.current === "exam") recordAction("extinguish-lamp");
+    if (exam) recordAction("extinguish-lamp");
   }
 
   function startExam(order: string[]) {
@@ -705,6 +722,12 @@ export function Lab1Workbench() {
   const placedSet = new Set(Object.keys(placed)) as Set<ItemId>;
   const draggingDef = drag ? ITEM_BY_ID[drag.id] : null;
   const hint = nextHint(state);
+  // The lamp ON THE BENCH gets a clickable cap (never the tray preview / ghost).
+  const lampOpts = {
+    onLampCap: toggleLampCap,
+    lampCapHint: !isExam && (hint === "lab1.hint.uncapLamp" || hint === "lab1.hint.extinguish"),
+    lampCapTitle: tg(!state.lamp.uncapped ? "spiritLamp.uncap" : state.lamp.lit ? "spiritLamp.extinguish" : "spiritLamp.cap"),
+  };
   const slidePos = placed["slide"];
   const lampPos = placed["lamp"];
 
@@ -829,7 +852,13 @@ export function Lab1Workbench() {
                       {it.render(state, { binBump })}
                     </div>
                   ) : (
-                    it.render(state, { binBump, tubePlugOff: plugOff, petriLidOff: petriLidOff, trayStained })
+                    it.render(state, {
+                      binBump,
+                      tubePlugOff: plugOff,
+                      petriLidOff: petriLidOff,
+                      trayStained,
+                      ...(it.id === "lamp" ? lampOpts : {}),
+                    })
                   )}
                 </div>
                 {/* Touch rotate control: sits beside the loop (lower-right, clear of
@@ -847,20 +876,6 @@ export function Lab1Workbench() {
                     style={{ left: "calc(50% + 80px)", top: "calc(50% + 54px)", transform: "translate(-50%,-50%)" }}
                   >
                     <span className="inline-block" style={{ transform: `rotate(${loopDeg}deg)`, transition: "transform 0.15s ease" }}>↻</span>
-                  </button>
-                )}
-                {/* Re-cap the lamp to put it out (click the cap). */}
-                {it.id === "lamp" && state.lamp.lit && (
-                  <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      extinguishLamp();
-                    }}
-                    title={tg("lab1.extinguish")}
-                    className="absolute right-0 top-0 z-30 grid h-7 w-7 place-items-center rounded-full bg-slate-700/90 text-[13px] text-white shadow ring-1 ring-white/40 transition hover:bg-slate-800"
-                  >
-                    ✕
                   </button>
                 )}
               </div>

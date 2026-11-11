@@ -52,7 +52,7 @@ export interface Lab5ItemDef {
   hitDY?: number;
   render: (
     state: WetMountState,
-    opts: { loopHeat?: number; slideWarming?: boolean; tubePlugOff?: boolean; filterWet?: boolean; binBump?: number },
+    opts: { loopHeat?: number; slideWarming?: boolean; tubePlugOff?: boolean; filterWet?: boolean; binBump?: number; onLampCap?: () => void; lampCapHint?: boolean; lampCapTitle?: string },
   ) => ReactNode;
 }
 
@@ -119,7 +119,7 @@ export const LAB5_ITEMS: Lab5ItemDef[] = [
     hitH: 78,
     hitDY: -58,
     preview: 0.42,
-    render: (s) => <SpiritLamp uncapped={!s.lamp.capped} lit={s.lamp.lit} />,
+    render: (s, o) => <SpiritLamp uncapped={!s.lamp.capped} lit={s.lamp.lit} onCapClick={o.onLampCap} capHint={o.lampCapHint} capTitle={o.lampCapTitle} />,
   },
   {
     id: "saline",
@@ -224,7 +224,7 @@ export const LAB5_ITEM_BY_ID: Record<Lab5ItemId, Lab5ItemDef> = Object.fromEntri
 export function intentFor(tool: Lab5ItemId, target: Lab5ItemId, s: WetMountState): WetIntent | null {
   if (tool === "match") {
     if (target === "matchbox") return !s.match.struck ? "strike-match" : null;
-    if (target === "lamp") return s.match.lit && !s.lamp.lit ? "light-lamp" : null;
+    if (target === "lamp") return s.match.lit && !s.lamp.lit && !s.lamp.capped ? "light-lamp" : null;
     if (target === "bin") return s.lamp.lit && !s.match.discarded ? "discard-match" : null;
   }
   if (tool === "slide") {
@@ -246,7 +246,8 @@ export function intentFor(tool: Lab5ItemId, target: Lab5ItemId, s: WetMountState
 
 /** Next item the student is expected to use (learn-mode highlight + hint). */
 export function requiredItem(s: WetMountState): Lab5ItemId | null {
-  if (!s.lamp.lit) return "match";
+  if (!s.lamp.lit && s.lamp.capped && !s.match.discarded) return "lamp"; // lift the cap off first
+  if (!s.lamp.lit && !s.match.discarded) return "match";
   if (!s.match.discarded) return "match";
   if (!s.slidePlaced) return "slide";
   if (!s.slideDegreased) return "slide";
@@ -255,6 +256,7 @@ export function requiredItem(s: WetMountState): Lab5ItemId | null {
   if (!s.loopCharged && !s.mixed) return "loop";
   if (!s.mixed) return "loop";
   if (!s.loopResterilized) return "loop"; // re-sterilise the used loop right after the smear
+  if (s.lamp.lit) return "lamp"; // flame work done → cap it to put it out
   if (!s.coverPlaced) return "coverslip";
   if (!s.blotted) return "filter";
   if (!s.observed) return "slide";

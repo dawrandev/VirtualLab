@@ -123,7 +123,9 @@
       "strikeMatch": "Gugurtti qutıǵa ısqalap jaǵıń",
       "lightLamp": "Janıp turǵan gugurt penen spirt lampasın jaǵıń",
       "reflame": "Jaǵıwdan keyin isletilgen ilmekti qayta jalında sterilizaciyalań",
-      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
+      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań",
+      "uncapLamp": "Spirtovkanıń qapaǵın basıp ashıń",
+      "extinguish": "Ot endi kerek emes — spirtovkanıń qapaǵın basıp jabıp óshiriń"
     },
     "toast": {
       "needBridge": "Dáslep shisha kópirdi stolǵa qoyıń",
@@ -217,7 +219,9 @@
       "dipSpreader": "Shpatel ushın spirt bankasına malıń",
       "flameSpreader": "Shpateldi jalında sterilizaciyalań (soń suwıtıń)",
       "chargeSpreader": "Steril shpateldi E. coli kulturasına malıń",
-      "reflameSpreader": "Isletilgen shpateldi jalında qayta sterilizaciyalań"
+      "reflameSpreader": "Isletilgen shpateldi jalında qayta sterilizaciyalań",
+      "uncapLamp": "Spirtovkanıń qapaǵın basıp ashıń",
+      "extinguish": "Ot endi kerek emes — spirtovkanıń qapaǵın basıp jabıp óshiriń"
     },
     "toast": {
       "needLawn": "Dáslep gazon egip qurıtıń hám barlıq disklerdi qoyıń"
@@ -379,7 +383,9 @@
       "disinfect": "Isletilgen shpateldi 5% xlor (dezrastvor) bankasına salıń",
       "disinfectPipette": "Isletilgen pipetkani 5% xlor (dezrastvor) bankasına salıń",
       "done": "Tayar — ıdıslar termostattan alındı, jumıs juwmaqlandı",
-      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań"
+      "discardMatch": "Janıp turǵan gugurtti biohazard ıdısına taslań",
+      "uncapLamp": "Spirtovkanıń qapaǵın basıp ashıń",
+      "extinguish": "Ot endi kerek emes — spirtovkanıń qapaǵın basıp jabıp óshiriń"
     },
     "toast": {
       "needAll3": "Dáslep 3 ıdısqa da súrtiń",
@@ -573,7 +579,9 @@
       "wash": "Suw menen juwıń",
       "blot": "Filtr qaǵazdı ayna ústine basıp qoyıń (ısqalamań)",
       "applyOil": "Immersion mayın tamızıń",
-      "toMicroscope": "Aynanı mikroskopqa alıp barıń"
+      "toMicroscope": "Aynanı mikroskopqa alıp barıń",
+      "uncapLamp": "Spirtovkanıń qapaǵın basıp ashıń",
+      "extinguish": "Ot endi kerek emes — spirtovkanıń qapaǵın basıp jabıp óshiriń"
     },
     "mb": {
       "ready": "Tayar — endi juwıń",
@@ -676,5 +684,22 @@
     "next": "Keyingi",
     "back": "Izge",
     "understand": "Túsindim, baslań"
+  },
+  "spiritLamp": {
+    "uncap": "Qapaǵın ashıw",
+    "cap": "Qapaǵın jabıw",
+    "extinguish": "Qapaǵın jabıp óshiriw",
+    "toast": {
+      "stillNeeded": "Spirtovka ele kerek — ot penen jumıslar pitkennen keyin óshiriń"
+    },
+    "steps": {
+      "card": "Spirtovkanı óshiriw (qapaq penen)",
+      "result": "Ot penen jumıslar pitkennen keyin spirtovkanıń qapaǵın jabıp óshiriw"
+    },
+    "score": {
+      "notLit": "Spirtovka jaǵılmaǵan",
+      "notExtinguished": "Spirtovka óshirilmedi — janıp qaldı",
+      "early": "Spirtovka ot penen jumıslar pitpey turıp óshirilgen"
+    }
   }
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { freshDrigalskiState, applyDrigalskiStep, dishGrowth, type DrigalskiIntent } from "@/labs/lab3/state";
 import { scoreDrigalskiExam, type ExamAction } from "@/labs/lab3/exam/scoring";
 import { MAX_SCORE } from "@/labs/lab3/exam/protocol";
+import { intentFor } from "@/labs/lab3/workbench/items";
 
 function run(steps: DrigalskiIntent[]) {
   let s = freshDrigalskiState();
@@ -16,8 +17,10 @@ function run(steps: DrigalskiIntent[]) {
 
 const PERFECT: DrigalskiIntent[] = [
   "get-dishes",
+  "uncap-lamp",
   "strike-match",
   "light-lamp",
+  "discard-match",
   "dip-spatula",
   "sterilize-spatula",
   "load-pipette",
@@ -26,17 +29,32 @@ const PERFECT: DrigalskiIntent[] = [
   "spread-2",
   "spread-3",
   "disinfect-spatula",
+  "extinguish-lamp",
   "incubate",
 ];
 
 describe("Lab 3 — Drigalski state", () => {
-  it("the lamp is lit by hand: strike the match, then touch the wick", () => {
+  it("the lamp is lit by hand: take the cap off, strike the match, then touch the wick", () => {
     let s = freshDrigalskiState();
     expect(s.lamp.lit).toBe(false);
+    expect(s.lamp.capped).toBe(true);
     s = applyDrigalskiStep(s, "strike-match");
     expect(s.match.lit).toBe(true);
+    // A capped wick can't catch — neither via the reducer nor offered as a target.
+    expect(applyDrigalskiStep(s, "light-lamp").lamp.lit).toBe(false);
+    expect(intentFor("match", "lamp", s)).toBeNull();
+    s = applyDrigalskiStep(s, "uncap-lamp");
+    expect(s.lamp.capped).toBe(false);
+    expect(intentFor("match", "lamp", s)).toBe("light-lamp");
     s = applyDrigalskiStep(s, "light-lamp");
     expect(s.lamp.lit).toBe(true);
+  });
+
+  it("putting the cap back on puts the flame out", () => {
+    let s = run(["uncap-lamp", "strike-match", "light-lamp"]).s;
+    s = applyDrigalskiStep(s, "extinguish-lamp");
+    expect(s.lamp.lit).toBe(false);
+    expect(s.lamp.capped).toBe(true);
   });
 
   it("growth appears only after incubation", () => {
@@ -107,5 +125,34 @@ describe("Lab 3 — exam scoring", () => {
     expect(res.steps.find((x) => x.id === "spread-23")!.status).toBe("zero");
     expect(res.steps.find((x) => x.id === "disinfect")!.status).toBe("zero");
     expect(res.steps.find((x) => x.id === "incubate")!.status).toBe("zero");
+  });
+});
+
+describe("Lab 3 — spirit lamp put out (exam)", () => {
+  const lampOut = (steps: DrigalskiIntent[]) => {
+    const { s, log } = run(steps);
+    return scoreDrigalskiExam(log, s).steps.find((x) => x.id === "lamp-out")!;
+  };
+
+  it("capped after the flame work → full", () => {
+    expect(lampOut(PERFECT).status).toBe("full");
+  });
+
+  it("left burning → zero", () => {
+    const r = lampOut(PERFECT.filter((i) => i !== "extinguish-lamp"));
+    expect(r.status).toBe("zero");
+    expect(r.notes).toContain("spiritLamp.score.notExtinguished");
+  });
+
+  it("capped before the spreading was finished → partial", () => {
+    const early: DrigalskiIntent[] = PERFECT.filter((i) => i !== "extinguish-lamp");
+    early.splice(early.indexOf("spread-2"), 0, "extinguish-lamp");
+    const r = lampOut(early);
+    expect(r.status).toBe("partial");
+    expect(r.notes).toContain("spiritLamp.score.early");
+  });
+
+  it("never lit → zero", () => {
+    expect(lampOut(["get-dishes"]).status).toBe("zero");
   });
 });

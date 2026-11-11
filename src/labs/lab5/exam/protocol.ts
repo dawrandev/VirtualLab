@@ -28,8 +28,8 @@ export const MAIN_STEPS: MainStep[] = [
     id: "saline",
     card: "lab5.steps.salineCard",
     result: "lab5.steps.salineResult",
-    full: 12,
-    partial: 6,
+    full: 8,
+    partial: 4,
   },
   {
     id: "loop",
@@ -42,8 +42,15 @@ export const MAIN_STEPS: MainStep[] = [
     id: "mix",
     card: "lab5.steps.mixCard",
     result: "lab5.steps.mixResult",
-    full: 18,
-    partial: 9,
+    full: 12,
+    partial: 6,
+  },
+  {
+    id: "lamp-out",
+    card: "spiritLamp.steps.card",
+    result: "spiritLamp.steps.result",
+    full: 10,
+    partial: 5,
   },
   {
     id: "cover",

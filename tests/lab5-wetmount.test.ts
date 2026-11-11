@@ -11,11 +11,17 @@ function perfect() {
     s = applyWetStep(s, i);
     log.push({ intent: i, ts: (t += 100) });
   };
+  step("uncap-lamp");
+  step("strike-match");
+  step("light-lamp");
+  step("discard-match");
   step("degrease-slide");
   step("apply-saline");
   step("flame-loop");
   step("charge-loop");
   step("mix-drop");
+  step("flame-loop"); // re-sterilise the used loop
+  step("extinguish-lamp");
   step("place-cover");
   step("blot-excess");
   step("observe");
@@ -88,5 +94,18 @@ describe("Lab 5 — exam scoring", () => {
   it("nothing done → zero", () => {
     const res = scoreWetMountExam([], freshWetMountState());
     expect(res.total).toBe(0);
+  });
+});
+
+describe("Lab 5 — spirit lamp put out (exam)", () => {
+  it("capped before the loop was re-sterilised → partial", () => {
+    let s = freshWetMountState();
+    const log: ExamAction[] = [];
+    let t = 0;
+    for (const i of ["uncap-lamp", "strike-match", "light-lamp", "extinguish-lamp", "flame-loop"] as WetIntent[]) {
+      s = applyWetStep(s, i);
+      log.push({ intent: i, ts: (t += 100) });
+    }
+    expect(scoreWetMountExam(log, s).steps.find((x) => x.id === "lamp-out")!.status).toBe("partial");
   });
 });

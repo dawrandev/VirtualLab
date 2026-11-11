@@ -122,7 +122,9 @@
       "strikeMatch": "Gugurtni qutiga ishqalab yoqing",
       "lightLamp": "Yongan gugurt bilan spirt lampasini yoqing",
       "reflame": "Surtmadan so'ng halqani qaytadan olovda sterillang",
-      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
+      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang",
+      "uncapLamp": "Spirtovka qopqog'ini bosib oching",
+      "extinguish": "Olov endi kerak emas — spirtovka qopqog'ini bosib yopib o'chiring"
     },
     "toast": {
       "needBridge": "Avval shisha ko'prikni stolga qo'ying",
@@ -216,7 +218,9 @@
       "dipSpreader": "Shpatel uchini spirt bankasiga botiring",
       "flameSpreader": "Shpatelni olovda yoqib sterillang (so'ng soviting)",
       "chargeSpreader": "Steril shpatelni E. coli kulturasiga botiring",
-      "reflameSpreader": "Ishlatilgan shpatelni olovda qayta sterillang"
+      "reflameSpreader": "Ishlatilgan shpatelni olovda qayta sterillang",
+      "uncapLamp": "Spirtovka qopqog'ini bosib oching",
+      "extinguish": "Olov endi kerak emas — spirtovka qopqog'ini bosib yopib o'chiring"
     },
     "toast": {
       "needLawn": "Avval gazon ekib quriting va barcha disklarni qo'ying"
@@ -378,7 +382,9 @@
       "disinfect": "Ishlatilgan shpatelni 5% xlor (dezraztvor) bankasiga soling",
       "disinfectPipette": "Ishlatilgan pipetkani 5% xlor (dezraztvor) bankasiga soling",
       "done": "Tayyor — idishlar termostatdan olindi, ish yakunlandi",
-      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang"
+      "discardMatch": "Yongan gugurtni biohazard idishiga tashlang",
+      "uncapLamp": "Spirtovka qopqog'ini bosib oching",
+      "extinguish": "Olov endi kerak emas — spirtovka qopqog'ini bosib yopib o'chiring"
     },
     "toast": {
       "needAll3": "Avval 3 ta idishga ham surting",
@@ -572,7 +578,9 @@
       "wash": "Suv bilan yuving",
       "blot": "Filtr qog'ozni oyna ustiga bosib qo'ying (ishqalamang)",
       "applyOil": "Immersion moyini tomizing",
-      "toMicroscope": "Oynani mikroskopga olib boring"
+      "toMicroscope": "Oynani mikroskopga olib boring",
+      "uncapLamp": "Spirtovka qopqog'ini bosib oching",
+      "extinguish": "Olov endi kerak emas — spirtovka qopqog'ini bosib yopib o'chiring"
     },
     "mb": {
       "ready": "Tayyor — endi yuving",
@@ -682,6 +690,23 @@
     "retryCheck": "Qaytadan tekshir",
     "error": {
       "stageIncomplete": "Bosqich to'liq bajarilmadi"
+    }
+  },
+  "spiritLamp": {
+    "uncap": "Qopqog'ini ochish",
+    "cap": "Qopqog'ini yopish",
+    "extinguish": "Qopqog'ini yopib o'chirish",
+    "toast": {
+      "stillNeeded": "Spirtovka hali kerak — olov bilan ishlar tugagach o'chiring"
+    },
+    "steps": {
+      "card": "Spirtovkani o'chirish (qopqoq bilan)",
+      "result": "Olov bilan ishlar tugagach spirtovkani qopqog'ini yopib o'chirish"
+    },
+    "score": {
+      "notLit": "Spirtovka yoqilmagan",
+      "notExtinguished": "Spirtovka o'chirilmadi — yonib qoldi",
+      "early": "Spirtovka olov bilan ishlar tugamasdan o'chirilgan"
     }
   }
 }

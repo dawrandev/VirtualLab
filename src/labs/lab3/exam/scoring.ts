@@ -1,5 +1,6 @@
 import { MAIN_STEPS, MAX_SCORE } from "./protocol";
-import type { DrigalskiState } from "../state";
+import { gradeLampOut, LAMP_OUT_STEP_ID } from "@/lib/spiritLampScoring";
+import { FLAME_INTENTS, type DrigalskiState } from "../state";
 
 export interface ExamAction {
   intent: string;
@@ -85,6 +86,12 @@ export function scoreDrigalskiExam(log: ExamAction[], s: DrigalskiState): ExamRe
       const afterSpread = firstTs["disinfect-spatula"] != null && firstTs["spread-3"] != null && firstTs["disinfect-spatula"] > firstTs["spread-3"];
       steps.push(grade("disinfect", afterSpread ? "full" : "partial", afterSpread ? [] : ["lab3.score.disinfectEarly"]));
     }
+  }
+
+  // Spirit lamp put out with its cap once the flame work is done
+  {
+    const g = gradeLampOut(log, s.lamp.lit, FLAME_INTENTS);
+    steps.push(grade(LAMP_OUT_STEP_ID, g.status, g.notes));
   }
 
   // 6 — incubate the three plates 18–24 h at 37 °C

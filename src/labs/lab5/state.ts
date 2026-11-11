@@ -23,7 +23,8 @@ export interface WetMountState {
   /** Spirit lamp lit by hand: strike the match, touch the wick, then drop the
    *  burning match into the biohazard bin. */
   match: { struck: boolean; lit: boolean; discarded: boolean };
-  /** Spirit lamp: lit by hand; `capped` = put out by re-capping it at the end. */
+  /** Spirit lamp: starts CAPPED — the student lifts the cap off by hand
+   *  before lighting and puts it back on to put the flame out at the end. */
   lamp: { lit: boolean; capped: boolean };
   /** Passed through the flame to clean/degrease the glass. */
   slideDegreased: boolean;
@@ -51,7 +52,7 @@ export function freshWetMountState(): WetMountState {
   return {
     slidePlaced: false,
     match: { struck: false, lit: false, discarded: false },
-    lamp: { lit: false, capped: false },
+    lamp: { lit: false, capped: true },
     slideDegreased: false,
     salineApplied: false,
     loopFlamed: false,
@@ -67,6 +68,7 @@ export function freshWetMountState(): WetMountState {
 
 export type WetIntent =
   | "strike-match" // match → matchbox
+  | "uncap-lamp" // lift the cap off the lamp by hand (before lighting)
   | "light-lamp" // lit match → lamp
   | "discard-match" // burning match → biohazard bin
   | "degrease-slide" // slide → lamp
@@ -76,7 +78,7 @@ export type WetIntent =
   | "mix-drop" // loop → slide (rub)
   | "place-cover" // cover slip → slide
   | "blot-excess" // filter paper → slide
-  | "extinguish-lamp" // re-cap the spirit lamp by hand to put it out
+  | "extinguish-lamp" // put the cap back on by hand (smothers the flame)
   | "observe"; // slide → microscope
 
 /** Visual stage of the drop on the slide. */
@@ -96,8 +98,11 @@ export function applyWetStep(state: WetMountState, intent: WetIntent): WetMountS
       s.match.struck = true;
       s.match.lit = true;
       break;
+    case "uncap-lamp":
+      s.lamp.capped = false;
+      break;
     case "light-lamp":
-      s.lamp.lit = true;
+      if (!s.lamp.capped) s.lamp.lit = true; // a capped wick can't catch
       break;
     case "extinguish-lamp":
       s.lamp.lit = false;
@@ -141,4 +146,12 @@ export function applyWetStep(state: WetMountState, intent: WetIntent): WetMountS
 /** Whether the prep is ready to put under the microscope. */
 export function canObserve(s: WetMountState): boolean {
   return s.coverPlaced && !s.observed;
+}
+
+/** Intents performed AT the flame — the lamp must stay lit until the last one. */
+export const FLAME_INTENTS: WetIntent[] = ["light-lamp", "degrease-slide", "flame-loop"];
+
+/** All the work that needs the flame is done → the lamp may be put out. */
+export function lampWorkDone(s: WetMountState): boolean {
+  return s.loopResterilized;
 }

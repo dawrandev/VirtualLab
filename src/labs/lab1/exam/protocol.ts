@@ -1,4 +1,8 @@
 import type { Lab2DState } from "@/engine2d/types";
+import { gradeLampOut } from "@/lib/spiritLampScoring";
+
+/** Lab 1 actions performed AT the flame — the lamp must stay lit until the last one. */
+const LAB1_FLAME_INTENTS = ["light-lamp", "sterilize-loop", "resterilize-loop", "flame-fix"];
 
 /**
  * Exam-mode protocol for Lab 1 — methylene-blue simple stain.
@@ -136,7 +140,8 @@ export const DETAIL_RULES: DetailRule[] = [
     id: "lamp-extinguished",
     label: "lab1.detail.lampExtinguished",
     points: 0.2,
-    ok: (c) => c.firstTs["light-lamp"] != null && c.state.lamp.lit === false,
+    // Capped AFTER the last flame action (sterilise / re-sterilise / heat-fix).
+    ok: (c) => gradeLampOut(c.log, c.state.lamp.lit, LAB1_FLAME_INTENTS).status === "full",
   },
   {
     id: "fix-not-overheated",

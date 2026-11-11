@@ -25,8 +25,8 @@ export const MAIN_STEPS: MainStep[] = [
     id: "get-dishes",
     card: "lab3.steps.dishesCard",
     result: "lab3.steps.dishesResult",
-    full: 10,
-    partial: 5,
+    full: 5,
+    partial: 2,
     requires: [],
   },
   {
@@ -41,8 +41,8 @@ export const MAIN_STEPS: MainStep[] = [
     id: "inoculate-1",
     card: "lab3.steps.spread1Card",
     result: "lab3.steps.spread1Result",
-    full: 25,
-    partial: 12,
+    full: 20,
+    partial: 10,
     requires: ["sterilize"],
   },
   {
@@ -60,6 +60,14 @@ export const MAIN_STEPS: MainStep[] = [
     full: 15,
     partial: 7,
     requires: ["spread-23"],
+  },
+  {
+    id: "lamp-out",
+    card: "spiritLamp.steps.card",
+    result: "spiritLamp.steps.result",
+    full: 10,
+    partial: 5,
+    requires: ["disinfect"],
   },
   {
     id: "incubate",

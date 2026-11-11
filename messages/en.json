@@ -127,7 +127,9 @@
       "strikeMatch": "Strike the match on the box",
       "lightLamp": "Light the spirit lamp with the burning match",
       "reflame": "Re-sterilize the used loop in the flame after the smear",
-      "discardMatch": "Drop the burning match into the biohazard bin"
+      "discardMatch": "Drop the burning match into the biohazard bin",
+      "uncapLamp": "Click the spirit lamp's cap to take it off",
+      "extinguish": "The flame is no longer needed — click the cap to put the lamp out"
     },
     "toast": {
       "needBridge": "First place the glass bridge on the bench",
@@ -221,7 +223,9 @@
       "dipSpreader": "Dip the spreader's working end in alcohol",
       "flameSpreader": "Flame the spreader sterile (then let it cool)",
       "chargeSpreader": "Charge the sterile spreader from the E. coli culture",
-      "reflameSpreader": "Re-sterilise the used spreader in the flame"
+      "reflameSpreader": "Re-sterilise the used spreader in the flame",
+      "uncapLamp": "Click the spirit lamp's cap to take it off",
+      "extinguish": "The flame is no longer needed — click the cap to put the lamp out"
     },
     "toast": {
       "needLawn": "First swab the lawn, dry it and place all the disks"
@@ -383,7 +387,9 @@
       "disinfect": "Drop the used spreader into the 5% chlorine disinfectant",
       "disinfectPipette": "Drop the used pipette into the 5% chlorine disinfectant",
       "done": "Done — the plates are out of the thermostat, work complete",
-      "discardMatch": "Drop the burning match into the biohazard bin"
+      "discardMatch": "Drop the burning match into the biohazard bin",
+      "uncapLamp": "Click the spirit lamp's cap to take it off",
+      "extinguish": "The flame is no longer needed — click the cap to put the lamp out"
     },
     "toast": {
       "needAll3": "First spread onto all 3 dishes",
@@ -577,7 +583,9 @@
       "wash": "Wash with water",
       "blot": "Press the filter paper onto the slide (don't rub)",
       "applyOil": "Apply immersion oil",
-      "toMicroscope": "Take the slide to the microscope"
+      "toMicroscope": "Take the slide to the microscope",
+      "uncapLamp": "Click the spirit lamp's cap to take it off",
+      "extinguish": "The flame is no longer needed — click the cap to put the lamp out"
     },
     "mb": {
       "ready": "Ready — now wash",
@@ -664,6 +672,23 @@
       "detailIgnored": "not observed",
       "penalty": "Improper actions: −{p} points",
       "grossItem": "{g} — done without preparation"
+    }
+  },
+  "spiritLamp": {
+    "uncap": "Take the cap off",
+    "cap": "Put the cap on",
+    "extinguish": "Put the cap on to put it out",
+    "toast": {
+      "stillNeeded": "The lamp is still needed — put it out once the flame work is done"
+    },
+    "steps": {
+      "card": "Put out the spirit lamp (with the cap)",
+      "result": "Put out the spirit lamp with its cap once the flame work is done"
+    },
+    "score": {
+      "notLit": "The spirit lamp was never lit",
+      "notExtinguished": "The spirit lamp was not put out — left burning",
+      "early": "The spirit lamp was put out before the flame work was done"
     }
   }
 }
